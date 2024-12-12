@@ -8,4 +8,6 @@ export class JobRepository {
 			console.error('Error in JobRepository.findAll: ', error);
 		}
 	}
+
+	static async scrapeJobs() {}
 }

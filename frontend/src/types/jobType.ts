@@ -14,14 +14,14 @@ export type JobResponse = {
   title: string;
   location: string;
   date: string;
-  jobUrl: string;
-  jobPostingId: string;
-  isApplied: boolean;
-  isOffered: boolean;
+  job_url: string;
+  job_posting_id: string;
+  is_applied: boolean;
+  is_offered: boolean;
 };
 
 export type JobDescriptionResponse = {
   id: string;
-  jobPostingId: string;
-  jobDescription: string;
+  job_posting_id: string;
+  job_description: string;
 };

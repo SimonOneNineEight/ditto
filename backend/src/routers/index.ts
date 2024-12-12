@@ -1,3 +1,3 @@
-import jobRouter from './jobRouter';
+import jobRouter from './JobRouter';
 
 export { jobRouter };

@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 
 app.use(express.json());
 
-app.get('/', async (req: Request, res: Response) => {
+app.get('/', async (_: Request, res: Response) => {
 	const jobsCount = await prisma.jobs.count();
 	res.send(`Hello, ditto! jobsCount = ${jobsCount}`);
 });
