@@ -1,5 +1,4 @@
 "use client"
-
 import Link from "next/link"
 import { ColumnDef } from "@tanstack/react-table"
 import { JobTableRow } from "@/types"
@@ -34,7 +33,7 @@ export const columns: ColumnDef<JobTableRow>[] = [
         accessorKey: "jobUrl",
         header: "Job Url",
         cell: ({ row }) => {
-            return (<Link href={row.jobUrl}><Button>Visit Job</Button></Link>)
+            return (<Link href={row.original.jobUrl}><Button>Visit Job</Button></Link>)
         }
     }
 

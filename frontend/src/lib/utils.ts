@@ -8,8 +8,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const convertJobResponseToTableRow = (
-  jobResponse: JobResponse[],
+  jobResponse: JobResponse[] | null = [],
 ): JobTableRow[] => {
+  if (!jobResponse || jobResponse.length === 0) return [];
   // export type JobTableRow = {
   //   id: string;
   //   company: string;
@@ -43,5 +44,19 @@ export const convertJobResponseToTableRow = (
       is_applied,
       is_offered,
     } = job;
+
+    return {
+      id,
+      company,
+      title,
+      location,
+      date,
+      applyStatus: is_applied
+        ? "Applied"
+        : is_offered
+          ? "Offered"
+          : "Not Applied",
+      jobUrl,
+    };
   });
 };
