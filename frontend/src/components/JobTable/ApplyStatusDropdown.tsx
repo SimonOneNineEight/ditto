@@ -19,7 +19,7 @@ const dropdownItems = [
     { id: 'not_applied', label: 'Not Applied' },
     { id: 'offered', label: 'Offered' },
     { id: 'interviewing', label: 'Interviewing' },
-    { id: 'waiting', label: 'waiting' }
+    { id: 'waiting', label: 'Waiting' }
 ]
 
 const statusLabelMap = {

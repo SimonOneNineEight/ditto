@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        DATABASE_URL: postgresql://simon198:ss121549@db:5432/timburr
+    ports:
+      - "8081:8081"
+    environment:
+      DATABASE_URL: postgresql://simon198:ss121549@db:5432/timburr
+      TIMBURR_URL: "http://scrape-service:8082"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      NEXT_PUBLIC_API_URL: "http://backend:8081"
+
+  scrape-service:
+    build:
+      context: ./services/scrape-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      DATABASE_URL: postgresql://simon198:ss121549@db:5432/timburr
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: simon198
+      POSTGRES_PASSWORD: ss121549
+      POSTGRES_DB: timburr
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:

@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { jobRouter } from './routers';
 
 const app = express();
-const PORT = 8082;
+const PORT = 8081;
 
 const prisma = new PrismaClient();
 
