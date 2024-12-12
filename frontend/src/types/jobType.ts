@@ -15,13 +15,13 @@ export type JobResponse = {
   location: string;
   date: string;
   jobUrl: string;
-  job_post_id: string;
-  is_applied: boolean;
-  is_offered: boolean;
+  jobPostingId: string;
+  isApplied: boolean;
+  isOffered: boolean;
 };
 
 export type JobDescriptionResponse = {
   id: string;
-  job_post_id: string;
-  job_description: string;
+  jobPostingId: string;
+  jobDescription: string;
 };

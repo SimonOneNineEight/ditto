@@ -18,8 +18,6 @@ const JobTable = <TData, TValue>({ columns, data }: JobTableProps<TData, TValue>
         getCoreRowModel: getCoreRowModel(),
     })
 
-    console.log(data);
-
     return (
         <div className="mb-4">
             <Table>
