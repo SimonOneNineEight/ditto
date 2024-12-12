@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +5,42 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model alembic_version {
+  version_num String @id(map: "alembic_version_pkc") @db.VarChar(32)
+}
+
+model job_descriptions {
+  id              Int    @id @default(autoincrement()) @db.Integer
+  job_id          Int?   @unique(map: "ix_job_descriptions_job_id")
+  job_description String?   @db.VarChar(255)
+  created_at      DateTime? @db.Timestamp(6)
+  updated_at      DateTime? @db.Timestamp(6)
+  jobs            jobs?     @relation(fields: [job_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([id], map: "ix_job_descriptions_id")
+}
+
+model jobs {
+  id               Int            @id @default(autoincrement())
+  title            String?           @db.VarChar(255)
+  company          String?           @db.VarChar(255)
+  location         String?           @db.VarChar(255)
+  job_posting_id   String?           @db.VarChar(255)
+  job_url          String?           @db.VarChar(255)
+  date             DateTime?         @db.Timestamp(6)
+  is_applied       Boolean?
+  apply_status     String?           @db.VarChar(255)
+  is_offered       Boolean?
+  created_at       DateTime?         @db.Timestamp(6)
+  updated_at       DateTime?         @db.Timestamp(6)
+  job_descriptions job_descriptions?
+
+  @@index([company], map: "ix_jobs_company")
+  @@index([date], map: "ix_jobs_date")
+  @@index([id], map: "ix_jobs_id")
+  @@index([job_posting_id], map: "ix_jobs_job_posting_id")
+  @@index([location], map: "ix_jobs_location")
+  @@index([title], map: "ix_jobs_title")
 }
