@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
-import prisma from '../prisma/prismaClient';
-import { JobService } from '@/services/JobServices';
+import { JobServices } from '@/services';
 
 export const getAllJobs = async (req: Request, res: Response) => {
 	try {
-		const jobs = await JobService.findAllJobs();
+		const jobs = await JobServices.findAllJobs();
 		res.status(200).json(jobs);
 	} catch (error) {
 		console.error(error);

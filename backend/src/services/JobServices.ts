@@ -1,13 +1,9 @@
 import { JobRepository } from '@/models/repositories/JobRepository';
 
-export class JobService {
-	private jobRepository: JobRepository;
+const jobServices = {
+	findAllJobs: async () => {
+		return JobRepository.findAll();
+	},
+};
 
-	constructor() {
-		this.jobRepository = new JobRepository();
-	}
-
-	async getAllJobs() {
-		return await this.jobRepository.findAll();
-	}
-}
+export default jobServices;

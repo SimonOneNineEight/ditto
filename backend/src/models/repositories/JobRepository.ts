@@ -1,7 +1,11 @@
 import prisma from '@/config/prisma';
 
 export class JobRepository {
-	async findAll() {
-		return await prisma.jobs.findMany();
+	static async findAll() {
+		try {
+			return await prisma.jobs.findMany();
+		} catch (error) {
+			console.error('Error in JobRepository.findAll: ', error);
+		}
 	}
 }
