@@ -1,4 +1,13 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Date, Boolean, event
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Date,
+    Boolean,
+    event,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, UTC
 
@@ -15,10 +24,12 @@ class Job(Base):
     location = Column(String, index=True)
     job_posting_id = Column(String, index=True)
     job_url = Column(String)
-    date = Column(Date, index=True)
+    date = Column(DateTime, index=True)
     is_applied = Column(Boolean)
     apply_status = Column(String)
     is_offered = Column(Boolean)
+    created_at = Column(DateTime(timezone=True))
+    updated_at = Column(DateTime(timezone=True))
 
     job_description = relationship(
         "JobDescription",
@@ -46,6 +57,7 @@ class JobDescription(Base):
 def set_created_at(mapper, connection, target):
     target.created_at = datetime.now(UTC)
     target.updated_at = datetime.now(UTC)
+    target.apply_status = "not_applied"
 
 
 @event.listens_for(Job, "before_update")
