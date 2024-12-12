@@ -1,21 +1,51 @@
 "use client"
 
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { useState } from 'react'
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable, TableMeta, RowData } from "@tanstack/react-table"
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
+import { jobService } from "@/services/jobService"
+import { JobTableRow } from '@/types'
+import { convertJobResponseToTableRow } from "@/lib/utils"
 
 
-interface JobTableProps<TData, TValue> {
-    columns: ColumnDef<TData, TValue>[],
-    data: TData[]
+interface JobTableProps {
+    columns: ColumnDef<JobTableRow, any>[],
+    data: JobTableRow[]
+}
+
+declare module "@tanstack/react-table" {
+    interface TableMeta<TData extends RowData> {
+        handleStatusChange?: (id: string, newStatus: string) => Promise<void>
+    }
 }
 
 
-const JobTable = <TData, TValue>({ columns, data }: JobTableProps<TData, TValue>) => {
+const JobTable = ({ columns, data }: JobTableProps) => {
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [jobs, setJobs] = useState(data);
+
+    const handleStatusChange = async (id: string, newStatus: string) => {
+        setIsLoading(true);
+        try {
+            await jobService.handleStatusChange(id, newStatus);
+            const newData = await jobService.getAllJobs();
+            setJobs(convertJobResponseToTableRow(newData));
+        } catch (error) {
+            console.error('Status change failed: ', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     const table = useReactTable({
-        data,
+        data: jobs,
         columns,
         getCoreRowModel: getCoreRowModel(),
+        meta: {
+            handleStatusChange
+        }
     })
 
     return (
@@ -61,7 +91,7 @@ const JobTable = <TData, TValue>({ columns, data }: JobTableProps<TData, TValue>
                     }
                 </TableBody>
                 <TableFooter>
-                    <TableCell colSpan={4}>Total</TableCell>
+                    <TableCell colSpan={6}>Total</TableCell>
                     <TableCell className="text-right">{data.length}</TableCell>
                 </TableFooter>
             </Table>

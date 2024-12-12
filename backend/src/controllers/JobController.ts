@@ -22,3 +22,16 @@ export const syncNewJobs = async (_: Request, res: Response) => {
 		res.status(500).json({ error: 'Failed to sync new jobs' });
 	}
 };
+
+export const updateJobStatus = async (req: Request, res: Response) => {
+	const { id } = req.params;
+	const { status } = req.body;
+
+	try {
+		const updatedJob = await JobServices.updateJobStatus(id, status);
+		res.status(200).json(updatedJob);
+	} catch (error) {
+		console.error('Error updating job status: ', error);
+		res.status(500).json({ error: 'Failed to update job status' });
+	}
+};

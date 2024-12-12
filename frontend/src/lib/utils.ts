@@ -34,16 +34,7 @@ export const convertJobResponseToTableRow = (
   //   offered: boolean;
   // };
   return jobResponse.map((job: JobResponse): JobTableRow => {
-    const {
-      id,
-      company,
-      title,
-      location,
-      date,
-      job_url,
-      is_applied,
-      is_offered,
-    } = job;
+    const { id, company, title, location, date, job_url, apply_status } = job;
 
     return {
       id,
@@ -51,11 +42,7 @@ export const convertJobResponseToTableRow = (
       title,
       location,
       date,
-      applyStatus: is_applied
-        ? "Applied"
-        : is_offered
-          ? "Offered"
-          : "Not Applied",
+      applyStatus: apply_status,
       jobUrl: job_url,
     };
   });

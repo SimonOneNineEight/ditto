@@ -8,10 +8,6 @@ export default async function Home() {
     const jobs = await jobService.getAllJobs();
     const job_rows: JobTableRow[] = convertJobResponseToTableRow(jobs)
 
-    if (jobs) {
-        console.log(jobs);
-        console.log(jobs.map(j => j.job_posting_id));
-    }
     return (
         <div className="p-4 flex flex-col gap-8 row-start-2 items-center mx-8">
             <main className="max-w-[1440px] w-full">

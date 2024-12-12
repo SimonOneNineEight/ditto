@@ -1,7 +1,13 @@
 import timburr_api from '@/config/axios';
 import { JobRepository } from '@/models/repositories/JobRepository';
 
-const jobServices = {
+interface JobServicesType {
+	findAllJobs: () => Promise<any>;
+	syncNewJobs: () => Promise<{ status: string; data: any }>;
+	updateJobStatus: (id: string, status: string) => Promise<any>;
+}
+
+const jobServices: JobServicesType = {
 	findAllJobs: async () => {
 		return JobRepository.findAll();
 	},
@@ -16,6 +22,15 @@ const jobServices = {
 		} catch (error) {
 			throw error;
 		}
+	},
+	updateJobStatus: async (id: string, status: string) => {
+		try {
+			const updatedJob = await JobRepository.updateStatus(id, status);
+
+			return {
+				data: updatedJob,
+			};
+		} catch {}
 	},
 };
 

@@ -18,6 +18,7 @@ export type JobResponse = {
   job_posting_id: string;
   is_applied: boolean;
   is_offered: boolean;
+  apply_status: string;
 };
 
 export type JobDescriptionResponse = {
