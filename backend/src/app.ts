@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 
-import { jobRouter } from './routers';
+import { jobRouter, userRouter } from './routers';
 
 const app = express();
 const PORT = 8081;
@@ -33,6 +33,7 @@ app.get('/', async (_: Request, res: Response) => {
 });
 
 app.use('/jobs', jobRouter);
+app.use('/users', userRouter);
 
 app.listen(PORT, () => {
 	console.log(`Server is running at http://localhost:${PORT}`);
