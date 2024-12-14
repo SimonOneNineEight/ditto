@@ -7,6 +7,7 @@ import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, Tabl
 import { jobService } from "@/services/jobService"
 import { JobTableRow } from '@/types'
 import { convertJobResponseToTableRow } from "@/lib/utils"
+import { ScrapeButton } from '.'
 
 
 interface JobTableProps {
@@ -24,7 +25,7 @@ declare module "@tanstack/react-table" {
 const JobTable = ({ columns, data }: JobTableProps) => {
 
     const [isLoading, setIsLoading] = useState(false);
-    const [jobs, setJobs] = useState(data);
+    const [jobs, setJobs] = useState<JobTableRow[]>(data || []);
 
     const handleStatusChange = async (id: string, newStatus: string) => {
         setIsLoading(true);
@@ -50,6 +51,9 @@ const JobTable = ({ columns, data }: JobTableProps) => {
 
     return (
         <div className="mb-4">
+            <div>
+                <ScrapeButton setJobs={setJobs} />
+            </div>
             <Table>
                 <TableCaption>Keep going and you will find the place you belong</TableCaption>
                 <TableHeader>
@@ -91,8 +95,10 @@ const JobTable = ({ columns, data }: JobTableProps) => {
                     }
                 </TableBody>
                 <TableFooter>
-                    <TableCell colSpan={6}>Total</TableCell>
-                    <TableCell className="text-right">{data.length}</TableCell>
+                    <TableRow>
+                        <TableCell colSpan={6}>Total</TableCell>
+                        <TableCell className="text-right">{data.length}</TableCell>
+                    </TableRow>
                 </TableFooter>
             </Table>
         </div>

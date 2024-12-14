@@ -26,6 +26,7 @@ export const syncNewJobs = async (_: Request, res: Response) => {
 export const updateJobStatus = async (req: Request, res: Response) => {
 	const { id } = req.params;
 	const { status } = req.body;
+	console.log(id, status);
 
 	try {
 		const updatedJob = await JobServices.updateJobStatus(id, status);

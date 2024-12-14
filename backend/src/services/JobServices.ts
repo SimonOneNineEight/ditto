@@ -13,8 +13,10 @@ const jobServices: JobServicesType = {
 	},
 	syncNewJobs: async () => {
 		try {
+			console.log('call timburr');
 			const result = await timburr_api.get('/api/sync-new-jobs');
 
+			console.log('result: ', result);
 			return {
 				status: 'success',
 				data: result.data,

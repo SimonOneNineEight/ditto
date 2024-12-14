@@ -13,7 +13,7 @@ def get_new_jobs(db: Session):
 
     existing_jobs = JobRepository.get_all_jobs(db)
 
-    if not scrape_jobs:
+    if not scraped_jobs:
         logging.warning("No Job Scrapped!")
         return {"count": 0, "new_jobs": []}
 

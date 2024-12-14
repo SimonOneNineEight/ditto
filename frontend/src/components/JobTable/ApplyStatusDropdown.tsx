@@ -8,12 +8,6 @@ import { Button } from "@/components/ui/button"
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-interface ApplyStatusDropdownProps {
-    status: string;
-    id: string;
-    onStatusChange?: (id: string, newStatus: string) => Promise<void>
-}
-
 const dropdownItems = [
     { id: 'applied', label: 'Applied' },
     { id: 'not_applied', label: 'Not Applied' },
@@ -21,6 +15,8 @@ const dropdownItems = [
     { id: 'interviewing', label: 'Interviewing' },
     { id: 'waiting', label: 'Waiting' }
 ]
+
+type Status = typeof dropdownItems[number]['id']
 
 const statusLabelMap = {
     not_applied: "Not Applied",
@@ -30,9 +26,14 @@ const statusLabelMap = {
     waiting: "Waiting"
 }
 
-const ApplyStatusDropDown = ({ id, status, onStatusChange }: ApplyStatusDropdownProps) => {
-    console.log(status);
-    status = status ?? 'not_applied';
+interface ApplyStatusDropdownProps {
+    status: Status;
+    id: string;
+    onStatusChange?: (id: string, newStatus: string) => Promise<void>
+}
+
+
+const ApplyStatusDropDown = ({ id, status = 'not_applied', onStatusChange }: ApplyStatusDropdownProps) => {
     const handleChange = async (newStatus: string) => {
         try {
             if (onStatusChange) {
