@@ -1,23 +1,25 @@
 import logging
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.functions import current_time
 
 from app.exceptions import JobNotFoundError, ScrapeFailedError
 from app.services.linkedin_scraper import get_job_description, scrape_jobs
 from app.repositories.job_repository import JobRepository
+from app.utils import is_job_exist
 
 
 def get_new_jobs(db: Session):
     scraped_jobs = scrape_jobs()
 
-    existing_job_ids = JobRepository.get_all_job_posting_ids(db)
+    existing_jobs = JobRepository.get_all_jobs(db)
 
-    if not scrape_jobs:
+    if not scraped_jobs:
         logging.warning("No Job Scrapped!")
         return {"count": 0, "new_jobs": []}
 
-    new_jobs = [
-        job for job in scraped_jobs if job["job_posting_id"] not in existing_job_ids
-    ]
+    new_jobs = [job for job in scraped_jobs if not is_job_exist(job, existing_jobs)]
+
+    new_jobs.sort(key=lambda x: x.get("date", current_time), reverse=True)
 
     new_jobs = JobRepository.create_jobs(db, new_jobs)
 

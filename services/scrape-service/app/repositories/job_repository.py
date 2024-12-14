@@ -34,7 +34,6 @@ class JobRepository:
 
         db.add_all(jobs_data)
         db.commit()
-        # db.refresh(jobs_data)
 
         return jobs_data
 

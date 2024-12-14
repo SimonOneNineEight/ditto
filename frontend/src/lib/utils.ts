@@ -8,40 +8,20 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const convertJobResponseToTableRow = (
-  jobResponse: JobResponse[],
+  jobResponse: JobResponse[] | null = [],
 ): JobTableRow[] => {
-  // export type JobTableRow = {
-  //   id: string;
-  //   company: string;
-  //   title: string;
-  //   location: string;
-  //   date: string;
-  //   applyStatus: string;
-  //   jobUrl: string;
-  // };
-  //
-  // export type JobResponse = {
-  //   id: string;
-  //   company: string;
-  //   title: string;
-  //   location: string;
-  //   date: string;
-  //   jobUrl: string;
-  //   job_post_id: string;
-  //   applyStatus: string;
-  //   applied: boolean;
-  //   offered: boolean;
-  // };
+  if (!jobResponse || jobResponse.length === 0) return [];
   return jobResponse.map((job: JobResponse): JobTableRow => {
-    const {
+    const { id, company, title, location, date, job_url, apply_status } = job;
+
+    return {
       id,
       company,
       title,
       location,
       date,
-      jobUrl,
-      is_applied,
-      is_offered,
-    } = job;
+      applyStatus: apply_status,
+      jobUrl: job_url,
+    };
   });
 };
