@@ -1,7 +1,7 @@
 use axum::Router;
 use tower_http::cors::{Any, CorsLayer};
 
-use backend::routes;
+use crate::routes;
 
 pub fn create_app() -> Router {
     Router::new()

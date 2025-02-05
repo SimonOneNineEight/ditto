@@ -43,7 +43,7 @@ pub struct RegisterUserRequest {
     pub password: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PublicUser {
     pub id: Uuid,
     pub name: String,

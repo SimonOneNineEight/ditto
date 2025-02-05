@@ -1,11 +1,10 @@
-use app::create_app;
 use axum::Extension;
+use backend::app::create_app;
 use listenfd::ListenFd;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
 use tracing_subscriber::FmtSubscriber;
 
-mod app;
 mod db;
 mod models;
 

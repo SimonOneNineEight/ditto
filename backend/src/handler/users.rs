@@ -1,4 +1,5 @@
-use axum::{http::StatusCode, Extension, Json};
+use axum::{Extension, Json};
+use hyper::StatusCode;
 use sqlx::PgPool;
 use validator::Validate;
 
@@ -7,12 +8,13 @@ use crate::{
     db::users::{email_exists, insert_user},
     error::{app_error::AppError, user_error::UserError},
     models::users::{NewUser, PublicUser, RegisterUserRequest},
+    utils::response::ApiResponse,
 };
 
 pub async fn register_user(
     Extension(pool): Extension<PgPool>,
     Json(payload): Json<RegisterUserRequest>,
-) -> Result<Json<PublicUser>, AppError> {
+) -> Result<ApiResponse<PublicUser>, AppError> {
     payload.validate().map_err(UserError::from)?;
 
     if email_exists(&pool, &payload.email).await? {
@@ -34,15 +36,18 @@ pub async fn register_user(
 
     let user = insert_user(&pool, new_user).await?;
 
-    Ok(Json(PublicUser {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        auth_provider: user.auth_provider,
-        auth_provider_id: user.auth_provider_id,
-        avatar_url: user.avatar_url,
-        role: user.role,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-    }))
+    Ok(ApiResponse::success(
+        StatusCode::CREATED,
+        PublicUser {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            auth_provider: user.auth_provider,
+            auth_provider_id: user.auth_provider_id,
+            avatar_url: user.avatar_url,
+            role: user.role,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+        },
+    ))
 }
