@@ -32,17 +32,6 @@ pub struct NewUser {
     pub role: String,
 }
 
-#[derive(Debug, Deserialize, Validate)]
-pub struct RegisterUserRequest {
-    pub name: String,
-
-    #[validate(email)]
-    pub email: String,
-
-    #[validate(length(min = 8, message = "Password must be at least 8 characters long"))]
-    pub password: String,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PublicUser {
     pub id: Uuid,
@@ -54,4 +43,33 @@ pub struct PublicUser {
     pub role: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+}
+
+const MIN_PASSWORD_LENGTH: u64 = 8;
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct RegisterUserRequest {
+    pub name: String,
+
+    #[validate(email)]
+    pub email: String,
+
+    #[validate(length(min = MIN_PASSWORD_LENGTH, message = "Password must be at least 8 characters long"))]
+    pub password: String,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct LoginRequest {
+    #[validate(email)]
+    pub email: String,
+
+    #[validate(length(min = MIN_PASSWORD_LENGTH, message = "Password must be at least 8 characters long"))]
+    pub password: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct LoginResponse {
+    pub access_token: String,
+    pub refresh_token: String,
+    pub token_type: String,
 }

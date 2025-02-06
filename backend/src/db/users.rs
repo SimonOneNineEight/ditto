@@ -44,3 +44,11 @@ pub async fn email_exists(pool: &PgPool, email: &str) -> Result<bool, sqlx::Erro
 
     Ok(result.unwrap_or(false))
 }
+
+pub async fn get_user_by_email(pool: &PgPool, email: &str) -> Result<Option<User>, sqlx::Error> {
+    let user = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", email)
+        .fetch_optional(pool)
+        .await?;
+
+    Ok(user)
+}
