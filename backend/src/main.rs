@@ -1,5 +1,8 @@
+use std::{env, sync::Arc};
+
 use axum::Extension;
-use backend::app::create_app;
+use backend::{app::create_app, utils::state::AppState};
+use dotenvy::dotenv;
 use listenfd::ListenFd;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -10,21 +13,23 @@ mod models;
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
+
     let subscriber = FmtSubscriber::builder().finish();
 
     tracing::subscriber::set_global_default(subscriber).expect("Failed to set logger!");
 
     tracing::info!("Starting the Axum server...");
 
-    //TODO: Connect to database
-    //
-    let db_pool: PgPool = db::connection::connect()
+    let db_pool = db::connection::connect()
         .await
         .expect("Failed to connect to database");
 
     tracing::info!("Connected to database");
 
-    let app = create_app().layer(Extension(db_pool.clone()));
+    let app_state = Arc::new(AppState { db: db_pool });
+
+    let app = create_app(app_state.clone());
 
     let mut listenfd = ListenFd::from_env();
     let listener = match listenfd.take_tcp_listener(0).unwrap() {

@@ -41,3 +41,6 @@ impl<T: Serialize> ApiResponse<T> {
         }
     }
 }
+
+#[derive(Serialize)]
+pub struct EmptyResponse {}

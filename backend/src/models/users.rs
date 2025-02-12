@@ -15,6 +15,8 @@ pub struct User {
     pub auth_provider: String,
     pub auth_provider_id: Option<String>,
     pub avatar_url: Option<String>,
+    pub refresh_token: Option<String>,
+    pub refresh_token_expires_at: Option<NaiveDateTime>,
     pub role: String,
 
     pub created_at: NaiveDateTime,
@@ -72,4 +74,9 @@ pub struct LoginResponse {
     pub access_token: String,
     pub refresh_token: String,
     pub token_type: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RefreshTokenRequest {
+    pub refresh_token: String,
 }

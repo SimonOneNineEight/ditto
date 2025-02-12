@@ -6,6 +6,8 @@ CREATE TABLE users (
     auth_provider TEXT NOT NULL DEFAULT 'email',
     auth_provider_id TEXT UNIQUE NULL,
     avatar_url TEXT NULL,
+    refresh_token TEXT NULL,
+    refresh_token_expires_at TIMESTAMP NULL,
     role TEXT NOT NULL DEFAULT 'user',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

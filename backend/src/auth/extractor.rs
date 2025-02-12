@@ -3,13 +3,14 @@ use axum_extra::{
     headers::{authorization::Bearer, Authorization},
     TypedHeader,
 };
+use uuid::Uuid;
 
 use crate::error::{app_error::AppError, user_error::UserError};
 
 use super::jwt::validate_token;
 
 pub struct AuthenticatedUser {
-    pub user_id: String,
+    pub user_id: Uuid,
 }
 
 impl<S> FromRequestParts<S> for AuthenticatedUser
@@ -25,8 +26,12 @@ where
 
         let claims = validate_token(bearer.token())?;
 
-        Ok(AuthenticatedUser {
-            user_id: claims.sub,
-        })
+        if claims.token_type != "access" {
+            return Err(UserError::Unauthorized.into());
+        }
+
+        let user_id = Uuid::parse_str(&claims.sub).map_err(|_| UserError::InvalidCredentials)?;
+
+        Ok(AuthenticatedUser { user_id })
     }
 }

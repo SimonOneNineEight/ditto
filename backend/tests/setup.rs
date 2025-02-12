@@ -1,8 +1,8 @@
 use dotenvy::dotenv;
 use sqlx::{migrate::Migrator, postgres::PgPoolOptions, Executor, PgPool};
-use std::{env, path::Path};
+use std::{env, path::Path, sync::Arc};
 
-use backend::app::create_app;
+use backend::{app::create_app, utils::state::AppState};
 
 pub async fn setup_test_db() -> PgPool {
     dotenv().ok(); // ✅ Load .env (including TEST_DATABASE_URL)
@@ -28,5 +28,7 @@ pub async fn setup_test_db() -> PgPool {
 
 pub async fn setup_test_app() -> axum::Router {
     let db = setup_test_db().await;
-    create_app().layer(axum::Extension(db))
+
+    let app_state = Arc::new(AppState { db });
+    create_app(app_state)
 }

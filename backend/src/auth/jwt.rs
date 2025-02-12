@@ -7,7 +7,10 @@ use std::{
 };
 use uuid::Uuid;
 
-use crate::error::{app_error::AppError, user_error::UserError};
+use crate::{
+    config::constants::{ACCESS_TOKEN_EXPIRATION, REFRESH_TOKEN_EXPIRATION},
+    error::{app_error::AppError, user_error::UserError},
+};
 
 struct Keys {
     encoding: EncodingKey,
@@ -24,7 +27,7 @@ impl Keys {
 }
 
 static KEYS: LazyLock<Keys> = LazyLock::new(|| {
-    let secret = env::var("JWT_SECERT").expect("JWT_SECRET must be set");
+    let secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
     Keys::new(secret.as_bytes())
 });
 
@@ -35,11 +38,13 @@ pub struct Claims {
     pub expire: usize,
 }
 
-pub fn generate_token(
-    user_id: Uuid,
-    token_type: &str,
-    experiation_seconds: usize,
-) -> Result<String, AppError> {
+pub fn generate_token(user_id: Uuid, token_type: &str) -> Result<String, AppError> {
+    let expiration_seconds = match token_type {
+        "access" => ACCESS_TOKEN_EXPIRATION,
+        "refresh" => REFRESH_TOKEN_EXPIRATION,
+        _ => return Err(UserError::Unauthorized.into()),
+    };
+
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -48,7 +53,7 @@ pub fn generate_token(
     let claims = Claims {
         sub: user_id.to_string(),
         token_type: token_type.to_string(),
-        expire: (now as usize) + experiation_seconds,
+        expire: (now as usize) + expiration_seconds,
     };
 
     encode(&Header::default(), &claims, &KEYS.encoding).map_err(|_| AppError::InternalServerError)

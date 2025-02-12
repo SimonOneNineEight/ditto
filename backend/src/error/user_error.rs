@@ -10,6 +10,7 @@ use crate::utils::response::ApiResponse;
 pub enum UserError {
     InvalidCredentials,
     EmailAlreadyExists,
+    Unauthorized,
     ValidationError(ValidationErrors),
 }
 
@@ -30,6 +31,7 @@ impl IntoResponse for UserError {
                 (StatusCode::CONFLICT, "Email already registered".to_string())
             }
             UserError::ValidationError(errors) => (StatusCode::BAD_REQUEST, errors.to_string()),
+            UserError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized".to_string()),
         };
 
         ApiResponse::<()>::error(status, message).into_response()
