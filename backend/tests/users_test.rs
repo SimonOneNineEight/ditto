@@ -534,6 +534,26 @@ async fn test_get_me_success() {
     assert_eq!(user_response["data"]["name"], "Linda");
 }
 
+#[tokio::test]
+async fn test_get_me_fail_no_token() {
+    let app = setup::setup_test_app().await;
+
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/me")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
 async fn test_get_me_invalid_token() {
     let app = setup_test_app().await;
 
