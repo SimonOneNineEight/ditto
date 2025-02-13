@@ -30,6 +30,8 @@ where
             return Err(UserError::Unauthorized.into());
         }
 
+        println!("{:?}", claims);
+
         let user_id = Uuid::parse_str(&claims.sub).map_err(|_| UserError::InvalidCredentials)?;
 
         Ok(AuthenticatedUser { user_id })

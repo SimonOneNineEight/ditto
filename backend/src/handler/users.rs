@@ -11,7 +11,7 @@ use crate::{
         jwt::{generate_token, validate_token},
     },
     db::users::{
-        email_exists, get_user_by_email, get_user_by_refresh_token, insert_user,
+        email_exists, get_user_by_email, get_user_by_id, get_user_by_refresh_token, insert_user,
         invalidate_refresh_token, store_refresh_token,
     },
     error::{app_error::AppError, user_error::UserError},
@@ -27,7 +27,7 @@ use crate::{
 pub async fn register_user(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<RegisterUserRequest>,
-) -> Result<ApiResponse<PublicUser>, AppError> {
+) -> Result<ApiResponse<LoginResponse>, AppError> {
     payload.validate().map_err(UserError::from)?;
 
     if email_exists(&state.db, &payload.email).await? {
@@ -49,18 +49,17 @@ pub async fn register_user(
 
     let user = insert_user(&state.db, new_user).await?;
 
+    let access_token = generate_token(user.id, "access")?;
+    let refresh_token = generate_token(user.id, "refresh")?;
+
+    store_refresh_token(&state.db, &user.id, &refresh_token).await?;
+
     Ok(ApiResponse::success(
         StatusCode::CREATED,
-        PublicUser {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            auth_provider: user.auth_provider,
-            auth_provider_id: user.auth_provider_id,
-            avatar_url: user.avatar_url,
-            role: user.role,
-            created_at: user.created_at,
-            updated_at: user.updated_at,
+        LoginResponse {
+            access_token,
+            refresh_token,
+            token_type: "Bearer".to_string(),
         },
     ))
 }
@@ -89,6 +88,8 @@ pub async fn login(
 
     let access_token = generate_token(user.id, "access")?;
     let refresh_token = generate_token(user.id, "refresh")?;
+
+    store_refresh_token(&state.db, &user.id, &refresh_token).await?;
 
     Ok(ApiResponse::success(
         StatusCode::OK,
@@ -125,14 +126,28 @@ pub async fn refresh_token(
     let new_access_token = generate_token(user_id, "access")?;
     let new_refresh_token = generate_token(user_id, "refresh")?;
 
-    store_refresh_token(&state.db, &user_id, &payload.refresh_token).await?;
+    store_refresh_token(&state.db, &user_id, &new_refresh_token).await?;
 
     Ok(ApiResponse::success(
         StatusCode::OK,
         LoginResponse {
             access_token: new_access_token,
             refresh_token: new_refresh_token,
-            token_type: "Bearerd".to_string(),
+            token_type: "Bearer".to_string(),
         },
     ))
+}
+
+pub async fn get_me(
+    State(state): State<Arc<AppState>>,
+    AuthenticatedUser { user_id }: AuthenticatedUser,
+) -> Result<ApiResponse<PublicUser>, AppError> {
+    let user = get_user_by_id(&state.db, user_id)
+        .await?
+        .ok_or(AppError::NotFound(format!(
+            "User id {} not found!",
+            user_id
+        )))?;
+
+    Ok(ApiResponse::success(StatusCode::OK, user))
 }

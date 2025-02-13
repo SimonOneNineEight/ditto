@@ -2,7 +2,7 @@ use chrono::{Duration, NaiveDateTime, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::models::users::{NewUser, User};
+use crate::models::users::{NewUser, PublicUser, User};
 
 pub async fn insert_user(pool: &PgPool, new_user: NewUser) -> Result<User, sqlx::Error> {
     let user = sqlx::query_as!(
@@ -78,6 +78,14 @@ pub async fn get_user_by_refresh_token(
     .await?;
 
     Ok(record.map(|r| r.id))
+}
+
+pub async fn get_user_by_id(pool: &PgPool, id: Uuid) -> Result<Option<PublicUser>, sqlx::Error> {
+    let user = sqlx::query_as!(PublicUser, r#"SELECT id, email, name, auth_provider, avatar_url, role, created_at, updated_at FROM users WHERE id = $1"#, id)
+        .fetch_optional(pool)
+        .await?;
+
+    Ok(user)
 }
 
 pub async fn store_refresh_token(

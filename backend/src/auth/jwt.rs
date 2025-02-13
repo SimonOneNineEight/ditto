@@ -1,4 +1,5 @@
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::{
     env,
@@ -35,7 +36,8 @@ static KEYS: LazyLock<Keys> = LazyLock::new(|| {
 pub struct Claims {
     pub sub: String,
     pub token_type: String,
-    pub expire: usize,
+    pub exp: usize,
+    pub jti: String,
 }
 
 pub fn generate_token(user_id: Uuid, token_type: &str) -> Result<String, AppError> {
@@ -50,10 +52,13 @@ pub fn generate_token(user_id: Uuid, token_type: &str) -> Result<String, AppErro
         .unwrap()
         .as_secs();
 
+    let jti: String = rand::rng().random::<u64>().to_string();
+
     let claims = Claims {
         sub: user_id.to_string(),
         token_type: token_type.to_string(),
-        expire: (now as usize) + expiration_seconds,
+        exp: (now as usize) + expiration_seconds,
+        jti,
     };
 
     encode(&Header::default(), &claims, &KEYS.encoding).map_err(|_| AppError::InternalServerError)

@@ -40,7 +40,6 @@ pub struct PublicUser {
     pub name: String,
     pub email: String,
     pub auth_provider: String,
-    pub auth_provider_id: Option<String>,
     pub avatar_url: Option<String>,
     pub role: String,
     pub created_at: NaiveDateTime,
