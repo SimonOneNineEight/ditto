@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { DarkModeDropdown } from "@/components";
+import DarkModeDropdown from "./DarkModeDropdown"
+import RegisterButton from "./RegisterButton"
 
 const Navbar = () => {
 
@@ -9,6 +10,7 @@ const Navbar = () => {
                 <h1 className="text-3xl font-bold">Ditto</h1>
             </Link>
             <div className="flex items-center gap-4">
+                <RegisterButton />
                 <DarkModeDropdown />
             </div>
         </section>

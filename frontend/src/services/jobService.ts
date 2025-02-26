@@ -3,13 +3,13 @@ import { JobResponse } from "@/types";
 
 export const jobService = {
   async getAllJobs() {
-    try {
-      const { data } = await api.get<JobResponse[]>("/jobs");
-      return data;
-    } catch (error) {
-      console.error("Error fetching jobs: ", error);
-      throw error;
-    }
+    // try {
+    //   const { data } = await api.get<JobResponse[]>("/jobs");
+    //   return data;
+    // } catch (error) {
+    //   console.error("Error fetching jobs: ", error);
+    //   throw error;
+    // }
   },
 
   async handleStatusChange(id: string, status: string) {
