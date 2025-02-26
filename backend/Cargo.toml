@@ -28,5 +28,6 @@ http-body-util = "0.1.2"
 jsonwebtoken = "9.3.0"
 tower-cookies = "0.11.0"
 axum-extra = { version = "0.10.0", features = ["typed-header"] }
+tower_governor = "0.6.0"
 
 [dev-dependencies]
