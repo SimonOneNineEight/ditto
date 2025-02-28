@@ -1,0 +1,33 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.95"
+argon2 = "0.5.3"
+axum = "0.8.1"
+base64 = "0.22.1"
+dotenvy = "0.15.7"
+listenfd = "1.0.2"
+rand = "0.9.0"
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.135"
+sqlx = { version = "0.8.3", features = ["postgres", "runtime-tokio-rustls", "chrono", "uuid"] }
+tokio = { version = "1.42.0", features = ["full"] }
+tower-http = {version = "0.6.2", features = ["cors"]}
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
+uuid = { version = "1", features = ["serde", "v4"] }  
+chrono = { version = "0.4", features = ["serde"] }   
+validator = { version = "0.20.0", features = ["derive"] }
+tower = "0.5.2"
+hyper = { version = "1.6.0", features = ["client", "full", "http1"] }
+hyper-util = { version = "0.1.10", features = ["full"] }
+http-body-util = "0.1.2"
+jsonwebtoken = "9.3.0"
+tower-cookies = "0.11.0"
+axum-extra = { version = "0.10.0", features = ["typed-header"] }
+tower_governor = "0.6.0"
+
+[dev-dependencies]

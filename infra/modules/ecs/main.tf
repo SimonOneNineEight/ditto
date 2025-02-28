@@ -50,6 +50,7 @@ resource "aws_ecs_service" "services" {
   task_definition        = aws_ecs_task_definition.tasks[each.key].arn
   desired_count          = 1
   launch_type            = "FARGATE"
+  force_delete          = true
 
   network_configuration {
     subnets          = each.value.subnet_type == "public" ? var.public_subnets : var.private_subnets

@@ -32,9 +32,8 @@ Ditto is a web application designed to simplify and streamline the job applicati
 
 ### Backend
 
-- **Express.js** (Node.js framework for building APIs)
-- **TypeScript** (Type-safe development)
-- **Prisma** (ORM for database access)
+- **Rust** (High-performance system programming language)
+- **Axum** (Web framework for building APIs in Rust)
 - **PostgreSQL** (Relational database for storing application and job data)
 
 ### Scraping Service
@@ -155,7 +154,8 @@ Ditto is open source and available under the [MIT License](LICENSE).
 ## 🌟 Roadmap
 
 - [x] Implement job scraping service
-- [x] Build application status management
+- [] Build application status management
+- [] Add user specific job application tracking
 - [ ] Add support for generating tailored resumes and cover letters
 - [ ] Enable storage for customized application materials
 - [ ] Improve UI/UX for seamless user experience

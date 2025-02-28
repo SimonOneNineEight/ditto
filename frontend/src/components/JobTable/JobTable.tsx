@@ -23,7 +23,6 @@ declare module "@tanstack/react-table" {
 
 
 const JobTable = ({ columns, data }: JobTableProps) => {
-
     const [isLoading, setIsLoading] = useState(false);
     const [jobs, setJobs] = useState<JobTableRow[]>(data || []);
 
