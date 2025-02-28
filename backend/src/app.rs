@@ -1,6 +1,11 @@
 use std::sync::Arc;
 
-use axum::Router;
+use axum::{
+    http::header::{AUTHORIZATION, CONTENT_TYPE},
+    response::IntoResponse,
+    routing::MethodRouter,
+    Router,
+};
 use tower_governor::{governor::GovernorConfigBuilder, GovernorLayer};
 use tower_http::cors::{Any, CorsLayer};
 
@@ -14,8 +19,17 @@ pub fn create_app(app_state: Arc<AppState>) -> Router {
             .finish()
             .unwrap(),
     );
+
+    // let options_route = MethodRouter::new().options(|| async { ().into_response() });
+
     Router::new()
-        .layer(GovernorLayer { config })
-        .layer(CorsLayer::new().allow_origin(Any))
+        // .route("/{*path}", options_route)
         .merge(routes::register_routes(app_state.clone()))
+        .layer(
+            CorsLayer::new()
+                .allow_origin(Any)
+                .allow_headers([CONTENT_TYPE, AUTHORIZATION])
+                .allow_methods(Any),
+        )
+    // .layer(GovernorLayer { config })
 }
