@@ -9,6 +9,7 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { useAuth } from "@/contexts/AuthContext"
+import Link from 'next/link'
 
 const loginSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -54,7 +55,7 @@ const page = () => {
                                 />
                                 {errors.email ? <p className={"text-red-500 text-sm"}>{errors.email.message}</p> : <p className={"h-5"}></p>}
                             </div>
-                            <div className=" w-full">
+                            <div className="w-full">
                                 <label className="block">
                                     Password
                                 </label>
@@ -66,12 +67,16 @@ const page = () => {
                                 {errors.password ? <p className={"text-red-500 text-sm"}>{errors.password.message}</p> : <p className={"h-5"}></p>}
                             </div>
                         </div>
-                        <CardFooter className="p-0 pb-4">
+                        <CardFooter className="flex-col p-0 pb-4 gap-4">
                             <Button
                                 type="submit"
                                 className="w-full bg-sky-600 text-white font-bold">
                                 Login
                             </Button>
+
+                            <Link href="/register" className="text-sm text-sky-600">
+                                Don't have an account? Register here
+                            </Link>
                         </CardFooter>
                     </CardContent>
                 </form>

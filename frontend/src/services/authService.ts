@@ -13,8 +13,7 @@ export const authService = {
                 email,
                 password,
             });
-            console.log(data);
-            return data;
+            return data.data;
         } catch (error) {
             console.error('Error registering user: ', error);
             throw error;
@@ -28,7 +27,7 @@ export const authService = {
                 password,
             });
 
-            return data;
+            return data.data;
         } catch (error) {
             console.error('Error logging in: ', error);
             throw error;
@@ -51,7 +50,7 @@ export const authService = {
         try {
             const { data } = await api.get('/api/me');
 
-            return data;
+            return data.data;
         } catch (error) {
             console.error('Error fetching user: ', error);
             throw error;

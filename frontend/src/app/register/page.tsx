@@ -1,6 +1,7 @@
 "use client"
 
 import React from 'react'
+import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from "zod"
@@ -93,12 +94,13 @@ const page = () => {
                                 {errors.confirmPassword ? <p className={"text-red-500 text-sm"}>{errors.confirmPassword.message}</p> : <p className={"h-5"}></p>}
                             </div>
                         </div>
-                        <CardFooter className="p-0 pb-4">
+                        <CardFooter className="flex-col gap-4 p-0 pb-4">
                             <Button
                                 type="submit"
                                 className="w-full bg-sky-600 text-white font-bold">
                                 Register
                             </Button>
+                            <Link href="/login" className="text-sm text-sky-600">Already have an account? Login here</Link>
                         </CardFooter>
                     </CardContent>
                 </form>

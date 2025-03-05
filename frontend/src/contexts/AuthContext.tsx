@@ -10,6 +10,9 @@ export type User = {
     id: string;
     name: string;
     email: string;
+    auth_provider: string;
+    avatar_url: string | null;
+    role: string;
 }
 
 export type AuthContextType = {
