@@ -5,7 +5,7 @@ use std::{env, path::Path, sync::Arc};
 use backend::{app::create_app, utils::state::AppState};
 
 pub async fn setup_test_db() -> PgPool {
-    dotenv().ok(); // ✅ Load .env (including TEST_DATABASE_URL)
+    dotenv().ok();
 
     let database_url = env::var("TEST_DATABASE_URL").expect("TEST_DATABASE_URL must be set");
 

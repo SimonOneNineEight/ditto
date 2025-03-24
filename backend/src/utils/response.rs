@@ -4,16 +4,24 @@ use axum::{
     Json,
 };
 use serde::Serialize;
+use utoipa::ToSchema;
 
-#[derive(Serialize)]
-pub struct ApiResponse<T> {
+#[derive(Serialize, ToSchema)]
+pub struct ApiResponse<T>
+where
+    T: Serialize + ToSchema,
+{
     success: bool,
     status_code: u16,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     data: Option<T>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     error: Option<String>,
 }
 
-impl<T: Serialize> IntoResponse for ApiResponse<T> {
+impl<T: Serialize + ToSchema> IntoResponse for ApiResponse<T> {
     fn into_response(self) -> Response {
         let status_code =
             StatusCode::from_u16(self.status_code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
@@ -22,7 +30,7 @@ impl<T: Serialize> IntoResponse for ApiResponse<T> {
     }
 }
 
-impl<T: Serialize> ApiResponse<T> {
+impl<T: Serialize + ToSchema> ApiResponse<T> {
     pub fn success(status_code: StatusCode, data: T) -> Self {
         ApiResponse {
             success: true,
@@ -42,5 +50,5 @@ impl<T: Serialize> ApiResponse<T> {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct EmptyResponse {}
