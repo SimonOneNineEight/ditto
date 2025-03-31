@@ -5,7 +5,7 @@ use axum::{
 };
 use sqlx::Error as SqlxError;
 
-use super::user_error::UserError;
+use super::{job_error::JobError, user_error::UserError};
 use crate::utils::response::ApiResponse;
 
 #[derive(Debug)]
@@ -17,6 +17,7 @@ pub enum AppError {
     Unexpected(String),
     DatabaseError(String),
     UserError(UserError),
+    JobError(JobError),
 }
 
 impl From<SqlxError> for AppError {
@@ -42,6 +43,12 @@ impl From<UserError> for AppError {
     }
 }
 
+impl From<JobError> for AppError {
+    fn from(err: JobError) -> Self {
+        AppError::JobError(err)
+    }
+}
+
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
@@ -55,6 +62,7 @@ impl IntoResponse for AppError {
             AppError::Unexpected(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
             AppError::DatabaseError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
             AppError::UserError(user_error) => return user_error.into_response(),
+            AppError::JobError(job_error) => return job_error.into_response(),
         };
 
         ApiResponse::<()>::error(status, error_message).into_response()

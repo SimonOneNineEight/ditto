@@ -12,6 +12,7 @@ pub enum UserError {
     EmailAlreadyExists,
     Unauthorized,
     ValidationError(ValidationErrors),
+    RoleNotFound,
 }
 
 impl From<ValidationErrors> for UserError {
@@ -32,6 +33,7 @@ impl IntoResponse for UserError {
             }
             UserError::ValidationError(errors) => (StatusCode::BAD_REQUEST, errors.to_string()),
             UserError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized".to_string()),
+            UserError::RoleNotFound => (StatusCode::NOT_FOUND, "Role not found".to_string()),
         };
 
         ApiResponse::<()>::error(status, message).into_response()

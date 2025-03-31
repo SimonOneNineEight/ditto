@@ -1,15 +1,10 @@
-use std::{env, sync::Arc};
+use std::sync::Arc;
 
-use axum::Extension;
-use backend::{app::create_app, utils::state::AppState};
+use backend::{app::create_app, db, utils::state::AppState};
 use dotenvy::dotenv;
 use listenfd::ListenFd;
-use sqlx::PgPool;
 use tokio::net::TcpListener;
 use tracing_subscriber::FmtSubscriber;
-
-mod db;
-mod models;
 
 #[tokio::main]
 async fn main() {
@@ -26,6 +21,13 @@ async fn main() {
         .expect("Failed to connect to database");
 
     tracing::info!("Connected to database");
+
+    sqlx::migrate!("./migrations")
+        .run(&db_pool)
+        .await
+        .expect("Failed to run migrations");
+
+    tracing::info!("Migrations run successfully");
 
     let app_state = Arc::new(AppState { db: db_pool });
 
