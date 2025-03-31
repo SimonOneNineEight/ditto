@@ -33,6 +33,7 @@ utoipa = { version = "5.3.1", features = ["axum_extras", "chrono", "uuid"] }
 utoipa-axum = {version = "0.2.0"}
 utoipa-swagger-ui = { version = "9.0.0", features = ["axum"] }
 bigdecimal = { version = "0.4.7", features = ["serde"] }
+tokio-postgres = "0.7.13"
 
 [dev-dependencies]
 httpc-test = "0.1.10"
