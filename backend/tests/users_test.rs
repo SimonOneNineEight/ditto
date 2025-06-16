@@ -3,7 +3,6 @@ use axum::{
     http::{Request, StatusCode},
 };
 
-use backend::models::users::PublicUser;
 use http_body_util::BodyExt;
 use serde_json::{json, Value};
 use setup::setup_test_app;

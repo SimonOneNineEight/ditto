@@ -8,10 +8,10 @@ Ditto is a web application designed to simplify and streamline the job applicati
 
 ### Implemented
 
-- **Scrape Jobs from LinkedIn**
-  - Use the scraping service to gather job listings directly from LinkedIn.
 - **Manage Application Status**
   - Keep track of where you’ve applied, interview progress, and application outcomes.
+- **Scrape Jobs from LinkedIn**
+  - Use the scraping service to gather job listings directly from LinkedIn.
 
 ### Coming Soon
 
