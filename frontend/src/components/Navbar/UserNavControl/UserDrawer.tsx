@@ -36,7 +36,7 @@ const UserDrawer: React.FC<UserDrawerProps> = ({ isDrawerOpen, setDrawerOpen, us
                                     {user?.name[0].toUpperCase()}
                                 </div>)
                         }
-                        <h3 className="truncate max-w-[12rem]">
+                        <h3 className="truncate max-w-48">
                             {user?.name}
                         </h3>
                     </DrawerHeader>

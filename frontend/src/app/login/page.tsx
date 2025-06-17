@@ -38,7 +38,7 @@ const page = () => {
     return (
         <div className="p-4 flex flex-col gap-8 row-start-2 items-center mx-8">
             <h1 className="text-2xl pt-6 font-semibold">Welcome Back</h1>
-            <Card className="w-[21rem]">
+            <Card className="w-84">
                 <form
                     onSubmit={handleSubmit(onSubmit)}
                 >

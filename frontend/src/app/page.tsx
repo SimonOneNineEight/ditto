@@ -3,6 +3,7 @@ import { columns } from '@/components/JobTable';
 import { convertJobResponseToTableRow } from '@/lib/utils';
 import { JobTableRow } from '@/types';
 import { jobService } from '@/services/jobService';
+import ColorPalette from '@/components/ColorPalette';
 // import JobViewTab from "@/components/JobViewTab/JobViewTab";
 
 export default async function Home() {
@@ -13,6 +14,7 @@ export default async function Home() {
         <div className="flex flex-col gap-8 row-start-2 items-center m-4">
             <main className="max-w-[1440px] w-full">
                 <Navbar />
+                <ColorPalette />
                 {/* <JobViewTab /> */}
                 {/* <JobTable columns={columns} data={job_rows} /> */}
             </main>
