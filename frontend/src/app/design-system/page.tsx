@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { ButtonDemo } from '@/components/ButtonDemo';
+import { TypographyDemo } from '@/components/TypographyDemo';
+import { ColorPaletteDemo } from '@/components/ColorPaletteDemo';
 
 export default function DesignSystemPage() {
     return (
@@ -9,25 +11,31 @@ export default function DesignSystemPage() {
             <div className="container mx-auto py-8">
                 {/* Header */}
                 <div className="mb-8 text-center">
-                    <h1 className="text-4xl font-bold mb-2">Design System Gallery</h1>
-                    <p className="text-muted-foreground">
-                        A comprehensive showcase of all components and their variants
+                    <h1 className="mb-2">Design System Gallery</h1>
+                    <p className="text-body-large text-muted-foreground">
+                        A comprehensive showcase of typography, colors, and all components
                     </p>
                 </div>
 
                 {/* Navigation */}
                 <div className="mb-8">
-                    <nav className="flex gap-4 justify-center">
-                        <a href="#buttons" className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-sm font-medium">
+                    <nav className="flex gap-2 justify-center flex-wrap">
+                        <a href="#typography" className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-caption font-medium">
+                            Typography
+                        </a>
+                        <a href="#colors" className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-caption font-medium">
+                            Colors
+                        </a>
+                        <a href="#buttons" className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-caption font-medium">
                             Buttons
                         </a>
-                        <a href="#cards" className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-sm font-medium">
+                        <a href="#cards" className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-caption font-medium">
                             Cards
                         </a>
-                        <a href="#forms" className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-sm font-medium">
+                        <a href="#forms" className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-caption font-medium">
                             Forms
                         </a>
-                        <a href="#tables" className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-sm font-medium">
+                        <a href="#tables" className="px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 text-caption font-medium">
                             Tables
                         </a>
                     </nav>
@@ -35,6 +43,20 @@ export default function DesignSystemPage() {
 
                 {/* Content */}
                 <div className="space-y-16">
+                    {/* Typography Section */}
+                    <section id="typography" className="scroll-mt-16">
+                        <div className="bg-card rounded-lg border p-6">
+                            <TypographyDemo />
+                        </div>
+                    </section>
+
+                    {/* Colors Section */}
+                    <section id="colors" className="scroll-mt-16">
+                        <div className="bg-card rounded-lg border p-6">
+                            <ColorPaletteDemo />
+                        </div>
+                    </section>
+
                     {/* Buttons Section */}
                     <section id="buttons" className="scroll-mt-16">
                         <div className="bg-card rounded-lg border p-6">

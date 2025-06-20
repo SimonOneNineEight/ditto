@@ -29,6 +29,8 @@ const buttonVariants = cva(
                 sm: 'h-8 rounded-md px-3 text-xs',
                 lg: 'h-10 rounded-md px-8',
                 icon: 'h-9 w-9',
+                'icon-sm': 'h-7 w-7',
+                'icon-lg': 'h-11 w-11',
                 full: 'w-full h-9 px-4 py-2',
             },
             isLoading: {
@@ -94,41 +96,38 @@ const buttonVariants = cva(
     }
 );
 
-// Extract variant props but exclude conflicting ones
-type ButtonVariants = Omit<VariantProps<typeof buttonVariants>, 'isLoading' | 'hasIcon' | 'iconPosition'>;
+type ButtonVariants = Omit<
+    VariantProps<typeof buttonVariants>,
+    'isLoading' | 'hasIcon' | 'iconPosition'
+>;
 
-// Base props for all button variants
 type BaseButtonProps = {
     asChild?: boolean;
     isLoading?: boolean;
     loadingText?: string;
 };
 
-// Icon-only button props
 type IconOnlyProps = {
     iconPosition: 'only';
     hasIcon: true;
     icon: React.ReactNode;
-    children?: never; // No children allowed for icon-only
+    children?: React.ReactNode;
 };
 
-// Button with left/right icon props
 type ButtonWithIconProps = {
     iconPosition: 'left' | 'right';
     hasIcon: true;
-    icon: React.ReactNode; // Required when hasIcon is true
-    children: React.ReactNode; // Required for text
+    icon: React.ReactNode;
+    children: React.ReactNode;
 };
 
-// Button without icon props
 type ButtonWithoutIconProps = {
     iconPosition?: 'none';
     hasIcon?: false;
-    icon?: never; // No icon allowed
-    children: React.ReactNode; // Required for text
+    icon?: never;
+    children: React.ReactNode;
 };
 
-// Union of all possible button configurations
 type ButtonVariantProps =
     | IconOnlyProps
     | ButtonWithIconProps
@@ -139,58 +138,52 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
     BaseButtonProps &
     ButtonVariantProps;
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-    (
-        {
-            className,
-            variant,
-            size,
-            asChild = false,
-            isLoading = false,
-            hasIcon = false,
-            icon,
-            iconPosition = 'none',
-            loadingText,
-            children,
-            disabled,
-            ...props
-        },
-        ref
-    ) => {
-        const Comp = asChild ? Slot : 'button';
-        return (
-            <Comp
-                className={cn(
-                    buttonVariants({
-                        variant,
-                        size,
-                        className,
-                        hasIcon,
-                        iconPosition,
-                        isLoading,
-                    })
-                )}
-                disabled={disabled || isLoading}
-                ref={ref}
-                {...props}
-            >
-                {isLoading ? (
-                    <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        {loadingText && (
-                            <span className="ml-2">{loadingText}</span>
-                        )}
-                    </>
-                ) : (
-                    <>
-                        {hasIcon && icon}
-                        {iconPosition !== 'only' && children}
-                    </>
-                )}
-            </Comp>
-        );
-    }
-);
-Button.displayName = 'Button';
+function Button({
+    className,
+    variant,
+    size,
+    asChild = false,
+    isLoading = false,
+    hasIcon = false,
+    icon,
+    iconPosition = 'none',
+    loadingText,
+    children,
+    disabled,
+    ...props
+}: ButtonProps) {
+    const Comp = asChild ? Slot : 'button';
+    return (
+        <Comp
+            data-slot="button"
+            className={cn(
+                buttonVariants({
+                    variant,
+                    size,
+                    className,
+                    hasIcon,
+                    iconPosition,
+                    isLoading,
+                })
+            )}
+            disabled={disabled || isLoading}
+            {...props}
+        >
+            {isLoading ? (
+                <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {loadingText && (
+                        <span className="ml-2">{loadingText}</span>
+                    )}
+                </>
+            ) : (
+                <>
+                    {hasIcon && icon}
+                    {children}
+                </>
+            )}
+        </Comp>
+    );
+}
 
 export { Button, buttonVariants };

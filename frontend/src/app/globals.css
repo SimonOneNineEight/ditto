@@ -69,25 +69,120 @@
     text-wrap: balance;
 }
 
+/* Semantic Typography Utilities */
+@utility text-display {
+    font-size: var(--text-display);
+    line-height: var(--leading-display);
+    @apply font-bold tracking-tight;
+}
+
+@utility text-title {
+    font-size: var(--text-title);
+    line-height: var(--leading-title);
+    @apply font-semibold tracking-tight;
+}
+
+@utility text-headline {
+    font-size: var(--text-headline);
+    line-height: var(--leading-headline);
+    @apply font-semibold;
+}
+
+@utility text-subheading {
+    font-size: var(--text-subheading);
+    line-height: var(--leading-headline);
+    @apply font-medium;
+}
+
+@utility text-body-large {
+    font-size: var(--text-body-large);
+    line-height: var(--leading-body);
+}
+
+@utility text-body {
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+}
+
+@utility text-caption {
+    font-size: var(--text-caption);
+    line-height: var(--leading-caption);
+    @apply text-muted-foreground;
+}
+
+@utility text-overline {
+    font-size: var(--text-overline);
+    line-height: var(--leading-caption);
+    @apply font-medium tracking-wider uppercase text-muted-foreground;
+}
+
+/* Legacy Compatibility */
 @utility lead {
-    @apply text-xl text-muted-foreground;
+    @apply text-body-large text-muted-foreground;
 }
 
 @utility large {
-    @apply text-lg font-semibold;
+    @apply text-headline font-semibold;
 }
 
 @utility small {
-    @apply text-sm font-medium leading-none;
+    @apply text-caption font-medium;
 }
 
 @utility muted {
-    @apply text-sm text-muted-foreground;
+    @apply text-caption text-muted-foreground;
+}
+
+/* Link Variants */
+@utility link-primary {
+    @apply text-primary hover:underline;
+}
+
+@utility link-muted {
+    @apply text-muted-foreground hover:text-foreground hover:underline;
+}
+
+@utility link-subtle {
+    @apply hover:underline;
+}
+
+@utility link-button {
+    @apply no-underline hover:no-underline focus-visible:ring-offset-0;
+}
+
+/* Job Application Specific */
+@utility text-status {
+    @apply text-caption font-medium tracking-wide;
+}
+
+@utility text-metadata {
+    @apply text-overline;
+}
+
+@utility text-emphasis {
+    @apply font-semibold text-foreground;
+}
+
+@utility text-success {
+    @apply text-green-600 dark:text-green-400;
+}
+
+@utility text-warning {
+    @apply text-amber-600 dark:text-amber-400;
+}
+
+@utility text-error {
+    @apply text-red-600 dark:text-red-400;
+}
+
+@utility text-info {
+    @apply text-blue-600 dark:text-blue-400;
 }
 
 @layer utilities {
     body {
-        font-family: Arial, Helvetica, sans-serif;
+        font-family:
+            var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
     }
 }
 
@@ -124,7 +219,7 @@
         --radius: 0.5rem;
     }
     .dark {
-        --background: 192 9% 23%;
+        --background: 212 12% 13%;
         --foreground: 192 7% 97%;
         --card: 192 9% 23%;
         --card-foreground: 192 7% 97%;
@@ -174,32 +269,172 @@
 }
 
 @layer base {
-    /* Typography */
+    /* Typography System */
+    :root {
+        /* Semantic Typography Scale */
+        --text-display: 3.5rem; /* 56px - Hero text */
+        --text-title: 2rem; /* 32px - Page titles */
+        --text-headline: 1.5rem; /* 24px - Section headings */
+        --text-subheading: 1.25rem; /* 20px - Subsection titles */
+        --text-body: 1rem; /* 16px - Main content */
+        --text-body-large: 1.125rem; /* 18px - Large body text */
+        --text-caption: 0.875rem; /* 14px - Supporting text */
+        --text-overline: 0.75rem; /* 12px - Labels, metadata */
+
+        /* Line Heights */
+        --leading-display: 1.1;
+        --leading-title: 1.2;
+        --leading-headline: 1.3;
+        --leading-body: 1.6;
+        --leading-caption: 1.4;
+    }
+
+    /* Complete Heading System */
     h1 {
-        @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
+        font-size: var(--text-display);
+        line-height: var(--leading-display);
+        @apply font-bold tracking-tight scroll-m-20;
     }
 
     h2 {
-        @apply scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0;
+        font-size: var(--text-title);
+        line-height: var(--leading-title);
+        @apply font-semibold tracking-tight scroll-m-20 pb-2 first:mt-0;
     }
 
     h3 {
-        @apply scroll-m-20 text-2xl font-semibold tracking-tight;
+        font-size: var(--text-headline);
+        line-height: var(--leading-headline);
+        @apply font-semibold tracking-tight scroll-m-20;
     }
 
     h4 {
-        @apply scroll-m-20 text-xl font-semibold tracking-tight;
+        font-size: var(--text-subheading);
+        line-height: var(--leading-headline);
+        @apply font-semibold tracking-tight scroll-m-20;
     }
 
+    h5 {
+        font-size: var(--text-body-large);
+        line-height: var(--leading-body);
+        @apply font-medium text-muted-foreground scroll-m-20;
+    }
+
+    h6 {
+        font-size: var(--text-body);
+        line-height: var(--leading-body);
+        @apply font-medium text-muted-foreground scroll-m-20;
+    }
+
+    /* Text Elements */
     p {
-        @apply leading-7 not-first:mt-6;
+        font-size: var(--text-body);
+        line-height: var(--leading-body);
+        @apply not-first:mt-6;
     }
 
-    blockquote {
-        @apply mt-6 border-l-2 pl-6 italic;
+    small {
+        font-size: var(--text-caption);
+        line-height: var(--leading-caption);
+        @apply text-muted-foreground;
     }
 
+    strong {
+        @apply font-semibold;
+    }
+
+    em {
+        @apply italic;
+    }
+
+    /* Links - Default (inherit text color) */
+    a {
+        @apply underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    }
+
+    /* Lists */
+    ul,
+    ol {
+        @apply space-y-2;
+    }
+
+    li {
+        @apply leading-7;
+    }
+
+    /* Code */
     code {
-        @apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+        font-family:
+            var(--font-geist-mono), ui-monospace, SFMono-Regular, 'SF Mono',
+            Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New',
+            monospace;
+        @apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] text-sm font-semibold;
     }
+
+    pre {
+        font-family:
+            var(--font-geist-mono), ui-monospace, SFMono-Regular, 'SF Mono',
+            Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New',
+            monospace;
+        @apply rounded-lg bg-muted p-4 text-sm overflow-x-auto;
+    }
+
+    /* Blockquote */
+    blockquote {
+        @apply mt-6 border-l-2 border-muted-foreground pl-6 italic text-muted-foreground;
+    }
+
+    /* Table Typography */
+    th {
+        @apply font-medium text-muted-foreground;
+    }
+
+    td {
+        @apply text-sm;
+    }
+}
+
+/*
+  ---break---
+*/
+
+:root {
+    --sidebar: hsl(var(--background));
+    --sidebar-foreground: hsl(var(--foreground));
+    --sidebar-primary: hsl(var(--primary));
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: hsl(var(--accent));
+    --sidebar-accent-foreground: hsl(var(--accent-foreground));
+    --sidebar-border: hsl(var(--border));
+    --sidebar-ring: hsl(var(--ring));
+}
+
+/*
+  ---break---
+*/
+
+.dark {
+    --sidebar: hsl(var(--background));
+    --sidebar-foreground: hsl(var(--foreground));
+    --sidebar-primary: hsl(var(--primary));
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: hsl(var(--accent));
+    --sidebar-accent-foreground: hsl(var(--accent-foreground));
+    --sidebar-border: hsl(var(--border));
+    --sidebar-ring: hsl(var(--ring));
+}
+
+/*
+  ---break---
+*/
+
+@theme inline {
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
 }
