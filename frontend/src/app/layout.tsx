@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
-import { ThemeProvider } from '@/components';
+import { Navbar, ThemeProvider } from '@/components';
 import { AuthProvider } from '@/contexts/AuthContext';
 import AppSidebar from '@/components/Sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
@@ -42,6 +42,7 @@ export default function RootLayout({
                         <SidebarProvider>
                             <AppSidebar />
                             <SidebarInset className="max-w-full min-w-0 ">
+                                <Navbar />
                                 {children}
                             </SidebarInset>
                         </SidebarProvider>

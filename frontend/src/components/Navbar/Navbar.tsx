@@ -1,22 +1,23 @@
-import Link from "next/link"
-import DarkModeDropdown from "./DarkModeDropdown"
-import UserNavControl from "./UserNavControl"
+'use client';
+import { useAuth } from '@/contexts/AuthContext';
+import UserNavControl from './UserNavControl';
 
 const Navbar = () => {
+    const { user } = useAuth();
 
     return (
-        <section className="flex justify-between items-center px-2 py-2">
-            <Link href="/" className="flex items-center gap-2" prefetch={false}>
-                <h1 className="text-3xl font-bold">Ditto</h1>
-            </Link>
-            <div className="flex items-center gap-2">
-                <UserNavControl />
+        <>
+            {user ? null : (
+                <section className="flex justify-end items-center px-2 pt-2">
+                    <div className="flex items-center gap-2">
+                        <UserNavControl />
 
-                {/* <DarkModeDropdown /> */}
-            </div>
-        </section>
-    )
-}
+                        {/* <DarkModeDropdown /> */}
+                    </div>
+                </section>
+            )}
+        </>
+    );
+};
 
-export default Navbar
-
+export default Navbar;
