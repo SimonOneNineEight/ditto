@@ -21,11 +21,7 @@ const data: Interview[] = [
 
 const InterviewPage = (props: Props) => {
     return (
-        <div className="w-full max-w-full p-6 flex flex-col gap-6 min-w-0">
-            <div>
-                <h1 className="pb-2">Interviews</h1>
-                <h5>Some Motivating sentence to help people keep going</h5>
-            </div>
+        <>
             <section className="min-w-0">
                 <h3>Coming</h3>
                 <InterivewTable columns={columns} data={data} />
@@ -34,7 +30,7 @@ const InterviewPage = (props: Props) => {
                 <h3>Past</h3>
                 <PastInterviews />
             </section>
-        </div>
+        </>
     );
 };
 

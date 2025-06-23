@@ -27,13 +27,9 @@ const data: Application[] = [
 
 const ApplicationPage = (props: Props) => {
     return (
-        <div className="w-full p-6 flex flex-col">
-            <div className="mb-6">
-                <h1 className="pb-2">Applications</h1>
-                <h5>Some Motivating sentence to help people keep going</h5>
-            </div>
+        <>
             <ApplicationTable columns={columns} data={data} />
-        </div>
+        </>
     );
 };
 
