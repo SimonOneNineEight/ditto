@@ -65,9 +65,9 @@ export const columns: (ColumnDef<Interview, any> & { meta?: ColumnMeta })[] = [
         header: 'Tags',
         cell: ({ row }) => {
             return (
-                <div className="flex-wrap gap-2">
-                    {row.original.tags.map((tag) => (
-                        <Badge variant="outline">{`#${tag}`}</Badge>
+                <div className="flex flex-wrap gap-2">
+                    {row.original.tags.map((tag, index) => (
+                        <Badge key={index} variant="outline">{`#${tag}`}</Badge>
                     ))}
                 </div>
             );
@@ -79,8 +79,11 @@ export const columns: (ColumnDef<Interview, any> & { meta?: ColumnMeta })[] = [
         header: 'Interviewer',
         cell: ({ row }) => {
             return (
-                <Link href={row.original.interviewerUrl}>
-                    <span>{row.original.interviewerName}</span>
+                <Link
+                    href={row.original.interviewerUrl}
+                    className="block truncate"
+                >
+                    {row.original.interviewerName}
                 </Link>
             );
         },
@@ -89,6 +92,9 @@ export const columns: (ColumnDef<Interview, any> & { meta?: ColumnMeta })[] = [
     {
         id: 'action',
         header: 'Actions',
+        meta: {
+            className: 'w-20',
+        },
         cell: ({ row }) => {
             return (
                 <div className="flex items-center gap-2">

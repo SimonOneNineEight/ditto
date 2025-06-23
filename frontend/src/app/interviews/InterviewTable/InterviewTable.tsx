@@ -117,7 +117,9 @@ export function InterivewTable({ columns, data }: DataTableProps) {
                 id="application-table-footer"
                 className="flex justify-end pr-2"
             >
-                <span className="text-metadata">Total Applications: 2</span>
+                <span className="text-metadata">
+                    Coming Interviews: {data.length}
+                </span>
             </div>
         </div>
     );

@@ -1,7 +1,7 @@
 import React from 'react';
 import { InterivewTable } from './InterviewTable/InterviewTable';
 import { Interview, columns } from './InterviewTable/columns';
-import { SidebarInset } from '@/components/ui/sidebar';
+import PastInterviews from './PastInterviews';
 
 type Props = {};
 
@@ -32,6 +32,7 @@ const InterviewPage = (props: Props) => {
             </section>
             <section>
                 <h3>Past</h3>
+                <PastInterviews />
             </section>
         </div>
     );
