@@ -21,6 +21,11 @@ const geistMono = localFont({
 export const metadata: Metadata = {
     title: 'Ditto - Job Tracker',
     description: 'A simple job tracker app',
+    icons: {
+        icon: '/favicon.svg',
+        shortcut: '/favicon.svg',
+        apple: '/favicon.svg',
+    },
 };
 
 export default function RootLayout({
