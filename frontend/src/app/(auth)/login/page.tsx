@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
-import { Suez_One } from 'next/font/google';
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email address'),
@@ -61,7 +60,7 @@ const page = () => {
                                     <input
                                         type="email"
                                         {...register('email')}
-                                        className="w-full mt-1 px-2 py-1  outline-gray-600 border-b-2 border-b-gray-300"
+                                        className="w-full mt-1 px-2 py-1 outline-none border-b-2 border-b-gray-300 focus:border-primary"
                                     />
                                     {errors.email ? (
                                         <div className={'text-error text-sm'}>
@@ -78,7 +77,7 @@ const page = () => {
                                     <input
                                         type="password"
                                         {...register('password')}
-                                        className="w-full mt-1 px-2 py-1  outline-gray-600 border-b-2 border-b-gray-300"
+                                        className="w-full mt-1 px-2 py-1 outline-none border-b-2 border-b-gray-300 focus:border-primary"
                                     />
                                     {errors.password ? (
                                         <div className={'text-error text-sm'}>
@@ -96,7 +95,7 @@ const page = () => {
 
                                 <Link
                                     href="/register"
-                                    className="text-sm text-sky-600"
+                                    className="text-sm link-primary"
                                 >
                                     Don't have an account? Register here
                                 </Link>
