@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"ditto-backend/internal/config"
