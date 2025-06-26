@@ -9,29 +9,29 @@ CREATE TABLE roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) NOT NULL UNIQUE,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL
 );
 
 CREATE TABLE users_auth (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    password_hash VARCHAR(255) NOT NULL,
+    user_id UUID REFERENCES users(id),
+    password_hash TEXT NULL,
+    auth_provider TEXT NOT NULL,
     avatar_url TEXT NULL,
     refresh_token TEXT NULL,
     refresh_token_expires_at TIMESTAMP NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE companies (
@@ -40,8 +40,8 @@ CREATE TABLE companies (
     description TEXT,
     website VARCHAR(255),
     logo_url TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL
 );
 
@@ -49,80 +49,85 @@ CREATE TABLE skill_categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE skills (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL UNIQUE,
     category_id UUID REFERENCES skill_categories(id) ON DELETE SET NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE application_status (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    status VARCHAR(50) NOT NULL UNIQUE,
-    description TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    name TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE jobs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
-    location VARCHAR(255),
-    salary_min INTEGER,
-    salary_max INTEGER,
-    job_source_type job_source_type NOT NULL DEFAULT 'user_entered',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    company_id UUID REFERENCES companies(id),
+    title TEXT NOT NULL,
+    job_description TEXT NOT NULL,
+    location TEXT NOT NULL,
+    job_type TEXT NOT NULL,
+    min_salary NUMERIC,
+    max_salary NUMERIC,
+    currency TEXT,
+    is_expired BOOLEAN NOT NULL DEFAULT false,
+    source_type job_source_type NOT NULL DEFAULT 'user_entered',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL
 );
 
 CREATE TABLE user_jobs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY REFERENCES jobs(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE scraped_jobs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
-    job_posting_id VARCHAR(255),
-    job_source VARCHAR(255),
-    scraped_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    id UUID PRIMARY KEY REFERENCES jobs(id) ON DELETE CASCADE,
+    external_id TEXT NOT NULL,
+    scraper_source TEXT NOT NULL,
+    scraper_batch_id UUID,
+    posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_scraped_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
-    status_id UUID NOT NULL REFERENCES application_status(id) ON DELETE RESTRICT,
-    applied_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    user_id UUID REFERENCES users(id),
+    job_id UUID REFERENCES jobs(id),
+    application_status_id UUID REFERENCES application_status(id),
+    applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    offer_received BOOLEAN NOT NULL DEFAULT false,
+    attempt_number INT NOT NULL DEFAULT 1,
     notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL
 );
 
 CREATE TABLE interviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
-    interview_type VARCHAR(100),
-    scheduled_at TIMESTAMP,
-    duration_minutes INTEGER,
+    application_id UUID REFERENCES applications(id),
+    date TIMESTAMP NOT NULL,
+    interview_type TEXT NOT NULL,
+    question_asked TEXT,
     notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    feedback TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL
 );
 
@@ -130,14 +135,14 @@ CREATE TABLE interviews (
 CREATE TABLE user_roles (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, role_id)
 );
 
 CREATE TABLE job_skills (
     job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
     skill_id UUID NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (job_id, skill_id)
 );
 
@@ -145,7 +150,7 @@ CREATE TABLE user_skills (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     skill_id UUID NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
     proficiency_level INTEGER CHECK (proficiency_level >= 1 AND proficiency_level <= 5),
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, skill_id)
 );
 
@@ -156,15 +161,17 @@ CREATE INDEX idx_users_auth_user_id ON users_auth(user_id);
 CREATE INDEX idx_companies_name ON companies(name);
 CREATE INDEX idx_companies_deleted_at ON companies(deleted_at);
 CREATE INDEX idx_jobs_company_id ON jobs(company_id);
-CREATE INDEX idx_jobs_source_type ON jobs(job_source_type);
+CREATE INDEX idx_jobs_source_type ON jobs(source_type);
 CREATE INDEX idx_jobs_deleted_at ON jobs(deleted_at);
 CREATE INDEX idx_user_jobs_user_id ON user_jobs(user_id);
 CREATE INDEX idx_user_jobs_job_id ON user_jobs(job_id);
 CREATE INDEX idx_scraped_jobs_job_id ON scraped_jobs(job_id);
-CREATE INDEX idx_scraped_jobs_posting_id ON scraped_jobs(job_posting_id);
+CREATE INDEX idx_scraped_jobs_external_id ON scraped_jobs(external_id);
+CREATE INDEX idx_scraped_jobs_scraper_batch_id ON scraped_jobs(scraper_batch_id);
+CREATE INDEX idx_scraped_jobs_scraper_source ON scraped_jobs(scraper_source);
 CREATE INDEX idx_applications_user_id ON applications(user_id);
 CREATE INDEX idx_applications_job_id ON applications(job_id);
-CREATE INDEX idx_applications_status_id ON applications(status_id);
+CREATE INDEX idx_applications_status_id ON applications(application_status_id);
 CREATE INDEX idx_applications_deleted_at ON applications(deleted_at);
 CREATE INDEX idx_interviews_application_id ON interviews(application_id);
 CREATE INDEX idx_interviews_deleted_at ON interviews(deleted_at);
@@ -173,7 +180,7 @@ CREATE INDEX idx_interviews_deleted_at ON interviews(deleted_at);
 CREATE OR REPLACE FUNCTION update_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = NOW();
+    NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -196,7 +203,7 @@ CREATE TRIGGER update_interviews_timestamp BEFORE UPDATE ON interviews FOR EACH 
 CREATE OR REPLACE FUNCTION update_parent_job_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE jobs SET updated_at = NOW() WHERE id = COALESCE(NEW.job_id, OLD.job_id);
+    UPDATE jobs SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
     RETURN COALESCE(NEW, OLD);
 END;
 $$ LANGUAGE plpgsql;
