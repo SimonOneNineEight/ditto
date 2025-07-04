@@ -1,8 +1,7 @@
 -- Initial schema for Ditto backend
 -- This represents the final state after all Rust backend migrations
 
--- Create ENUM types
-CREATE TYPE job_source_type AS ENUM ('user_entered', 'scraped');
+-- Core database schema (no scraping features)
 
 -- Core tables
 CREATE TABLE roles (
@@ -70,7 +69,7 @@ CREATE TABLE application_status (
 
 CREATE TABLE jobs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id UUID REFERENCES companies(id),
+    company_id UUID NOT NULL REFERENCES companies(id),
     title TEXT NOT NULL,
     job_description TEXT NOT NULL,
     location TEXT NOT NULL,
@@ -79,7 +78,6 @@ CREATE TABLE jobs (
     max_salary NUMERIC,
     currency TEXT,
     is_expired BOOLEAN NOT NULL DEFAULT false,
-    source_type job_source_type NOT NULL DEFAULT 'user_entered',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL
@@ -92,17 +90,6 @@ CREATE TABLE user_jobs (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE scraped_jobs (
-    id UUID PRIMARY KEY REFERENCES jobs(id) ON DELETE CASCADE,
-    external_id TEXT NOT NULL,
-    scraper_source TEXT NOT NULL,
-    scraper_batch_id UUID,
-    posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_scraped_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
 
 CREATE TABLE applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -161,14 +148,9 @@ CREATE INDEX idx_users_auth_user_id ON users_auth(user_id);
 CREATE INDEX idx_companies_name ON companies(name);
 CREATE INDEX idx_companies_deleted_at ON companies(deleted_at);
 CREATE INDEX idx_jobs_company_id ON jobs(company_id);
-CREATE INDEX idx_jobs_source_type ON jobs(source_type);
 CREATE INDEX idx_jobs_deleted_at ON jobs(deleted_at);
 CREATE INDEX idx_user_jobs_user_id ON user_jobs(user_id);
 CREATE INDEX idx_user_jobs_job_id ON user_jobs(job_id);
-CREATE INDEX idx_scraped_jobs_job_id ON scraped_jobs(job_id);
-CREATE INDEX idx_scraped_jobs_external_id ON scraped_jobs(external_id);
-CREATE INDEX idx_scraped_jobs_scraper_batch_id ON scraped_jobs(scraper_batch_id);
-CREATE INDEX idx_scraped_jobs_scraper_source ON scraped_jobs(scraper_source);
 CREATE INDEX idx_applications_user_id ON applications(user_id);
 CREATE INDEX idx_applications_job_id ON applications(job_id);
 CREATE INDEX idx_applications_status_id ON applications(application_status_id);
@@ -195,7 +177,6 @@ CREATE TRIGGER update_skills_timestamp BEFORE UPDATE ON skills FOR EACH ROW EXEC
 CREATE TRIGGER update_application_status_timestamp BEFORE UPDATE ON application_status FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 CREATE TRIGGER update_jobs_timestamp BEFORE UPDATE ON jobs FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 CREATE TRIGGER update_user_jobs_timestamp BEFORE UPDATE ON user_jobs FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-CREATE TRIGGER update_scraped_jobs_timestamp BEFORE UPDATE ON scraped_jobs FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 CREATE TRIGGER update_applications_timestamp BEFORE UPDATE ON applications FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 CREATE TRIGGER update_interviews_timestamp BEFORE UPDATE ON interviews FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
@@ -209,7 +190,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_job_from_user_jobs AFTER INSERT OR UPDATE OR DELETE ON user_jobs FOR EACH ROW EXECUTE FUNCTION update_parent_job_timestamp();
-CREATE TRIGGER update_job_from_scraped_jobs AFTER INSERT OR UPDATE OR DELETE ON scraped_jobs FOR EACH ROW EXECUTE FUNCTION update_parent_job_timestamp();
 
 -- Event trigger for automatic timestamp triggers on new tables
 CREATE OR REPLACE FUNCTION add_timestamp_trigger()
