@@ -2,7 +2,8 @@ package middleware
 
 import (
 	"ditto-backend/internal/auth"
-	"net/http"
+	"ditto-backend/internal/handlers"
+	"ditto-backend/pkg/errors"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -13,14 +14,14 @@ func AuthMiddleware() gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
+			handlers.HandleError(c, errors.New(errors.ErrorUnauthorized, "authorization header required"))
 			c.Abort()
 			return
 		}
 
 		tokenParts := strings.Split(authHeader, " ")
 		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
+			handlers.HandleError(c, errors.New(errors.ErrorUnauthorized, "invalid authorization header format"))
 			c.Abort()
 			return
 		}
@@ -28,7 +29,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString := tokenParts[1]
 		claims, err := auth.ValidateToken(tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			handlers.HandleError(c, errors.New(errors.ErrorUnauthorized, "invalid token"))
 			c.Abort()
 			return
 		}

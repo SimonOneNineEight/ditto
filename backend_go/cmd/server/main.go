@@ -1,9 +1,11 @@
 package main
 
 import (
+	"ditto-backend/internal/middleware"
+	"ditto-backend/internal/routes"
 	"ditto-backend/internal/utils"
+	"ditto-backend/pkg/response"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -26,15 +28,13 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(middleware.ErrorHandler())
+
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
+		response.Success(c, gin.H{"status": "ok"})
 	})
 
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Hello World!",
-		})
-	})
+	routes.RegisterAuthRoutes(r, appState)
 
 	port := os.Getenv("PORT")
 

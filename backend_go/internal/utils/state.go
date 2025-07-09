@@ -1,15 +1,15 @@
 package utils
 
 import (
-	"ditto-backend/internal/db"
+	"ditto-backend/pkg/database"
 )
 
 type AppState struct {
-	DB *db.Database
+	DB *database.Database
 }
 
 func NewAppState() (*AppState, error) {
-	database, err := db.NewConnection()
+	database, err := database.NewConnection()
 	if err != nil {
 		return nil, err
 	}
