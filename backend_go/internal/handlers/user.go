@@ -7,5 +7,4 @@ import (
 type UserHandler struct{}
 
 func (h *UserHandler) GetUser(c *gin.Context) {
-	id := c.Param("id")
 }

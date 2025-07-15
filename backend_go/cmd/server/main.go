@@ -34,10 +34,15 @@ func main() {
 		response.Success(c, gin.H{"status": "ok"})
 	})
 
-	routes.RegisterAuthRoutes(r, appState)
+	apiGroup := r.Group("/api")
+	{
+		routes.RegisterAuthRoutes(apiGroup, appState)
+		routes.RegisterApplicationRoutes(apiGroup, appState)
+		routes.RegisterCompanyRoutes(apiGroup, appState)
+		routes.RegisterJobRoutes(apiGroup, appState)
+	}
 
 	port := os.Getenv("PORT")
-
 	if port == "" {
 		port = "8080"
 	}

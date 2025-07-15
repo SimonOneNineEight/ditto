@@ -39,6 +39,9 @@ CREATE TABLE companies (
     description TEXT,
     website VARCHAR(255),
     logo_url TEXT,
+    domain VARCHAR(255),
+    opencorp_id VARCHAR(255),
+    last_enriched_at TIMESTAMP NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL
@@ -157,6 +160,8 @@ CREATE INDEX idx_applications_status_id ON applications(application_status_id);
 CREATE INDEX idx_applications_deleted_at ON applications(deleted_at);
 CREATE INDEX idx_interviews_application_id ON interviews(application_id);
 CREATE INDEX idx_interviews_deleted_at ON interviews(deleted_at);
+CREATE INDEX idx_companies_domain ON companies(domain) WHERE deleted_at IS NULL;
+CREATE INDEX idx_companies_name_lower ON companies(LOWER(name)) WHERE deleted_at IS NULL;
 
 -- Function for automatic timestamp updates
 CREATE OR REPLACE FUNCTION update_timestamp()

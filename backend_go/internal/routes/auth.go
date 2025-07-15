@@ -8,20 +8,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterAuthRoutes(r *gin.Engine, appState *utils.AppState) {
+func RegisterAuthRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState) {
 	authHandler := handlers.NewAuthHandler(appState)
 
-	auth := r.Group("/api")
-	{
-		auth.POST("/users", authHandler.Register)
-		auth.POST("/login", authHandler.Login)
-		auth.POST("/refresh_token", authHandler.RefreshToken)
-	}
+	// Public auth endpoints
+	apiGroup.POST("/users", authHandler.Register)           // POST /api/users
+	apiGroup.POST("/login", authHandler.Login)              // POST /api/login
+	apiGroup.POST("/refresh_token", authHandler.RefreshToken) // POST /api/refresh_token
 
-	protected := r.Group("/api")
+	// Protected auth endpoints
+	protected := apiGroup.Group("")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		protected.POST("/logout", authHandler.Logout)
-		protected.GET("/me", authHandler.GetMe)
+		protected.POST("/logout", authHandler.Logout)       // POST /api/logout
+		protected.GET("/me", authHandler.GetMe)            // GET /api/me
 	}
 }
