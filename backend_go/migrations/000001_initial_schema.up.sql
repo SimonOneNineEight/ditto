@@ -153,7 +153,7 @@ CREATE INDEX idx_companies_deleted_at ON companies(deleted_at);
 CREATE INDEX idx_jobs_company_id ON jobs(company_id);
 CREATE INDEX idx_jobs_deleted_at ON jobs(deleted_at);
 CREATE INDEX idx_user_jobs_user_id ON user_jobs(user_id);
-CREATE INDEX idx_user_jobs_job_id ON user_jobs(job_id);
+CREATE INDEX idx_user_jobs_job_id ON user_jobs(id);
 CREATE INDEX idx_applications_user_id ON applications(user_id);
 CREATE INDEX idx_applications_job_id ON applications(job_id);
 CREATE INDEX idx_applications_status_id ON applications(application_status_id);
