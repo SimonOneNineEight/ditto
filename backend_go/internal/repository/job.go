@@ -61,12 +61,11 @@ func (r *JobRepository) CreateJob(userID uuid.UUID, job *models.Job) (*models.Jo
 		return nil, errors.ConvertError(err)
 	}
 
-	userJobID := uuid.New()
 	userJobQuery := `
-        INSERT INTO user_jobs(id, user_id, job_id, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO user_jobs(id, user_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4)
     `
-	_, err = tx.Exec(userJobQuery, userJobID, userID, job.ID, time.Now(), time.Now())
+	_, err = tx.Exec(userJobQuery, job.ID, userID, time.Now(), time.Now())
 	if err != nil {
 		return nil, errors.ConvertError(err)
 	}
@@ -94,7 +93,7 @@ func (r *JobRepository) GetJobsByUser(userID uuid.UUID, filters *JobFilters) ([]
         SELECT j.id, j.company_id, j.title, j.job_description, j.location, j.job_type,
             j.min_salary, j.max_salary, j.currency, j.is_expired, j.created_at, j.updated_at
         FROM jobs j
-        INNER JOIN user_jobs uj ON j.id = uj.job_id
+        INNER JOIN user_jobs uj ON j.id = uj.id
         WHERE uj.user_id = $1 AND j.deleted_at IS NULL
     `
 
@@ -161,7 +160,7 @@ func (r *JobRepository) GetJobByID(jobID, userID uuid.UUID) (*models.Job, error)
         SELECT j.id, j.company_id, j.title, j.job_description, j.location,
             j.job_type, j.min_salary, j.max_salary, j.currency, j.is_expired, j.created_at, j.updated_at
         FROM jobs j
-        INNER JOIN user_jobs uj ON j.id = uj.job_id
+        INNER JOIN user_jobs uj ON j.id = uj.id
         WHERE j.id = $1 AND uj.user_id = $2 AND j.deleted_at IS NULL
     `
 
@@ -191,7 +190,7 @@ func (r *JobRepository) GetJobsWithCompany(userID uuid.UUID, filters *JobFilters
             c.id as "company.id", c.name as "company.name", c.description as "company.description", c.website as "company.website",
             c.logo_url as "company.logo_url", c.created_at as "company.created_at", c.updated_at as "company.updated_at",
         FROM jobs j
-        INNER JOIN user_jobs uj ON j.id = uj.job_id
+        INNER JOIN user_jobs uj ON j.id = uj.id
         INNER JOIN companies c ON j.company_id = c.id
         WHERE uj.user_id = $1 AND j.deleted_at IS NULL AND c.deleted_at IS NULL
         ORDER BY j.created_at DESC
@@ -255,7 +254,7 @@ func (r *JobRepository) UpdateJob(jobID, userID uuid.UUID, updates map[string]an
         UPDATE jobs
         SET %s
         FROM user_jobs uj
-        WHERE jobs.id = uj.job_id AND jobs.id = $%d AND uj.user_id = $%d AND jobs.deleted_at IS NULL
+        WHERE jobs.id = uj.id AND jobs.id = $%d AND uj.user_id = $%d AND jobs.deleted_at IS NULL
         `, strings.Join(setParts, ", "), argIndex, argIndex+1)
 
 	result, err := r.db.Exec(query, args...)
@@ -280,7 +279,7 @@ func (r *JobRepository) SoftDeleteJob(jobID, userID uuid.UUID) error {
         UPDATE jobs
         SET deleted_at = $1, updated_at = $1
         FROM user_jobs uj
-        WHERE jobs.id = uj.job_id AND jobs.id = $2 AND uj.user_id = $3 AND jobs.deleted_at IS NULL
+        WHERE jobs.id = uj.id AND jobs.id = $2 AND uj.user_id = $3 AND jobs.deleted_at IS NULL
     `
 	result, err := r.db.Exec(query, time.Now(), jobID, userID)
 	if err != nil {
@@ -303,7 +302,7 @@ func (r *JobRepository) GetJobCount(userID uuid.UUID, filters *JobFilters) (int,
 	query := `
         SELECT COUNT(*)
         FROM jobs j
-        INNER JOIN user_jobs uj ON j.id = uj.job_id
+        INNER JOIN user_jobs uj ON j.id = uj.id
         WHERE uj.user_id = $1 AND j.deleted_at IS NULL
     `
 
