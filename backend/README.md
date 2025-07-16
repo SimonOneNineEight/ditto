@@ -235,7 +235,7 @@ Content-Type: application/json
 ## Project Structure
 
 ```
-backend_go/
+backend/
 ├── cmd/server/           # Application entrypoint
 ├── internal/
 │   ├── handlers/         # HTTP request handlers
