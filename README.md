@@ -97,8 +97,8 @@ Ditto is a modern web application designed to simplify and streamline the job ap
    ```
 
 4. **Access the Application**
-   - **Backend API**: http://localhost:8080
-   - **Health Check**: http://localhost:8080/health
+   - **Backend API**: http://localhost:8081
+   - **Health Check**: http://localhost:8081/health
    - **API Documentation**: See backend/README.md
 
 ### Option 2: Manual Setup
@@ -132,7 +132,7 @@ Ditto is a modern web application designed to simplify and streamline the job ap
    npm install
 
    # Set up environment variables
-   echo "NEXT_PUBLIC_API_URL=http://localhost:8080" > .env.local
+   echo "NEXT_PUBLIC_API_URL=http://localhost:8081" > .env.local
 
    # Start the development server
    npm run dev
@@ -181,7 +181,7 @@ ditto/
 2. **Create an Account**
 
    ```bash
-   curl -X POST http://localhost:8080/api/users \
+   curl -X POST http://localhost:8081/api/users \
      -H "Content-Type: application/json" \
      -d '{"name":"John Doe","email":"john@example.com","password":"password123"}'
    ```
@@ -189,14 +189,14 @@ ditto/
 3. **Login and Get Token**
 
    ```bash
-   curl -X POST http://localhost:8080/api/login \
+   curl -X POST http://localhost:8081/api/login \
      -H "Content-Type: application/json" \
      -d '{"email":"john@example.com","password":"password123"}'
    ```
 
 4. **Create Your First Job**
    ```bash
-   curl -X POST http://localhost:8080/api/jobs \
+   curl -X POST http://localhost:8081/api/jobs \
      -H "Authorization: Bearer YOUR_TOKEN" \
      -H "Content-Type: application/json" \
      -d '{"company_name":"Google","title":"Software Engineer","job_description":"Backend development","location":"San Francisco","job_type":"Full-time"}'

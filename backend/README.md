@@ -28,76 +28,78 @@ migrate -path migrations -database "postgres://..." up
 go run cmd/server/main.go
 
 # Health check
-curl http://localhost:8080/health
+curl http://localhost:8081/health
 ```
 
 ## API Documentation
 
-**Base URL**: `http://localhost:8080/api`
+**Base URL**: `http://localhost:8081/api`
 
 ### Authentication
 
 All protected endpoints require JWT token in Authorization header:
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/users` | ❌ | Register new user |
-| `POST` | `/login` | ❌ | User login |
-| `POST` | `/refresh_token` | ❌ | Refresh JWT token |
-| `POST` | `/logout` | ✅ | User logout |
-| `GET` | `/me` | ✅ | Get user profile |
+| Method | Endpoint         | Auth | Description       |
+| ------ | ---------------- | ---- | ----------------- |
+| `POST` | `/users`         | ❌   | Register new user |
+| `POST` | `/login`         | ❌   | User login        |
+| `POST` | `/refresh_token` | ❌   | Refresh JWT token |
+| `POST` | `/logout`        | ✅   | User logout       |
+| `GET`  | `/me`            | ✅   | Get user profile  |
 
 ### Companies
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/companies` | ❌ | List companies with job counts |
-| `GET` | `/companies/autocomplete?q=query` | ❌ | Smart company autocomplete |
-| `GET` | `/companies/search?name=query` | ❌ | Search companies by name |
-| `GET` | `/companies/:id` | ❌ | Get company details |
-| `POST` | `/companies/select` | ✅ | Smart company selection/creation |
-| `POST` | `/companies` | ✅ | Create company |
-| `PUT` | `/companies/:id` | ✅ | Update company |
-| `DELETE` | `/companies/:id` | ✅ | Soft delete company |
+| Method   | Endpoint                          | Auth | Description                      |
+| -------- | --------------------------------- | ---- | -------------------------------- |
+| `GET`    | `/companies`                      | ❌   | List companies with job counts   |
+| `GET`    | `/companies/autocomplete?q=query` | ❌   | Smart company autocomplete       |
+| `GET`    | `/companies/search?name=query`    | ❌   | Search companies by name         |
+| `GET`    | `/companies/:id`                  | ❌   | Get company details              |
+| `POST`   | `/companies/select`               | ✅   | Smart company selection/creation |
+| `POST`   | `/companies`                      | ✅   | Create company                   |
+| `PUT`    | `/companies/:id`                  | ✅   | Update company                   |
+| `DELETE` | `/companies/:id`                  | ✅   | Soft delete company              |
 
 ### Jobs (All Protected)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/jobs` | List user's jobs with filtering & pagination |
-| `POST` | `/jobs` | Create job (accepts `company_name` OR `company_id`) |
-| `GET` | `/jobs/with-details` | Jobs with company details |
-| `GET` | `/jobs/:id` | Get specific job |
-| `PUT` | `/jobs/:id` | Update job |
-| `PATCH` | `/jobs/:id` | Partial update job |
-| `DELETE` | `/jobs/:id` | Soft delete job |
+| Method   | Endpoint             | Description                                         |
+| -------- | -------------------- | --------------------------------------------------- |
+| `GET`    | `/jobs`              | List user's jobs with filtering & pagination        |
+| `POST`   | `/jobs`              | Create job (accepts `company_name` OR `company_id`) |
+| `GET`    | `/jobs/with-details` | Jobs with company details                           |
+| `GET`    | `/jobs/:id`          | Get specific job                                    |
+| `PUT`    | `/jobs/:id`          | Update job                                          |
+| `PATCH`  | `/jobs/:id`          | Partial update job                                  |
+| `DELETE` | `/jobs/:id`          | Soft delete job                                     |
 
 ### Applications (All Protected)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/applications` | List user's applications with filtering |
-| `POST` | `/applications` | Create application |
-| `GET` | `/applications/with-details` | Applications with job/company details |
-| `GET` | `/applications/stats` | Application statistics by status |
-| `GET` | `/applications/recent?limit=10` | Recent applications (last 7 days) |
-| `GET` | `/applications/:id` | Get specific application |
-| `PUT` | `/applications/:id` | Update application |
-| `PATCH` | `/applications/:id/status` | Update application status |
-| `DELETE` | `/applications/:id` | Soft delete application |
+| Method   | Endpoint                        | Description                             |
+| -------- | ------------------------------- | --------------------------------------- |
+| `GET`    | `/applications`                 | List user's applications with filtering |
+| `POST`   | `/applications`                 | Create application                      |
+| `GET`    | `/applications/with-details`    | Applications with job/company details   |
+| `GET`    | `/applications/stats`           | Application statistics by status        |
+| `GET`    | `/applications/recent?limit=10` | Recent applications (last 7 days)       |
+| `GET`    | `/applications/:id`             | Get specific application                |
+| `PUT`    | `/applications/:id`             | Update application                      |
+| `PATCH`  | `/applications/:id/status`      | Update application status               |
+| `DELETE` | `/applications/:id`             | Soft delete application                 |
 
 ### Application Statuses
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/application-statuses` | ❌ | Get all available application statuses |
+| Method | Endpoint                | Auth | Description                            |
+| ------ | ----------------------- | ---- | -------------------------------------- |
+| `GET`  | `/application-statuses` | ❌   | Get all available application statuses |
 
 ## Request Examples
 
 ### Register User
+
 ```bash
 POST /api/users
 Content-Type: application/json
@@ -110,6 +112,7 @@ Content-Type: application/json
 ```
 
 ### Login
+
 ```bash
 POST /api/login
 Content-Type: application/json
@@ -123,6 +126,7 @@ Content-Type: application/json
 ```
 
 ### Create Job (Modern Single-Input Approach)
+
 ```bash
 POST /api/jobs
 Authorization: Bearer <token>
@@ -141,6 +145,7 @@ Content-Type: application/json
 ```
 
 ### Company Autocomplete (Smart UX)
+
 ```bash
 GET /api/companies/autocomplete?q=goog
 
@@ -156,7 +161,7 @@ GET /api/companies/autocomplete?q=goog
       "source": "suggestion"
     },
     {
-      "id": "uuid-here", 
+      "id": "uuid-here",
       "name": "Google Inc",
       "domain": "google.com",
       "logo_url": "...",
@@ -168,6 +173,7 @@ GET /api/companies/autocomplete?q=goog
 ```
 
 ### Create Application
+
 ```bash
 POST /api/applications
 Authorization: Bearer <token>
@@ -185,6 +191,7 @@ Content-Type: application/json
 ## Response Format
 
 ### Success Response
+
 ```json
 {
   "success": true,
@@ -194,6 +201,7 @@ Content-Type: application/json
 ```
 
 ### Error Response
+
 ```json
 {
   "success": false,
@@ -208,18 +216,21 @@ Content-Type: application/json
 ## Key Features
 
 ### 🏢 Hybrid Company System
+
 - **Single Input UX**: Users just type company names
 - **Smart Autocomplete**: Local database + external API suggestions
 - **Auto-Enrichment**: Company logos, domains, websites from Clearout API
 - **Deduplication**: Prevents duplicate companies by name/domain matching
 
 ### 🔐 Security
+
 - JWT authentication with refresh tokens
 - User-scoped data access (users only see their own jobs/applications)
 - Input validation and sanitization
 - SQL injection prevention
 
 ### 📊 Advanced Features
+
 - **Soft Deletes**: Data preservation with recovery capability
 - **Pagination**: Efficient data loading with offset/limit
 - **Filtering**: Advanced search across jobs and applications
@@ -227,6 +238,7 @@ Content-Type: application/json
 - **External APIs**: Company data enrichment from public sources
 
 ### 🗄️ Database Design
+
 - PostgreSQL with optimized indexes
 - Automatic timestamp triggers
 - Foreign key constraints with cascade rules
@@ -263,7 +275,7 @@ JWT_SECRET=your-secret-key-here
 JWT_REFRESH_SECRET=your-refresh-secret-here
 
 # Server
-PORT=8080
+PORT=8081
 ```
 
 ## Development
@@ -299,3 +311,4 @@ go build -o bin/server cmd/server/main.go
 
 **Status**: ✅ Production Ready (100% feature complete)  
 **Last Updated**: July 2025
+

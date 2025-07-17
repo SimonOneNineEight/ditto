@@ -29,7 +29,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: ditto-backend
     ports:
-      - "8080:8080"
+      - "8081:8081"
     environment:
       # Database connection
       DATABASE_URL: postgres://ditto_user:ditto_password@db:5432/ditto_dev?sslmode=disable
@@ -39,7 +39,7 @@ services:
       JWT_REFRESH_SECRET: dev-refresh-secret-change-in-production
 
       # Server config
-      PORT: 8080
+      PORT: 8081
       GIN_MODE: debug
 
       # External APIs (optional for development)
@@ -62,4 +62,3 @@ volumes:
 networks:
   ditto-network:
     driver: bridge
-
