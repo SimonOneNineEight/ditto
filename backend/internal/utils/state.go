@@ -2,6 +2,7 @@ package utils
 
 import (
 	"ditto-backend/pkg/database"
+	"path/filepath"
 )
 
 type AppState struct {
@@ -9,13 +10,18 @@ type AppState struct {
 }
 
 func NewAppState() (*AppState, error) {
-	database, err := database.NewConnection()
+	db, err := database.NewConnection()
 	if err != nil {
 		return nil, err
 	}
 
+	migrationsPath := filepath.Join("migrations")
+	if err := database.RunMigrations(db.DB, migrationsPath); err != nil {
+		return nil, err
+	}
+
 	return &AppState{
-		DB: database,
+		DB: db,
 	}, nil
 }
 
