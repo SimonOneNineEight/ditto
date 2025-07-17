@@ -1,56 +1,65 @@
 version: "3.8"
 
 services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    container_name: ditto-postgres
+    environment:
+      POSTGRES_USER: ditto_user
+      POSTGRES_PASSWORD: ditto_password
+      POSTGRES_DB: ditto_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./backend_go/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ditto_user -d ditto_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ditto-network
+
+  # Go Backend API
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      TIMBURR_URL: ${TIMBURR_URL}
-    depends_on:
-      - db
-    networks:
-      - ditto-network
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
+    container_name: ditto-backend
     ports:
       - "8080:8080"
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-    networks:
-      - ditto-network
+      # Database connection
+      DATABASE_URL: postgres://ditto_user:ditto_password@db:5432/ditto_dev?sslmode=disable
 
-  scrape-service:
-    build:
-      context: ./services/scrape-service
-      dockerfile: Dockerfile
-    ports:
-      - "8082:8082"
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-    networks:
-      - ditto-network
+      # JWT secrets
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      JWT_REFRESH_SECRET: dev-refresh-secret-change-in-production
 
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      # Server config
+      PORT: 8080
+      GIN_MODE: debug
+
+      # External APIs (optional for development)
+      CLEAROUT_API_KEY: ${CLEAROUT_API_KEY:-}
     volumes:
-      - db_data:/var/lib/postgresql/data
+      # Mount source code for hot reload
+      - ./backend:/app
+      - /app/tmp # Exclude tmp directory from hot reload
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - ditto-network
+    command: ["./docker-entrypoint.sh"]
 
 volumes:
   db_data:
+    driver: local
 
 networks:
   ditto-network:
     driver: bridge
+
