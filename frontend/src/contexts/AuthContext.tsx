@@ -90,7 +90,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             async (error) => {
                 const originalRequest = error.config;
 
-                if (error.response?.status === 401 && !originalRequest._retry) {
+                // Don't try to refresh tokens on login/register endpoints
+                const isAuthEndpoint = originalRequest.url?.includes('/login') || 
+                                     originalRequest.url?.includes('/register');
+
+                if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
                     originalRequest._retry = true;
 
                     const newToken = await refreshToken();
@@ -125,6 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const userResponse = await authService.getMe();
 
             setUser(userResponse);
+            router.push('/');
         } catch (error: any) {
             console.error('Error logging in: ', error);
             setError(error?.response?.data?.error || 'Failed to login. Please try again.');
@@ -142,9 +147,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const authResponse = await authService.register(name, email, password);
 
             setupAuthentication(authResponse);
+
+            api.defaults.headers.common['Authorization'] = `Bearer ${authResponse.access_token}`;
+
+            const userResponse = await authService.getMe();
+
+            setUser(userResponse);
+            router.push('/');
         } catch (error: any) {
-            console.error('Error logging in: ', error);
-            setError(error?.response?.data?.error || 'Failed to login. Please try again.');
+            console.error('Error registering: ', error);
+            setError(error?.response?.data?.error || 'Failed to register. Please try again.');
         } finally {
             setIsLoading(false);
         }

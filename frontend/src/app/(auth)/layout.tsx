@@ -32,7 +32,7 @@ export default function AuthLayout({
                     <Link href="/" className="block m-4">
                         <h1 className={suezOne.className}>Ditto</h1>
                     </Link>
-                    <div className="flex items-center justify-center bg-background">
+                    <div className="flex items-center justify-center bg-background w-[64rem] mx-auto">
                         {children}
                     </div>
                 </div>
@@ -40,4 +40,3 @@ export default function AuthLayout({
         </ThemeProvider>
     );
 }
-

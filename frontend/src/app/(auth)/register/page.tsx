@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import MarketBanner from '../components/marketBanner';
 
 const registerSchema = z
     .object({
@@ -31,26 +32,24 @@ const page = () => {
         formState: { errors },
     } = useForm<RegisterFormData>({ resolver: zodResolver(registerSchema) });
 
-    const { register: registerUser } = useAuth();
+    const { register: registerUser, error: authError } = useAuth();
 
     const onSubmit = async (data: RegisterFormData) => {
-        try {
-            await registerUser(data.name, data.email, data.password);
-        } catch (error) {
-            console.error(error);
-        }
+        await registerUser(data.name, data.email, data.password);
     };
 
     return (
-        <div className="w-full h-full flex gap-8 row-start-2 items-center">
-            <Card className="flex flex-col justify-center items-center gap-8 w-1/2 h-full m-4 bg-primary/50">
-                <h2 className="text-center">Join Ditto</h2>
-                <h3 className="text-center">
-                    {'Start Manage Your'}
-                    <div className="text-accent bold">Job Applications</div>
-                    {'With Only One Website'}
-                </h3>
-            </Card>
+        <div className="w-full h-[80lvh] flex gap-8 row-start-2 items-center">
+            <MarketBanner>
+                <>
+                    <h2 className="text-center">Join Ditto</h2>
+                    <h3 className="text-center">
+                        {'Start Manage Your'}
+                        <div className="text-accent bold">Job Applications</div>
+                        {'With Only One Website'}
+                    </h3>
+                </>
+            </MarketBanner>
             <Card className="w-84 bg-background border-0 mr-8">
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <CardContent className="p-2">
@@ -125,6 +124,11 @@ const page = () => {
                             </div>
                         </div>
                         <CardFooter className="flex-col gap-4 p-0 pb-4">
+                            {authError && (
+                                <div className="text-error text-sm text-center">
+                                    {authError}
+                                </div>
+                            )}
                             <Button type="submit" size="full">
                                 Register
                             </Button>

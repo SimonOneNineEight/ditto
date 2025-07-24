@@ -46,6 +46,7 @@ const buttonVariants = cva(
                 left: 'flex-row',
                 right: 'flex-row-reverse',
                 only: 'p-0',
+                'left-center': 'flex-row relative',
                 none: '',
             },
         },
@@ -81,12 +82,19 @@ const buttonVariants = cva(
             {
                 hasIcon: true,
                 iconPosition: 'left',
+                size: ['default', 'sm', 'lg', 'icon', 'icon-sm', 'icon-lg'],
                 class: 'justify-start',
             },
             {
                 hasIcon: true,
                 iconPosition: 'right',
+                size: ['default', 'sm', 'lg', 'icon', 'icon-sm', 'icon-lg'],
                 class: 'justify-start',
+            },
+            {
+                hasIcon: true,
+                iconPosition: 'left-center',
+                class: '[&>svg:not(.animate-spin)]:absolute [&>svg:not(.animate-spin)]:left-4 justify-center',
             },
         ],
         defaultVariants: {
@@ -115,7 +123,7 @@ type IconOnlyProps = {
 };
 
 type ButtonWithIconProps = {
-    iconPosition: 'left' | 'right';
+    iconPosition: 'left' | 'right' | 'left-center';
     hasIcon: true;
     icon: React.ReactNode;
     children: React.ReactNode;
