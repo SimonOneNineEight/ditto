@@ -3,8 +3,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
-import { authService } from '@/services/authService';
-import { LoginResponse } from '@/types/authType';
+import { authService } from '@/services/auth-service';
+import { LoginResponse } from '@/types/auth-type';
 
 export type User = {
     id: string;

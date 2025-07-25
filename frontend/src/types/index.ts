@@ -1,1 +1,1 @@
-export * from "./jobType";
+export * from "./job-type";

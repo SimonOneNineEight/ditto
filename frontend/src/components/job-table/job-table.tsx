@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable, TableMeta, RowData } from "@tanstack/react-table"
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-import { jobService } from "@/services/jobService"
+import { jobService } from "@/services/job-service"
 import { JobTableRow } from '@/types'
 import { convertJobResponseToTableRow } from "@/lib/utils"
 import { ScrapeButton } from '.'
