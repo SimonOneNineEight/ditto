@@ -3,7 +3,7 @@ import Link from "next/link"
 import { ColumnDef } from "@tanstack/react-table"
 import { JobTableRow } from "@/types"
 import { Button } from "@/components/ui/button"
-import ApplyStatusDropdown from "./ApplyStatusDropdown"
+import ApplyStatusDropdown from "./apply-status-dropdown"
 
 export const columns: ColumnDef<JobTableRow>[] = [
     {

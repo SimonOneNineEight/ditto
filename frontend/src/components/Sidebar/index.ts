@@ -1,5 +1,5 @@
-import AppSidebar from './Sidebar';
-import SidebarTriggerButton from './SidebarTriggerButton';
+import AppSidebar from './sidebar';
+import SidebarTriggerButton from './sidebar-trigger-button';
 
 export default AppSidebar;
 export { SidebarTriggerButton };

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/contexts/auth-context';
 import Link from 'next/link';
 import { Suez_One } from 'next/font/google';
 

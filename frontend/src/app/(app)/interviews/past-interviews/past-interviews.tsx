@@ -5,8 +5,8 @@ import {
     AccordionTrigger,
 } from '@/components/ui/accordion';
 import React from 'react';
-import { PastInterviewRow } from './InterviewRow';
-import { columns } from './InterviewRowColumn';
+import { PastInterviewRow } from './interview-row';
+import { columns } from './interview-row-column';
 
 type Props = {};
 

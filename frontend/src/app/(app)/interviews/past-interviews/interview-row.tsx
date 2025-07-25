@@ -9,7 +9,7 @@ import {
 
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { useRouter } from 'next/navigation';
-import { InterviewRow, ColumnMeta } from './InterviewRowColumn';
+import { InterviewRow, ColumnMeta } from './interview-row-column';
 
 interface DataTableProps {
     columns: ColumnDef<InterviewRow, any>[];

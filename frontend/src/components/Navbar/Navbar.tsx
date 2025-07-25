@@ -1,6 +1,6 @@
 'use client';
-import { useAuth } from '@/contexts/AuthContext';
-import UserNavControl from './UserNavControl';
+import { useAuth } from '@/contexts/auth-context';
+import UserNavControl from './user-nav-control';
 
 const Navbar = () => {
     const { user } = useAuth();

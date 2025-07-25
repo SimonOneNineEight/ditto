@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import React from 'react';
-import { SidebarTriggerButton } from '@/components/Sidebar';
+import { SidebarTriggerButton } from '@/components/sidebar';
 import { Menu } from 'lucide-react';
 
 type Props = {

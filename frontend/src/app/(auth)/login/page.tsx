@@ -7,9 +7,9 @@ import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
-import MarketBanner from '../components/marketBanner';
+import MarketBanner from '../components/market-banner';
 import { Separator } from '@/components/ui/separator';
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import { signIn } from 'next-auth/react';

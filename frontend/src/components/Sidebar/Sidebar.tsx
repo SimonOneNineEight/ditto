@@ -15,7 +15,7 @@ import {
 import Link from 'next/link';
 import { Briefcase, LayoutDashboard, Users } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { NavUser } from './NavUser';
+import { NavUser } from './nav-user';
 import { X } from 'lucide-react';
 import { Button } from '../ui/button';
 

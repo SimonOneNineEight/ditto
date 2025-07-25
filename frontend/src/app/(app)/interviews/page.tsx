@@ -1,7 +1,7 @@
 import React from 'react';
-import { InterivewTable } from './InterviewTable/InterviewTable';
-import { Interview, columns } from './InterviewTable/columns';
-import PastInterviews from './PastInterviews';
+import { InterivewTable } from './interview-table/interview-table';
+import { Interview, columns } from './interview-table/columns';
+import PastInterviews from './past-interviews';
 
 type Props = {};
 

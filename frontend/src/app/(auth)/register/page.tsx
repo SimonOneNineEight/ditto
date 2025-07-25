@@ -8,8 +8,8 @@ import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
-import MarketBanner from '../components/marketBanner';
+import { useAuth } from '@/contexts/auth-context';
+import MarketBanner from '../components/market-banner';
 
 const registerSchema = z
     .object({
