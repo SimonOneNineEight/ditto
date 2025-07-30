@@ -1,7 +1,7 @@
 "use client"
 import * as React from "react"
 import { Button } from "@/components/ui/button"
-import { jobService } from "@/services/jobService"
+import { jobService } from "@/services/job-service"
 import { convertJobResponseToTableRow } from "@/lib/utils"
 import { JobTableRow } from "@/types"
 

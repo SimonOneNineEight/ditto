@@ -3,9 +3,9 @@
 # Ditto Go Backend API Testing Script
 # Usage: ./test_api.sh
 
-set -e  # Exit on any error
+set -e # Exit on any error
 
-BASE_URL="http://localhost:8080"
+BASE_URL="http://localhost:8081"
 JWT_TOKEN=""
 USER_ID=""
 COMPANY_ID=""
@@ -39,7 +39,7 @@ print_info() {
 
 # Helper function to check if server is running
 check_server() {
-    if ! curl -s "$BASE_URL/health" > /dev/null; then
+    if ! curl -s "$BASE_URL/health" >/dev/null; then
         print_error "Server is not running at $BASE_URL"
         echo "Please start the server with: go run cmd/server/main.go"
         exit 1
@@ -344,3 +344,4 @@ print_info "- Authentication & authorization: ✅"
 echo ""
 print_success "🚀 Go backend is ready for production!"
 echo "You can safely remove the Rust backend."
+

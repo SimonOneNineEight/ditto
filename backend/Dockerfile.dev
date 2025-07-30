@@ -40,28 +40,28 @@ COPY . .
 RUN go mod download
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8081
 
 # Create a simple startup script
 RUN echo '#!/bin/bash\n\
-set -e\n\
-echo "Starting Ditto Go Backend..."\n\
-echo "Waiting for database connection..."\n\
-until pg_isready -h db -p 5432 -U ditto_user -d ditto_dev; do\n\
-  echo "Database is unavailable - sleeping"\n\
-  sleep 1\n\
-done\n\
-echo "Database is ready!"\n\
-echo "Running database migrations..."\n\
-if migrate -path migrations -database "$DATABASE_URL" up; then\n\
-  echo "Migrations completed successfully"\n\
-else\n\
-  echo "Migration failed, but continuing..."\n\
-fi\n\
-echo "Starting in development mode..."\n\
-go mod download\n\
-exec go run cmd/server/main.go' > /usr/local/bin/start.sh && \
-chmod +x /usr/local/bin/start.sh
+    set -e\n\
+    echo "Starting Ditto Go Backend..."\n\
+    echo "Waiting for database connection..."\n\
+    until pg_isready -h db -p 5432 -U ditto_user -d ditto_dev; do\n\
+    echo "Database is unavailable - sleeping"\n\
+    sleep 1\n\
+    done\n\
+    echo "Database is ready!"\n\
+    echo "Running database migrations..."\n\
+    if migrate -path migrations -database "$DATABASE_URL" up; then\n\
+    echo "Migrations completed successfully"\n\
+    else\n\
+    echo "Migration failed, but continuing..."\n\
+    fi\n\
+    echo "Starting in development mode..."\n\
+    go mod download\n\
+    exec go run cmd/server/main.go' > /usr/local/bin/start.sh && \
+    chmod +x /usr/local/bin/start.sh
 
 # Start the application
 CMD ["/usr/local/bin/start.sh"]

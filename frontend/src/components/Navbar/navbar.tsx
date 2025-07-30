@@ -1,13 +1,13 @@
 'use client';
-import { useAuth } from '@/contexts/AuthContext';
-import UserNavControl from './UserNavControl';
+import { useSession } from 'next-auth/react';
+import UserNavControl from './user-nav-control';
 
 const Navbar = () => {
-    const { user } = useAuth();
+    const { status } = useSession();
 
     return (
         <>
-            {user ? null : (
+            {status === 'unauthenticated' ? (
                 <section className="flex justify-end items-center px-2 pt-2 mx-2">
                     <div className="flex items-center gap-2">
                         <UserNavControl />
@@ -15,7 +15,7 @@ const Navbar = () => {
                         {/* <DarkModeDropdown /> */}
                     </div>
                 </section>
-            )}
+            ) : null}
         </>
     );
 };

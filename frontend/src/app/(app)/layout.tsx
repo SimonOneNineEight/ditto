@@ -2,10 +2,9 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import '@/app/globals.css';
 import { Navbar, ThemeProvider } from '@/components';
-import { AuthProvider } from '@/contexts/AuthContext';
-import AppSidebar from '@/components/Sidebar';
+import AppSidebar from '@/components/sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import LayoutWrapper from '@/components/LayoutWrapper';
+import LayoutWrapper from '@/components/layout-wrapper';
 
 const geistSans = localFont({
     src: '../fonts/GeistVF.woff',
@@ -44,15 +43,13 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <AuthProvider>
-                        <SidebarProvider>
-                            <AppSidebar />
-                            <SidebarInset className="max-w-full min-w-0 ">
-                                <Navbar />
-                                <LayoutWrapper>{children}</LayoutWrapper>
-                            </SidebarInset>
-                        </SidebarProvider>
-                    </AuthProvider>
+                    <SidebarProvider>
+                        <AppSidebar />
+                        <SidebarInset className="max-w-full min-w-0 ">
+                            <Navbar />
+                            <LayoutWrapper>{children}</LayoutWrapper>
+                        </SidebarInset>
+                    </SidebarProvider>
                 </ThemeProvider>
             </body>
         </html>

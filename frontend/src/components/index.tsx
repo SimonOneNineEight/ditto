@@ -1,6 +1,6 @@
-import ThemeProvider from './ThemeProvider';
-import Navbar from './Navbar';
-import JobTable from './JobTable';
-import Sidebar from './Sidebar/Sidebar';
+import ThemeProvider from './theme-provider';
+import Navbar from './navbar';
+import JobTable from './job-table';
+import Sidebar from './sidebar/sidebar';
 
 export { ThemeProvider, Navbar, JobTable, Sidebar };

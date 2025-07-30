@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { ButtonDemo } from '@/components/ButtonDemo';
-import { TypographyDemo } from '@/components/TypographyDemo';
-import { ColorPaletteDemo } from '@/components/ColorPaletteDemo';
+import { ButtonDemo } from '@/components/button-demo';
+import { TypographyDemo } from '@/components/typography-demo';
+import { ColorPaletteDemo } from '@/components/color-palette-demo';
 
 export default function DesignSystemPage() {
     return (

@@ -10,7 +10,7 @@ import {
 
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import JobDescription from './jobDescription';
+import JobDescription from './job-description';
 
 type Props = {};
 

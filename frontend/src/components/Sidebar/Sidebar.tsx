@@ -10,13 +10,12 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarTrigger,
     useSidebar,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Briefcase, LayoutDashboard, Users } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { NavUser } from './NavUser';
+import { NavUser } from './nav-user';
 import { X } from 'lucide-react';
 import { Button } from '../ui/button';
 
@@ -46,11 +45,6 @@ const sidebarMenu = [
     },
 ];
 
-const user = {
-    name: 'Simon Huang',
-    email: 'simonhuang@gmail.com',
-    avatar: '',
-};
 
 const AppSidebar = () => {
     const { isMobile, setOpen, toggleSidebar } = useSidebar();
@@ -101,7 +95,7 @@ const AppSidebar = () => {
                 </SidebarMenu>
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={user} />
+                <NavUser />
             </SidebarFooter>
         </Sidebar>
     );

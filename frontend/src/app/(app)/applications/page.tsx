@@ -1,6 +1,6 @@
 import React from 'react';
-import { ApplicationTable } from './ApplicationTable';
-import { Application, columns } from './ApplicationTable/columns';
+import { ApplicationTable } from './application-table';
+import { Application, columns } from './application-table/columns';
 
 type Props = {};
 
