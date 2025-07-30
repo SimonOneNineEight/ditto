@@ -1,18 +1,18 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
 import MarketBanner from '../components/market-banner';
 import { Separator } from '@/components/ui/separator';
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email address'),
@@ -22,16 +22,26 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const page = () => {
+    const router = useRouter();
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm<LoginFormData>({ resolver: zodResolver(loginSchema) });
-
-    const { login, error: authError } = useAuth();
+    const [error, setError] = useState('');
 
     const onSubmit = async (data: LoginFormData) => {
-        await login(data.email, data.password);
+        const result = await signIn('credentials', {
+            email: data.email,
+            password: data.password,
+            redirect: false,
+        });
+
+        if (result?.error) {
+            setError('Invalid email or password');
+        } else {
+            router.push('/');
+        }
     };
 
     return (
@@ -107,9 +117,9 @@ const page = () => {
                             </div>
                         </div>
                         <CardFooter className="flex-col p-0 pb-4 gap-4">
-                            {authError && (
+                            {error && (
                                 <div className="text-error text-sm text-center">
-                                    {authError}
+                                    {error}
                                 </div>
                             )}
                             <Button type="submit" size="full">

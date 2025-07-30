@@ -45,11 +45,6 @@ const sidebarMenu = [
     },
 ];
 
-const user = {
-    name: 'Simon Huang',
-    email: 'simonhuang@gmail.com',
-    avatar: '',
-};
 
 const AppSidebar = () => {
     const { isMobile, setOpen, toggleSidebar } = useSidebar();
@@ -100,7 +95,7 @@ const AppSidebar = () => {
                 </SidebarMenu>
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={user} />
+                <NavUser />
             </SidebarFooter>
         </Sidebar>
     );
