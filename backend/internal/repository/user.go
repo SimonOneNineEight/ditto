@@ -164,3 +164,80 @@ func (r *UserRepository) ClearRefreshToken(userID uuid.UUID) error {
 
 	return nil
 }
+
+func (r *UserRepository) CreateOrUpdateOAuthUser(email, name, provider, avatarURL string) (*models.User, error) {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return nil, errors.NewDatabaseError("failed to begin transaction", err)
+	}
+
+	defer tx.Rollback()
+
+	existingUser, err := r.GetUserByEmail(email)
+	if err != nil && !errors.IsNotFoundError(err) {
+		return nil, err
+	}
+
+	var user *models.User
+
+	if existingUser != nil {
+		user = existingUser
+		updateQuery := `
+            UPDATE users SET name = $1, updated_at = $2
+            WHERE email = $3 AND deleted_at IS NULL
+        `
+
+		_, err = tx.Exec(updateQuery, name, time.Now(), email)
+		if err != nil {
+			return nil, errors.ConvertError(err)
+		}
+
+		authUpdateQuery := `
+            INSERT INTO users_auth (id, user_id, auth_provider, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (user_id)
+            DO UPDATE SET auth_provider = $3, avatar_url = $4, updated_at = $6
+        `
+
+		_, err = tx.Exec(authUpdateQuery, uuid.New(), user.ID, provider, avatarURL, time.Now(), time.Now())
+		if err != nil {
+			return nil, errors.ConvertError(err)
+		}
+	} else {
+		userID := uuid.New()
+		user = &models.User{
+			ID:        userID,
+			Email:     email,
+			Name:      name,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		userQuery := `
+            INSERT INTO users (id, email, name, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5)
+        `
+
+		_, err = tx.Exec(userQuery, user.ID, user.Email, user.Name, user.CreatedAt, user.UpdatedAt)
+		if err != nil {
+			return nil, errors.ConvertError(err)
+		}
+
+		authQuery := `
+            INSERT INTO users_auth (id, user_id, auth_provider, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `
+
+		_, err = tx.Exec(authQuery, uuid.New(), userID, provider, avatarURL, time.Now(), time.Now())
+	}
+
+	if err != nil {
+		return nil, errors.ConvertError(err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, errors.ConvertError(err)
+	}
+
+	return user, nil
+}

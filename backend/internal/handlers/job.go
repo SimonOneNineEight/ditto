@@ -187,7 +187,7 @@ func (h *JobHandler) UpdateJob(c *gin.Context) {
 
 	_, err = h.companyRepo.GetCompanyByID(*req.CompanyID)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if errors.IsNotFoundError(err) {
 			HandleError(c, errors.New(errors.ErrorNotFound, "company not found"))
 			return
 		}

@@ -27,12 +27,3 @@ func HandleErrorWithMessage(c *gin.Context, err error, message string) {
 	}
 	response.Error(c, appErr)
 }
-
-func IsNotFoundError(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	appErr := errors.ConvertError(err)
-	return appErr.Code == errors.ErrorNotFound || appErr.Code == errors.ErrorUserNotFound
-}

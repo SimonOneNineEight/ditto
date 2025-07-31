@@ -116,3 +116,12 @@ func NewUserNotFound(id string) *AppError {
 func NewValidationError(message string) *AppError {
 	return New(ErrorValidationFailed, message)
 }
+
+func IsNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	appErr := ConvertError(err)
+	return appErr.Code == ErrorNotFound || appErr.Code == ErrorUserNotFound
+}
