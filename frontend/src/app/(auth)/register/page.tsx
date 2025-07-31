@@ -12,6 +12,8 @@ import MarketBanner from '../components/market-banner';
 import { authService } from '@/services/auth-service';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import OAuthButtons from '../components/oauth-buttons';
+import { Separator } from '@/components/ui/separator';
 
 const registerSchema = z
     .object({
@@ -74,6 +76,8 @@ const page = () => {
                 </>
             </MarketBanner>
             <Card className="w-84 bg-background border-0 mr-8">
+                <OAuthButtons />
+                <Separator className="my-4" />
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <CardContent className="p-2">
                         <div className="grid w-full items-center gap-2">

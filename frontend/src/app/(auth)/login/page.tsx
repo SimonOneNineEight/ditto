@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import OAuthButtons from '../components/oauth-buttons';
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email address'),
@@ -61,23 +62,8 @@ const page = () => {
                 </>
             </MarketBanner>
             <Card className="w-84 bg-background border-0 mr-8">
-                <section className="my-4">
-                    <Button
-                        variant="outline"
-                        size="full"
-                        hasIcon
-                        icon={
-                            <SiGithub
-                                style={{ width: '1.25rem', height: '1.25rem' }}
-                            />
-                        }
-                        iconPosition="left-center"
-                        onClick={() => signIn('github', { redirectTo: '/' })}
-                    >
-                        Log in with Github
-                    </Button>
-                </section>
-                <Separator />
+                <OAuthButtons />
+                <Separator className="my-4" />
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <CardContent className="p-2">
                         <div className="grid w-full items-center gap-2">

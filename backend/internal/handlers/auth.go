@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"ditto-backend/internal/auth"
+	"ditto-backend/internal/constants"
 	"ditto-backend/internal/models"
 	"ditto-backend/internal/repository"
 	"ditto-backend/internal/utils"
@@ -47,6 +48,13 @@ type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
 }
 
+type OAuthRequest struct {
+	Provider  string  `json:"provider" validate:"required"`
+	Email     string  `json:"email" validate:"required,email"`
+	Name      string  `json:"name" validate:"required,min=1,max=100"`
+	AvatarURL *string `json:"avatar_url,omitempty"`
+}
+
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -61,7 +69,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	existingUser, err := h.userRepo.GetUserByEmail(req.Email)
 
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !errors.IsNotFoundError(err) {
 		HandleError(c, err)
 		return
 	}
@@ -124,7 +132,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	user, err := h.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if errors.IsNotFoundError(err) {
 			HandleError(c, errors.New(errors.ErrorInvalidCredentials, "invalid credentials"))
 			return
 		}
@@ -134,7 +142,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	userAuth, err := h.userRepo.GetUserAuth(user.ID)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if errors.IsNotFoundError(err) {
 			HandleError(c, errors.New(errors.ErrorInvalidCredentials, "invalid credentials"))
 			return
 		}
@@ -250,4 +258,61 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 	}
 
 	response.Success(c, user)
+}
+
+func (h *AuthHandler) OAuthLogin(c *gin.Context) {
+	var req OAuthRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	if !constants.IsValidOAuthProvider(req.Provider) {
+		HandleError(c, errors.New(errors.ErrorBadRequest, "unsupported OAuth provider"))
+		return
+	}
+
+	avatarURL := ""
+
+	if req.AvatarURL != nil {
+		avatarURL = *req.AvatarURL
+	}
+
+	user, err := h.userRepo.CreateOrUpdateOAuthUser(req.Email, req.Name, req.Provider, avatarURL)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	accessToken, err := auth.GenerateToken(user.ID, user.Email)
+	if err != nil {
+		HandleErrorWithMessage(c, err, "failed to generate access token")
+		return
+	}
+
+	refresh_token, err := auth.GenerateToken(user.ID, user.Email)
+	if err != nil {
+		HandleErrorWithMessage(c, err, "failed to generate refresh token")
+		return
+	}
+
+	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+
+	if err := h.userRepo.UpdateRefreshToken(user.ID, refresh_token, expiresAt); err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	authResponse := &AuthResponse{
+		User:         user,
+		AccessToken:  accessToken,
+		RefreshToken: refresh_token,
+	}
+
+	response.Success(c, authResponse)
 }
