@@ -45,7 +45,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         `${process.env.NEXT_PUBLIC_API_URL}/api/oauth`,
                         {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
                             body: JSON.stringify({
                                 provider: account.provider,
                                 email: user.email,
@@ -54,11 +57,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                             }),
                         }
                     );
-
+                    
                     if (response.ok) {
                         const data = await response.json();
                         user.accessToken = data.data.access_token;
                         user.refreshToken = data.data.refresh_token;
+                        user.backendUserId = data.data.user.id;
+                    } else {
+                        console.error('Backend OAuth failed:', response.status, await response.text());
+                        return false;
                     }
                 } catch (error) {
                     console.error('OAuth backend sync failed:', error);
