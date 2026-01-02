@@ -50,6 +50,7 @@ func main() {
 		routes.RegisterApplicationRoutes(apiGroup, appState)
 		routes.RegisterCompanyRoutes(apiGroup, appState)
 		routes.RegisterJobRoutes(apiGroup, appState)
+		routes.RegisterExtractRoutes(apiGroup)
 	}
 
 	port := os.Getenv("PORT")
