@@ -23,7 +23,7 @@ func HandleErrorWithMessage(c *gin.Context, err error, message string) {
 
 	appErr := errors.ConvertError(err)
 	if appErr.Code == errors.ErrorUnexpected {
-		appErr = errors.NewWithCause(errors.ErrorInternalServer, message, err)
+		appErr = errors.Wrap(errors.ErrorInternalServer, message, err)
 	}
 	response.Error(c, appErr)
 }

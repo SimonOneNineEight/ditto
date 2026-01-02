@@ -10,6 +10,7 @@ type AppError struct {
 	Message string    `json:"message"`
 	Status  int       `json:"-"`
 	Cause   error     `json:"-"`
+	Details []string  `json:"-"`
 }
 
 type ErrorCode string
@@ -32,6 +33,11 @@ const (
 	ErrorInternalServer ErrorCode = "INTERNAL_SERVER_ERROR"
 	ErrorDatabaseError  ErrorCode = "DATABASE_ERROR"
 	ErrorUnexpected     ErrorCode = "UNEXPECTED_ERROR"
+
+	ErrorTimeout             ErrorCode = "TIMEOUT_ERROR"
+	ErrorParsingFailed       ErrorCode = "PARSING_FAILED"
+	ErrorNetworkFailure      ErrorCode = "NETWORK_FAILURE"
+	ErrorUnsupportedPlatform ErrorCode = "UNSUPPORTED_PLATFORM"
 )
 
 func (e *AppError) Error() string {
@@ -60,8 +66,15 @@ func (code ErrorCode) HTTPStatus() int {
 		return http.StatusConflict
 	case ErrorNotFound, ErrorUserNotFound, ErrorJobNotFound, ErrorRoleNotFound:
 		return http.StatusNotFound
-	case ErrorValidationFailed, ErrorBadRequest:
+	case ErrorValidationFailed, ErrorBadRequest, ErrorUnsupportedPlatform:
 		return http.StatusBadRequest
+	case ErrorTimeout:
+		return http.StatusRequestTimeout
+	case ErrorParsingFailed:
+		return http.StatusUnprocessableEntity
+	case ErrorNetworkFailure:
+		return http.StatusBadGateway
+
 	default:
 		return http.StatusInternalServerError
 	}
@@ -80,20 +93,22 @@ func (code ErrorCode) Category() string {
 	}
 }
 
-func New(code ErrorCode, message string) *AppError {
+func New(code ErrorCode, message string, details ...string) *AppError {
 	return &AppError{
 		Code:    code,
 		Message: message,
 		Status:  code.HTTPStatus(),
+		Details: details,
 	}
 }
 
-func NewWithCause(code ErrorCode, message string, cause error) *AppError {
+func Wrap(code ErrorCode, message string, cause error, details ...string) *AppError {
 	return &AppError{
 		Code:    code,
 		Message: message,
 		Status:  code.HTTPStatus(),
 		Cause:   cause,
+		Details: details,
 	}
 }
 
@@ -106,7 +121,7 @@ func NewUnauthorized() *AppError {
 }
 
 func NewDatabaseError(message string, cause error) *AppError {
-	return NewWithCause(ErrorDatabaseError, message, cause)
+	return Wrap(ErrorDatabaseError, message, cause)
 }
 
 func NewUserNotFound(id string) *AppError {
@@ -124,4 +139,37 @@ func IsNotFoundError(err error) bool {
 
 	appErr := ConvertError(err)
 	return appErr.Code == ErrorNotFound || appErr.Code == ErrorUserNotFound
+}
+
+func IsTimeoutError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	type timeoutError interface {
+		Timeout() bool
+	}
+
+	if e, ok := err.(timeoutError); ok {
+		return e.Timeout()
+	}
+
+	return false
+}
+
+func NewTimeoutError(message string) *AppError {
+	return New(ErrorTimeout, message)
+}
+
+func NewNetworkError(message string, cause error) *AppError {
+	return Wrap(ErrorNetworkFailure, message, cause)
+}
+
+func NewParsingError(message string) *AppError {
+	return New(ErrorParsingFailed, message)
+}
+
+func NewUnsupportedPlatform(platform string) *AppError {
+	return New(ErrorUnsupportedPlatform,
+		fmt.Sprintf("Platform '%s' is not supported. Supported platforms: LinkedIn, Indeed, Glassdoor, AngelList", platform))
 }
