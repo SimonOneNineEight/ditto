@@ -171,5 +171,5 @@ func NewParsingError(message string) *AppError {
 
 func NewUnsupportedPlatform(platform string) *AppError {
 	return New(ErrorUnsupportedPlatform,
-		fmt.Sprintf("Platform '%s' is not supported. Supported platforms: LinkedIn, Indeed, Glassdoor, AngelList", platform))
+		fmt.Sprintf("Platform '%s' is not supported. Supported platforms: LinkedIn, Indeed", platform))
 }
