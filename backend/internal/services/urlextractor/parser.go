@@ -21,7 +21,8 @@ func newAllParsers(logger *log.Logger) map[string]Parser {
 	parsers := map[string]Parser{
 		PlatformLinkedIn:  newLinkedInParser(logger),
 		PlatformIndeed:    newIndeedParser(logger),
-		PlatformGlassdoor: newGlassdoorParser(logger),
+		// Glassdoor removed due to aggressive anti-scraping (403 blocking)
+		// PlatformGlassdoor: newGlassdoorParser(logger),
 		PlatformAngelList: newAngelListParser(logger),
 	}
 
