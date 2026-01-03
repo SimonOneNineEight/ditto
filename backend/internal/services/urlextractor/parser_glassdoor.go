@@ -12,11 +12,15 @@ import (
 )
 
 type glassdoorParser struct {
-	logger *log.Logger
+	logger  *log.Logger
+	fetcher HTTPFetcher
 }
 
-func newGlassdoorParser(logger *log.Logger) Parser {
-	return &glassdoorParser{logger: logger}
+func newGlassdoorParser(logger *log.Logger, fetcher HTTPFetcher) Parser {
+	return &glassdoorParser{
+		logger:  logger,
+		fetcher: fetcher,
+	}
 }
 
 type glassdoorJobSchema struct {
@@ -37,9 +41,9 @@ type glassdoorJobSchema struct {
 func (p *glassdoorParser) FetchAndParse(ctx context.Context, jobURL string) (*ExtractedJobData, []string, error) {
 	p.logger.Printf("Fetching Glassdoor job: %s", jobURL)
 
-	body, err := fetchURL(ctx, jobURL, map[string]string{
+	body, err := p.fetcher.FetchURL(ctx, jobURL, map[string]string{
 		"Referer": "https://www.glassdoor.com/",
-	}, p.logger)
+	})
 	if err != nil {
 		return nil, nil, err
 	}

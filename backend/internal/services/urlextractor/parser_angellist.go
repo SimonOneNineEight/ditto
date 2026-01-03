@@ -11,19 +11,23 @@ import (
 )
 
 type angelListParser struct {
-	logger *log.Logger
+	logger  *log.Logger
+	fetcher HTTPFetcher
 }
 
-func newAngelListParser(logger *log.Logger) Parser {
-	return &angelListParser{logger: logger}
+func newAngelListParser(logger *log.Logger, fetcher HTTPFetcher) Parser {
+	return &angelListParser{
+		logger:  logger,
+		fetcher: fetcher,
+	}
 }
 
 func (p *angelListParser) FetchAndParse(ctx context.Context, jobURL string) (*ExtractedJobData, []string, error) {
 	p.logger.Printf("Fetching Wellfound job: %s", jobURL)
 
-	body, err := fetchURL(ctx, jobURL, map[string]string{
+	body, err := p.fetcher.FetchURL(ctx, jobURL, map[string]string{
 		"Referer": "https://wellfound.com/",
-	}, p.logger)
+	})
 	if err != nil {
 		return nil, nil, err
 	}

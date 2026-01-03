@@ -12,11 +12,15 @@ import (
 )
 
 type linkedInParser struct {
-	logger *log.Logger
+	logger  *log.Logger
+	fetcher HTTPFetcher
 }
 
-func newLinkedInParser(logger *log.Logger) Parser {
-	return &linkedInParser{logger: logger}
+func newLinkedInParser(logger *log.Logger, fetcher HTTPFetcher) Parser {
+	return &linkedInParser{
+		logger:  logger,
+		fetcher: fetcher,
+	}
 }
 
 func (p *linkedInParser) FetchAndParse(ctx context.Context, jobURL string) (*ExtractedJobData, []string, error) {
@@ -32,7 +36,7 @@ func (p *linkedInParser) FetchAndParse(ctx context.Context, jobURL string) (*Ext
 	header := map[string]string{
 		"Referer": "https://www.linkedin.com/jobs/search",
 	}
-	body, err := fetchURL(ctx, guestJobURL, header, p.logger)
+	body, err := p.fetcher.FetchURL(ctx, guestJobURL, header)
 	if err != nil {
 		return nil, nil, err
 	}

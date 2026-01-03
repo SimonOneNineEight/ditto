@@ -13,11 +13,15 @@ import (
 )
 
 type indeedParser struct {
-	logger *log.Logger
+	logger  *log.Logger
+	fetcher HTTPFetcher
 }
 
-func newIndeedParser(logger *log.Logger) Parser {
-	return &indeedParser{logger: logger}
+func newIndeedParser(logger *log.Logger, fetcher HTTPFetcher) Parser {
+	return &indeedParser{
+		logger:  logger,
+		fetcher: fetcher,
+	}
 }
 
 type indeedJobSchema struct {
@@ -52,7 +56,7 @@ func (p *indeedParser) FetchAndParse(ctx context.Context, url string) (*Extracte
 		"Referer": "https://www.indeed.com/",
 	}
 
-	body, err := fetchURL(ctx, normalizedURL, header, p.logger)
+	body, err := p.fetcher.FetchURL(ctx, normalizedURL, header)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -10,6 +10,24 @@ import (
 	"time"
 )
 
+// HTTPFetcher is an interface for fetching URLs with custom headers
+type HTTPFetcher interface {
+	FetchURL(ctx context.Context, url string, headers map[string]string) ([]byte, error)
+}
+
+// httpFetcher is the real HTTP implementation
+type httpFetcher struct {
+	logger *log.Logger
+}
+
+func newHTTPFetcher(logger *log.Logger) HTTPFetcher {
+	return &httpFetcher{logger: logger}
+}
+
+func (f *httpFetcher) FetchURL(ctx context.Context, url string, headers map[string]string) ([]byte, error) {
+	return fetchURL(ctx, url, headers, f.logger)
+}
+
 // Parser extracts job data from a URL.
 // Each platform handles its own fetching and parsing logic.
 type Parser interface {
@@ -18,13 +36,14 @@ type Parser interface {
 
 // newAllParsers creates all platform-specific parsers.
 func newAllParsers(logger *log.Logger) map[string]Parser {
+	fetcher := newHTTPFetcher(logger)
 	parsers := map[string]Parser{
-		PlatformLinkedIn: newLinkedInParser(logger),
-		PlatformIndeed:   newIndeedParser(logger),
+		PlatformLinkedIn: newLinkedInParser(logger, fetcher),
+		PlatformIndeed:   newIndeedParser(logger, fetcher),
 		// Glassdoor removed due to aggressive anti-scraping (403 blocking)
-		// PlatformGlassdoor: newGlassdoorParser(logger),
+		// PlatformGlassdoor: newGlassdoorParser(logger, fetcher),
 		// Wellfound removed due to Cloudflare protection (403 blocking)
-		// PlatformAngelList: newAngelListParser(logger),
+		// PlatformAngelList: newAngelListParser(logger, fetcher),
 	}
 
 	return parsers
