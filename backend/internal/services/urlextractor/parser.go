@@ -19,11 +19,12 @@ type Parser interface {
 // newAllParsers creates all platform-specific parsers.
 func newAllParsers(logger *log.Logger) map[string]Parser {
 	parsers := map[string]Parser{
-		PlatformLinkedIn:  newLinkedInParser(logger),
-		PlatformIndeed:    newIndeedParser(logger),
+		PlatformLinkedIn: newLinkedInParser(logger),
+		PlatformIndeed:   newIndeedParser(logger),
 		// Glassdoor removed due to aggressive anti-scraping (403 blocking)
 		// PlatformGlassdoor: newGlassdoorParser(logger),
-		PlatformAngelList: newAngelListParser(logger),
+		// Wellfound removed due to Cloudflare protection (403 blocking)
+		// PlatformAngelList: newAngelListParser(logger),
 	}
 
 	return parsers

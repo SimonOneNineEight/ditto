@@ -76,8 +76,9 @@ func detectPlatform(urlStr string) (string, error) {
 		return PlatformLinkedIn, nil
 	case strings.Contains(host, "indeed.com"):
 		return PlatformIndeed, nil
-	case strings.Contains(host, "angel.co") || strings.Contains(host, "wellfound.com"):
-		return PlatformAngelList, nil
+	// Wellfound removed due to Cloudflare protection (403 blocking)
+	// case strings.Contains(host, "angel.co") || strings.Contains(host, "wellfound.com"):
+	//	return PlatformAngelList, nil
 	// Glassdoor removed due to aggressive anti-scraping (403 blocking)
 	// case strings.Contains(host, "glassdoor.com"):
 	//	return PlatformGlassdoor, nil
