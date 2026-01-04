@@ -111,7 +111,7 @@ func (p *indeedParser) extractFromJSONLD(doc *goquery.Document) (*ExtractedJobDa
 			Title:       cleanText(schema.Title),
 			Company:     cleanText(schema.HiringOrg.Name),
 			Location:    cleanText(location),
-			Description: extractDescription(schema.Description),
+			Description: extractDescription(sanitizeHTML(schema.Description)),
 			Platform:    "indeed",
 		}
 	})
@@ -154,7 +154,7 @@ func (p *indeedParser) extractFromHTML(doc *goquery.Document) (*ExtractedJobData
 		Title:       cleanText(title),
 		Company:     cleanText(company),
 		Location:    cleanText(location),
-		Description: extractDescription(descriptionHTML),
+		Description: extractDescription(sanitizeHTML(descriptionHTML)),
 		Platform:    "indeed",
 	}
 

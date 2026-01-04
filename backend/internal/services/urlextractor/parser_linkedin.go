@@ -49,6 +49,7 @@ func (p *linkedInParser) FetchAndParse(ctx context.Context, jobURL string) (*Ext
 
 	// Extract description with preserved HTML structure
 	descriptionHTML, _ := doc.Find(".show-more-less-html__markup").First().Html()
+	descriptionHTML = sanitizeHTML(descriptionHTML)
 
 	data := &ExtractedJobData{
 		Title:   cleanText(doc.Find(".top-card-layout__title").First().Text()),
