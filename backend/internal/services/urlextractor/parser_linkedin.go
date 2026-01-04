@@ -106,27 +106,18 @@ func cleanText(text string) string {
 	return text
 }
 
-// extractDescription converts HTML description to formatted text with preserved paragraphs
 func extractDescription(htmlContent string) string {
-	// Replace <br> and <br/> tags with newlines
-	htmlContent = regexp.MustCompile(`<br\s*/?>` ).ReplaceAllString(htmlContent, "\n")
-
-	// Replace closing list items with newlines
+	htmlContent = regexp.MustCompile(`<br\s*/?>`).ReplaceAllString(htmlContent, "\n")
 	htmlContent = regexp.MustCompile(`</li>`).ReplaceAllString(htmlContent, "\n")
-
-	// Replace closing paragraphs and divs with double newlines
 	htmlContent = regexp.MustCompile(`</(p|div)>`).ReplaceAllString(htmlContent, "\n\n")
 
-	// Parse the modified HTML to extract text
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlContent))
 	if err != nil {
-		// If parsing fails, just strip basic HTML tags
 		htmlContent = regexp.MustCompile(`<[^>]*>`).ReplaceAllString(htmlContent, "")
 	} else {
 		htmlContent = doc.Text()
 	}
 
-	// Clean and normalize the text
 	text := strings.TrimSpace(htmlContent)
 	text = strings.ReplaceAll(text, "\r\n", "\n")
 	text = regexp.MustCompile(`[^\S\n]+`).ReplaceAllString(text, " ")

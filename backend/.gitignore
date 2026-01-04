@@ -51,3 +51,8 @@ db_data/
 # Build artifacts
 dist/
 build/
+
+# Claude
+.claude/
+bmad/
+
