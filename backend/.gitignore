@@ -52,7 +52,4 @@ db_data/
 dist/
 build/
 
-# Claude
-.claude/
-bmad/
 
