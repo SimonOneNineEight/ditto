@@ -50,6 +50,43 @@ func newAllParsers(logger *log.Logger) map[string]Parser {
 }
 
 func fetchURL(ctx context.Context, url string, headers map[string]string, logger *log.Logger) ([]byte, error) {
+	maxRetries := 2
+	baseDelay := 500 * time.Millisecond
+
+	var lastErr error
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		if attempt > 0 {
+			delay := baseDelay * time.Duration(1<<uint(attempt-1))
+			logger.Printf("Retry attempt %d/%d after %v", attempt+1, maxRetries+1, delay)
+			select {
+			case <-time.After(delay):
+			case <-ctx.Done():
+				return nil, errors.Wrap(errors.ErrorNetworkFailure, "Request cancelled", ctx.Err())
+			}
+		}
+		body, err := fetchURLOnce(ctx, url, headers, logger)
+		if err == nil {
+			if attempt > 0 {
+				logger.Printf("Request succeeded on attempt %d/%d", attempt+1, maxRetries+1)
+			}
+
+			return body, nil
+		}
+
+		lastErr = err
+
+		if !shouldRetry(err) {
+			logger.Printf("Request failed with non-retryable error: %v", err)
+			return nil, err
+		}
+
+		logger.Printf("Request failed (attempt %d/%d): %v", attempt+1, maxRetries+1, err)
+	}
+
+	return nil, errors.Wrap(errors.ErrorNetworkFailure, "Max retries exceeded", lastErr)
+}
+
+func fetchURLOnce(ctx context.Context, url string, headers map[string]string, logger *log.Logger) ([]byte, error) {
 	client := &http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -83,6 +120,10 @@ func fetchURL(ctx context.Context, url string, headers map[string]string, logger
 			return nil, errors.New(errors.ErrorNotFound, "Job posting not found")
 		}
 
+		if res.StatusCode >= 500 {
+			return nil, errors.New(errors.ErrorNetworkFailure, fmt.Sprintf("HTTP %d: Server error", res.StatusCode))
+		}
+
 		return nil, errors.New(errors.ErrorNetworkFailure, fmt.Sprintf("HTTP %d: Failed to fetch job posting", res.StatusCode))
 	}
 
@@ -94,4 +135,19 @@ func fetchURL(ctx context.Context, url string, headers map[string]string, logger
 	logger.Printf("Successfully fetched %d bytes", len(body))
 
 	return body, nil
+}
+
+func shouldRetry(err error) bool {
+	appErr, ok := err.(*errors.AppError)
+	if !ok {
+		return true
+	}
+	switch appErr.Code {
+	case errors.ErrorNotFound, errors.ErrorValidationFailed:
+		return false
+	case errors.ErrorNetworkFailure, errors.ErrorTimeout:
+		return true
+	default:
+		return false
+	}
 }
