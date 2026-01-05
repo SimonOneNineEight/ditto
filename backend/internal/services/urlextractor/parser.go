@@ -40,6 +40,7 @@ func newAllParsers(logger *log.Logger) map[string]Parser {
 	parsers := map[string]Parser{
 		PlatformLinkedIn: newLinkedInParser(logger, fetcher),
 		PlatformIndeed:   newIndeedParser(logger, fetcher),
+		PlatformGeneric:  newGenericParser(logger, fetcher),
 		// Glassdoor removed due to aggressive anti-scraping (403 blocking)
 		// PlatformGlassdoor: newGlassdoorParser(logger, fetcher),
 		// Wellfound removed due to Cloudflare protection (403 blocking)

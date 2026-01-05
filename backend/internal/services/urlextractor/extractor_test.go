@@ -104,32 +104,40 @@ func TestDetectPlatform(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "Glassdoor (disabled)",
+			name:    "Glassdoor (uses generic parser)",
 			url:     "https://www.glassdoor.com/job/123",
-			want:    "",
-			wantErr: true,
-			errMsg:  "not supported",
+			want:    "generic",
+			wantErr: false,
 		},
 		{
-			name:    "Wellfound (disabled)",
+			name:    "Wellfound (uses generic parser)",
 			url:     "https://wellfound.com/jobs/123",
-			want:    "",
-			wantErr: true,
-			errMsg:  "not supported",
+			want:    "generic",
+			wantErr: false,
 		},
 		{
-			name:    "AngelList domain (disabled)",
+			name:    "AngelList domain (uses generic parser)",
 			url:     "https://angel.co/jobs/123",
-			want:    "",
-			wantErr: true,
-			errMsg:  "not supported",
+			want:    "generic",
+			wantErr: false,
 		},
 		{
-			name:    "unsupported platform",
-			url:     "https://www.monster.com/jobs/123",
-			want:    "",
-			wantErr: true,
-			errMsg:  "not supported",
+			name:    "Greenhouse (uses generic parser)",
+			url:     "https://boards.greenhouse.io/company/job",
+			want:    "generic",
+			wantErr: false,
+		},
+		{
+			name:    "Lever (uses generic parser)",
+			url:     "https://jobs.lever.co/company/job",
+			want:    "generic",
+			wantErr: false,
+		},
+		{
+			name:    "Custom career page (uses generic parser)",
+			url:     "https://www.company.com/careers/job/123",
+			want:    "generic",
+			wantErr: false,
 		},
 	}
 
@@ -164,24 +172,4 @@ func TestExtractor_Extract_InvalidURL(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestExtractor_Extract_UnsupportedPlatform(t *testing.T) {
-	logger := log.New(io.Discard, "", 0)
-	e := New(logger)
-
-	tests := []struct {
-		name string
-		url  string
-	}{
-		{"Glassdoor", "https://www.glassdoor.com/job/123"},
-		{"Wellfound", "https://wellfound.com/jobs/123"},
-		{"Monster", "https://www.monster.com/jobs/123"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := e.Extract(context.Background(), tt.url)
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "not supported")
-		})
-	}
-}
+// TestExtractor_Extract_UnsupportedPlatform removed - all platforms now supported via generic parser

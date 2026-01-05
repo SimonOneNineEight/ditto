@@ -15,6 +15,7 @@ const (
 	PlatformIndeed    = "indeed"
 	PlatformGlassdoor = "glassdoor"
 	PlatformAngelList = "angellist"
+	PlatformGeneric   = "generic"
 )
 
 type Extractor interface {
@@ -83,7 +84,8 @@ func detectPlatform(urlStr string) (string, error) {
 	// case strings.Contains(host, "glassdoor.com"):
 	//	return PlatformGlassdoor, nil
 	default:
-		return "", errors.NewUnsupportedPlatform(host)
+		// Use generic parser as fallback for unsupported platforms
+		return PlatformGeneric, nil
 	}
 }
 
