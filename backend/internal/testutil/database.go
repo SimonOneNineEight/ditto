@@ -139,8 +139,26 @@ func (td *TestDatabase) RunMigrations(t *testing.T) {
 			deleted_at TIMESTAMP NULL
 		);
 
+		CREATE TABLE IF NOT EXISTS files (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+			interview_id UUID,
+			file_name VARCHAR(256) NOT NULL,
+			file_type VARCHAR(50) NOT NULL,
+			file_size BIGINT NOT NULL,
+			s3_key VARCHAR(500) NOT NULL UNIQUE,
+			uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			deleted_at TIMESTAMP NULL
+		);
+
+		CREATE INDEX IF NOT EXISTS idx_files_user_id ON files(user_id) WHERE deleted_at IS NULL;
+		CREATE INDEX IF NOT EXISTS idx_files_application_id ON files(application_id) WHERE deleted_at IS NULL;
+
 		-- Insert test application statuses
-		INSERT INTO application_status (name) VALUES 
+		INSERT INTO application_status (name) VALUES
 			('Applied'),
 			('Interview Scheduled'),
 			('Rejected'),
@@ -157,8 +175,9 @@ func (td *TestDatabase) RunMigrations(t *testing.T) {
 // Truncate truncates all tables for clean test state
 func (td *TestDatabase) Truncate(t *testing.T) {
 	tables := []string{
+		"files",
 		"applications",
-		"user_jobs", 
+		"user_jobs",
 		"jobs",
 		"companies",
 		"users_auth",

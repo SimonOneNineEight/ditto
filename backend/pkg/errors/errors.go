@@ -38,6 +38,8 @@ const (
 	ErrorParsingFailed       ErrorCode = "PARSING_FAILED"
 	ErrorNetworkFailure      ErrorCode = "NETWORK_FAILURE"
 	ErrorUnsupportedPlatform ErrorCode = "UNSUPPORTED_PLATFORM"
+	ErrorQuotaExceeded       ErrorCode = "QUOTA_EXCEEDED"
+	ErrorExpired             ErrorCode = "EXPIRED"
 )
 
 func (e *AppError) Error() string {
@@ -74,6 +76,10 @@ func (code ErrorCode) HTTPStatus() int {
 		return http.StatusUnprocessableEntity
 	case ErrorNetworkFailure:
 		return http.StatusBadGateway
+	case ErrorQuotaExceeded:
+		return http.StatusForbidden
+	case ErrorExpired:
+		return http.StatusGone
 
 	default:
 		return http.StatusInternalServerError
