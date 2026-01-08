@@ -1,0 +1,319 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.2</storyId>
+    <title>Cloud File Storage Infrastructure</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-2-cloud-file-storage-infrastructure.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a job seeker</asA>
+    <iWant>to upload and store my resumes and cover letters on ditto's infrastructure</iWant>
+    <soThat>I can access my documents from any device without managing local files</soThat>
+    <tasks>
+      <task id="1" acs="1,2">Create file storage database schema (migration, files table with indexes and foreign keys)</task>
+      <task id="2" acs="1,2,5">Create file model and repository (File struct, FileRepository interface, CRUD, soft delete, storage quota calculation)</task>
+      <task id="3" acs="1,3">Configure AWS S3 client (AWS SDK Go v2, credentials from env, bucket configuration)</task>
+      <task id="4" acs="1,3">Implement presigned URL generation (PUT for uploads, GET for downloads, 15 min expiry, unique S3 keys)</task>
+      <task id="5" acs="1,2,6">Create file upload API endpoint (POST /api/files/presigned-upload with validation and quota check)</task>
+      <task id="6" acs="2">Create file upload confirmation endpoint (POST /api/files/confirm-upload with S3 verification)</task>
+      <task id="7" acs="3">Create file download endpoint (GET /api/files/:id with auth and presigned URL generation)</task>
+      <task id="8" acs="5">Create file deletion endpoint (DELETE /api/files/:id with soft delete and quota update)</task>
+      <task id="9" acs="6">Create storage quota endpoint (GET /api/users/storage-stats with usage calculation)</task>
+      <task id="10" acs="all">API route registration (file_routes.go with auth middleware)</task>
+      <task id="11" acs="all">Unit tests for file repository (creation, retrieval, soft delete, quota calculation)</task>
+      <task id="12" acs="1,3">Unit tests for S3 service (presigned URL generation, expiry, mocking)</task>
+      <task id="13" acs="1,2,6">Integration tests for file upload flow (presigned URL, validation, quota enforcement)</task>
+      <task id="14" acs="3,4,5">Integration tests for file download and delete (auth, not found, quota updates)</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">
+      <given>I am viewing an application detail page</given>
+      <when>I upload a resume or cover letter (PDF, DOCX, TXT, up to 5MB)</when>
+      <then>the file is securely stored in S3-compatible cloud storage with a unique identifier</then>
+    </ac>
+    <ac id="2">
+      <given>a file is uploaded</given>
+      <when>the upload completes</when>
+      <then>the file is linked to my application record in the database with proper foreign keys</then>
+    </ac>
+    <ac id="3">
+      <given>I have uploaded a file</given>
+      <when>I download a file from any device after logging in</when>
+      <then>the file downloads correctly with proper authentication and access control</then>
+    </ac>
+    <ac id="4">
+      <given>I have an existing uploaded file</given>
+      <when>I replace an uploaded file</when>
+      <then>the old file is soft-deleted and the new file takes its place</then>
+    </ac>
+    <ac id="5">
+      <given>I have uploaded files</given>
+      <when>I delete an uploaded file</when>
+      <then>the file is soft-deleted from the database and S3 with proper cleanup</then>
+    </ac>
+    <ac id="6">
+      <given>I am approaching or at my storage limit</given>
+      <when>I approach or reach the 100MB per-user limit</when>
+      <then>I receive clear feedback about my storage usage and uploads are blocked at the limit</then>
+    </ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification: Enhanced Application Management</title>
+        <section>File Storage Infrastructure</section>
+        <snippet>AWS S3 with presigned URLs (no credentials on frontend). S3 SDK: AWS SDK Go v2. Database: files table with user_id, application_id, s3_key, soft deletes. Storage quota: 100MB per user enforced server-side.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>APIs and Interfaces</section>
+        <snippet>File upload: POST /api/files/presigned-upload returns presigned URL with 15min expiry. Confirm: POST /api/files/confirm-upload creates DB record. Download: GET /api/files/:id returns presigned GET URL. Delete: DELETE /api/files/:id soft-deletes. Quota: GET /api/users/storage-stats.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Data Models and Contracts</section>
+        <snippet>files table: id (UUID), user_id (FK), application_id (FK nullable), interview_id (FK nullable), file_name, file_type (MIME), file_size (bytes), s3_key (unique), uploaded_at, deleted_at, created_at, updated_at. Indexes on user_id and application_id.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR-1.7: Resume and Document Storage</section>
+        <snippet>User can upload resume/cover letter per application (PDF, DOCX, TXT). File size limit: 5MB per file. Total storage limit: 100MB per user. Files stored on S3-compatible infrastructure. User can download, replace, delete uploaded files.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>NFR-1.5: File Upload Performance</section>
+        <snippet>Files up to 5MB upload within 10 seconds on standard broadband (10 Mbps+). Progress indicator shown during upload. Presigned URL generated in <200ms.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>NFR-2.3: Input Validation</section>
+        <snippet>All user inputs validated on both client and server. File type validated by MIME type (whitelist: PDF, DOCX, TXT). File size validated: <5MB client and server. S3 keys use UUIDs to prevent guessing.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Ditto Architecture Document</title>
+        <section>File Storage Integration</section>
+        <snippet>Backend ↔ AWS S3: Presigned URLs for direct client uploads. SDK: AWS SDK Go v2. Security: Bucket private, presigned URLs expire. Metadata tracked in files table. Frontend ↔ AWS S3: Direct upload using presigned URLs, no AWS credentials on frontend.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Ditto Architecture Document</title>
+        <section>Database Patterns</section>
+        <snippet>Repository layer (existing pattern). Soft Deletes: deleted_at column on all tables. Timestamps: created_at, updated_at with triggers. Queries parameterized to prevent SQL injection.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-1-job-url-information-extraction-service.md</path>
+        <title>Story 1.1: Job URL Information Extraction Service</title>
+        <section>Learnings - Patterns Established</section>
+        <snippet>Service layer pattern at backend/internal/services/. Handler → Service → Repository layering confirmed. Error handling via pkg/errors and pkg/response. Testing: table-driven tests, mock external dependencies. Structured logging for operations tracking.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>backend/internal/repository/application.go</path>
+        <kind>repository</kind>
+        <symbol>ApplicationRepository</symbol>
+        <lines>15-46</lines>
+        <reason>Example repository pattern to follow for FileRepository. Shows constructor pattern, sqlx.DB usage, method structure. File repository should follow same patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/models/application.go</path>
+        <kind>model</kind>
+        <symbol>Application</symbol>
+        <lines>1-30</lines>
+        <reason>Example model struct to follow for File model. Shows UUID primary keys, timestamps, database tags, JSON serialization.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/middleware/auth.go</path>
+        <kind>middleware</kind>
+        <symbol>AuthMiddleware</symbol>
+        <lines>all</lines>
+        <reason>REUSE for all file routes. Existing JWT authentication middleware that validates user tokens and extracts user_id. Apply to all /api/files endpoints.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/middleware/rate_limit.go</path>
+        <kind>middleware</kind>
+        <symbol>RateLimitMiddleware</symbol>
+        <lines>all</lines>
+        <reason>Reference for database-backed rate limiting pattern. Consider applying to file upload endpoints to prevent abuse (e.g., 100 uploads/hour).</reason>
+      </artifact>
+      <artifact>
+        <path>backend/pkg/errors/errors.go</path>
+        <kind>error-handling</kind>
+        <symbol>ErrorResponse</symbol>
+        <lines>all</lines>
+        <reason>REUSE for file operation errors. Standardized error format {error, code, details} established in Story 1.1. Use for validation failures, quota exceeded, S3 errors.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/pkg/response/response.go</path>
+        <kind>response-handling</kind>
+        <symbol>SuccessResponse</symbol>
+        <lines>all</lines>
+        <reason>REUSE for successful file operations. Standardized success response format. Use for presigned URLs, file metadata, storage stats.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/pkg/database/connection.go</path>
+        <kind>database</kind>
+        <symbol>Database</symbol>
+        <lines>all</lines>
+        <reason>Existing database connection pool. FileRepository constructor should accept *database.Database parameter and extract sqlx.DB for queries.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/repository/rate_limit.go</path>
+        <kind>repository</kind>
+        <symbol>RateLimitRepository</symbol>
+        <lines>all</lines>
+        <reason>Example of database-backed tracking (rate limits). Storage quota calculation should follow similar pattern: aggregate queries, user-scoped lookups.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <go>
+        <existing>
+          <dependency name="github.com/gin-gonic/gin" version="v1.10.1">Web framework for HTTP handlers and routing</dependency>
+          <dependency name="github.com/jmoiron/sqlx" version="v1.4.0">Database access (repository layer uses sqlx.DB)</dependency>
+          <dependency name="github.com/google/uuid" version="v1.6.0">UUID generation for file IDs and S3 keys</dependency>
+          <dependency name="github.com/lib/pq" version="v1.10.9">PostgreSQL driver</dependency>
+          <dependency name="github.com/stretchr/testify" version="v1.10.0">Testing framework for assertions and mocking</dependency>
+          <dependency name="golang.org/x/crypto" version="v0.44.0">Cryptographic functions (if needed for file validation)</dependency>
+        </existing>
+        <required>
+          <dependency name="github.com/aws/aws-sdk-go-v2" version="latest">AWS SDK core for S3 client</dependency>
+          <dependency name="github.com/aws/aws-sdk-go-v2/config" version="latest">AWS configuration loading</dependency>
+          <dependency name="github.com/aws/aws-sdk-go-v2/service/s3" version="latest">S3 service client for presigned URLs</dependency>
+          <dependency name="github.com/aws/aws-sdk-go-v2/credentials" version="latest">AWS credential management</dependency>
+        </required>
+      </go>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">Follow Handler → Service → Repository layering established in Story 1.1. FileHandler calls S3Service and FileRepository.</constraint>
+    <constraint type="database">Use repository pattern with sqlx. All tables must have soft deletes (deleted_at column). Files table has FK constraints: user_id (CASCADE), application_id (CASCADE), interview_id (CASCADE nullable).</constraint>
+    <constraint type="api">All endpoints under /api/ prefix. Apply AuthMiddleware to all file routes. Return standardized error format from pkg/errors. Use pkg/response for success responses.</constraint>
+    <constraint type="security">S3 bucket must be private. Presigned URLs only, no public access. File type whitelist: application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain. No AWS credentials in frontend code.</constraint>
+    <constraint type="performance">Presigned URL generation <200ms. File upload <10s for 5MB. Storage quota query <200ms (use efficient aggregate query with WHERE deleted_at IS NULL).</constraint>
+    <constraint type="testing">Unit test coverage ≥70%. Mock AWS SDK calls using interfaces. Integration tests must not hit real S3 (use mock). Table-driven tests for validation logic.</constraint>
+    <constraint type="migration">Create migration 000007_create_file_system.up.sql with files table, indexes, foreign keys. Follow existing migration pattern in backend/migrations/.</constraint>
+    <constraint type="error-handling">Validate file type and size server-side before issuing presigned URL. Check storage quota before upload. Return 400 for validation errors, 403 for quota exceeded, 404 for not found, 500 for S3 failures.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>POST /api/files/presigned-upload</name>
+      <kind>REST endpoint</kind>
+      <signature>Query params: file_name (string), file_type (string), application_id (UUID optional). Response: {presigned_url: string, s3_key: string, expires_in: int}</signature>
+      <path>backend/internal/handlers/file.go (create)</path>
+    </interface>
+    <interface>
+      <name>POST /api/files/confirm-upload</name>
+      <kind>REST endpoint</kind>
+      <signature>Body: {s3_key: string, file_name: string, file_type: string, file_size: int64, application_id: UUID}. Response: {id: UUID, file_name: string, download_url: string, uploaded_at: timestamp}</signature>
+      <path>backend/internal/handlers/file.go (create)</path>
+    </interface>
+    <interface>
+      <name>GET /api/files/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>Path param: id (UUID). Response: {presigned_url: string, expires_in: int, file_name: string}</signature>
+      <path>backend/internal/handlers/file.go (create)</path>
+    </interface>
+    <interface>
+      <name>DELETE /api/files/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>Path param: id (UUID). Response: {success: bool, message: string}</signature>
+      <path>backend/internal/handlers/file.go (create)</path>
+    </interface>
+    <interface>
+      <name>GET /api/users/storage-stats</name>
+      <kind>REST endpoint</kind>
+      <signature>No params (user from JWT). Response: {used_bytes: int64, total_bytes: int64, file_count: int, usage_percentage: int, warning: bool, limit_reached: bool}</signature>
+      <path>backend/internal/handlers/file.go (create)</path>
+    </interface>
+    <interface>
+      <name>FileRepository.CreateFile</name>
+      <kind>repository method</kind>
+      <signature>CreateFile(userID uuid.UUID, file *models.File) (*models.File, error)</signature>
+      <path>backend/internal/repository/file_repository.go (create)</path>
+    </interface>
+    <interface>
+      <name>FileRepository.GetFileByID</name>
+      <kind>repository method</kind>
+      <signature>GetFileByID(fileID uuid.UUID, userID uuid.UUID) (*models.File, error)</signature>
+      <path>backend/internal/repository/file_repository.go (create)</path>
+    </interface>
+    <interface>
+      <name>FileRepository.SoftDeleteFile</name>
+      <kind>repository method</kind>
+      <signature>SoftDeleteFile(fileID uuid.UUID, userID uuid.UUID) error</signature>
+      <path>backend/internal/repository/file_repository.go (create)</path>
+    </interface>
+    <interface>
+      <name>FileRepository.GetUserStorageUsed</name>
+      <kind>repository method</kind>
+      <signature>GetUserStorageUsed(userID uuid.UUID) (int64, error) // Returns sum of file_size WHERE user_id = ? AND deleted_at IS NULL</signature>
+      <path>backend/internal/repository/file_repository.go (create)</path>
+    </interface>
+    <interface>
+      <name>S3Service.GeneratePresignedPutURL</name>
+      <kind>service method</kind>
+      <signature>GeneratePresignedPutURL(s3Key string, contentType string, expiry time.Duration) (string, error)</signature>
+      <path>backend/internal/services/s3_service.go (create)</path>
+    </interface>
+    <interface>
+      <name>S3Service.GeneratePresignedGetURL</name>
+      <kind>service method</kind>
+      <signature>GeneratePresignedGetURL(s3Key string, expiry time.Duration) (string, error)</signature>
+      <path>backend/internal/services/s3_service.go (create)</path>
+    </interface>
+    <interface>
+      <name>S3Service.HeadObject</name>
+      <kind>service method</kind>
+      <signature>HeadObject(s3Key string) (bool, error) // Returns true if object exists in S3</signature>
+      <path>backend/internal/services/s3_service.go (create)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit test coverage target: 70%+ per NFR-5.3. Use table-driven tests for validation logic. Mock external dependencies (AWS SDK) using interfaces. Integration tests use test database with transaction rollback. Follow testing patterns from Story 1.1: backend/internal/services/urlextractor/*_test.go and backend/internal/repository/*_test.go. Use github.com/stretchr/testify for assertions.
+    </standards>
+
+    <locations>
+      <location>backend/internal/repository/file_repository_test.go</location>
+      <location>backend/internal/services/s3_service_test.go</location>
+      <location>backend/tests/integration/file_test.go</location>
+      <location>backend/internal/handlers/file_test.go</location>
+    </locations>
+
+    <ideas>
+      <idea ac="1">Test presigned PUT URL generation returns valid URL with 900s expiry. Mock AWS SDK PutObjectInput.</idea>
+      <idea ac="1">Test file type validation: accept application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain. Reject image/png, application/exe.</idea>
+      <idea ac="1">Test file size validation: reject files >5MB (5242880 bytes).</idea>
+      <idea ac="2">Test CreateFile inserts record with correct user_id, application_id foreign keys. Verify returned File has ID, timestamps.</idea>
+      <idea ac="2">Test confirm-upload endpoint verifies S3 object exists via HeadObject before creating DB record. Mock S3 HeadObject response.</idea>
+      <idea ac="3">Test GetFileByID returns file only if user_id matches (authorization check). Return 403 if user doesn't own file.</idea>
+      <idea ac="3">Test presigned GET URL generation for downloads. Verify 15min expiry.</idea>
+      <idea ac="4,5">Test SoftDeleteFile sets deleted_at timestamp. Verify file still exists in DB but filtered by WHERE deleted_at IS NULL queries.</idea>
+      <idea ac="5">Test file deletion updates storage quota: GetUserStorageUsed decreases by deleted file_size.</idea>
+      <idea ac="6">Test GetUserStorageUsed sums file_size correctly. Use test fixtures: 3 files (1MB, 2MB, 500KB) = 3.5MB total.</idea>
+      <idea ac="6">Test storage quota enforcement: user at 95MB cannot upload 10MB file (403 response). User at 90MB can upload 5MB file (success).</idea>
+      <idea ac="6">Test storage stats endpoint returns correct warning flag when usage >90%, limit_reached when usage >=100MB.</idea>
+      <idea ac="all">Integration test full upload flow: request presigned URL → mock S3 PUT → confirm upload → verify DB record → download → verify presigned GET URL → delete → verify soft delete.</idea>
+      <idea ac="all">Test S3 key uniqueness: generated keys follow pattern user_id/uuid.extension. No collisions across multiple uploads.</idea>
+    </ideas>
+  </tests>
+</story-context>
