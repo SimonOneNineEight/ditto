@@ -269,3 +269,145 @@ func (h *FileHandler) GetStorageStats(c *gin.Context) {
 		LimitReached:    usedBytes >= MaxStoragePerUser,
 	})
 }
+
+// PUT /api/files/:id/replace
+func (h *FileHandler) ReplaceFile(c *gin.Context) {
+	userID := c.MustGet("user_id").(uuid.UUID)
+
+	fileID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid file ID"))
+		return
+	}
+
+	existingFile, err := h.fileRepo.GetFileByID(fileID, userID)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	var req PresignedUploadRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		HandleError(c, errors.New(errors.ErrorValidationFailed, "invalid request body", err.Error()))
+		return
+	}
+
+	if !allowedFileTypes[req.FileType] {
+		HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT"))
+		return
+	}
+
+	if req.FileSize > MaxFileSize {
+		HandleError(c, errors.New(errors.ErrorValidationFailed, "file exceeds 5MB limit"))
+		return
+	}
+
+	usedBytes, err := h.fileRepo.GetUserStorageUsage(userID)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	if usedBytes-existingFile.FileSize+req.FileSize > MaxStoragePerUser {
+		HandleError(c, errors.New(errors.ErrorQuotaExceeded, "storage limit reached. Please delete old files"))
+		return
+	}
+
+	s3Key := s3service.GenerateS3Key(userID, req.FileName)
+	ctx := context.Background()
+	presignedURL, err := h.s3Service.GeneratePresignedPutURL(ctx, s3Key, req.FileType)
+	if err != nil {
+		HandleError(c, errors.Wrap(errors.ErrorInternalServer, "failed to generate upload URL", err))
+		return
+	}
+
+	response.Success(c, PresignedUploadResponse{
+		PresignedURL: presignedURL,
+		S3Key:        s3Key,
+		ExpiresIn:    int(PresignedURLExpiry.Seconds()),
+	})
+}
+
+// POST /api/files/:id/confirm-replace
+func (h *FileHandler) ConfirmReplace(c *gin.Context) {
+	userID := c.MustGet("user_id").(uuid.UUID)
+
+	fileID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid file ID"))
+		return
+	}
+
+	existingFile, err := h.fileRepo.GetFileByID(fileID, userID)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	var req ConfirmUploadRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		HandleError(c, errors.New(errors.ErrorValidationFailed, "invalid request body", err.Error()))
+		return
+	}
+
+	ctx := context.Background()
+	exists, err := h.s3Service.HeadObject(ctx, req.S3Key)
+	if err != nil {
+		HandleError(c, errors.Wrap(errors.ErrorInternalServer, "failed to verify file upload", err))
+		return
+	}
+
+	if !exists {
+		HandleError(c, errors.New(errors.ErrorBadRequest, "file not found in storage. Upload may have failed"))
+		return
+	}
+
+	tx, err := h.fileRepo.BeginTx()
+	if err != nil {
+		HandleError(c, errors.Wrap(errors.ErrorInternalServer, "failed to start transaction", err))
+		return
+	}
+
+	defer tx.Rollback()
+
+	if err := h.fileRepo.SoftDeleteFileTx(tx, fileID, userID); err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	newFile := &models.File{
+		UserID:        userID,
+		ApplicationID: req.ApplicationID,
+		InterviewID:   req.InterviewID,
+		FileName:      req.FileName,
+		FileType:      req.FileType,
+		FileSize:      req.FileSize,
+		S3Key:         req.S3Key,
+	}
+
+	createdFile, err := h.fileRepo.CreateFileTx(tx, newFile)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		HandleError(c, errors.Wrap(errors.ErrorInternalServer, "failed to commit transaction", err))
+		return
+	}
+
+	go func() {
+		_ = h.s3Service.DeleteObject(context.Background(), existingFile.S3Key)
+	}()
+
+	response.Success(c, FileResponse{
+		ID:         createdFile.ID,
+		FileName:   createdFile.FileName,
+		FileType:   createdFile.FileType,
+		FileSize:   createdFile.FileSize,
+		S3Key:      createdFile.S3Key,
+		UploadedAt: createdFile.UploadedAt,
+		CreatedAt:  createdFile.CreatedAt,
+		UpdatedAt:  createdFile.UpdatedAt,
+	})
+}

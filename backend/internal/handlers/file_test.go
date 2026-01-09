@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -87,6 +88,8 @@ func setupFileHandlerTest(t *testing.T) (*gin.Engine, *repository.FileRepository
 	router.POST("/api/files/confirm-upload", handler.ConfirmUpload)
 	router.GET("/api/files/:id", handler.GetFile)
 	router.DELETE("/api/files/:id", handler.DeleteFile)
+	router.PUT("/api/files/:id/replace", handler.ReplaceFile)
+	router.POST("/api/files/:id/confirm-replace", handler.ConfirmReplace)
 	router.GET("/api/users/storage-stats", handler.GetStorageStats)
 
 	return router, fileRepo, testUser.ID, createdApp.ID, s3Svc
@@ -361,5 +364,135 @@ func TestFileHandler_GetStorageStats(t *testing.T) {
 		assert.Equal(t, float64(4), data["usage_percentage"]) // 5MB / 100MB = 4%
 		assert.False(t, data["warning"].(bool))
 		assert.False(t, data["limit_reached"].(bool))
+	})
+}
+
+func TestFileHandler_ReplaceFile(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		router, fileRepo, userID, appID, _ := setupFileHandlerTest(t)
+
+		// Create initial file
+		existingFile := &models.File{
+			UserID:        userID,
+			ApplicationID: appID,
+			FileName:      "old_resume.pdf",
+			FileType:      "application/pdf",
+			FileSize:      1024,
+			S3Key:         "user/old-key.pdf",
+		}
+		createdFile, err := fileRepo.CreateFile(existingFile)
+		require.NoError(t, err)
+
+		// Request replacement
+		payload := map[string]interface{}{
+			"file_name":      "new_resume.pdf",
+			"file_type":      "application/pdf",
+			"file_size":      2048,
+			"application_id": appID.String(),
+		}
+		jsonPayload, _ := json.Marshal(payload)
+
+		req, _ := http.NewRequest("PUT", "/api/files/"+createdFile.ID.String()+"/replace", bytes.NewBuffer(jsonPayload))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var response map[string]interface{}
+		err = json.Unmarshal(w.Body.Bytes(), &response)
+		require.NoError(t, err)
+		assert.True(t, response["success"].(bool))
+
+		data := response["data"].(map[string]interface{})
+		assert.NotEmpty(t, data["presigned_url"])
+		assert.NotEmpty(t, data["s3_key"])
+		assert.Equal(t, float64(900), data["expires_in"])
+	})
+
+	t.Run("FileNotFound", func(t *testing.T) {
+		router, _, _, appID, _ := setupFileHandlerTest(t)
+
+		payload := map[string]interface{}{
+			"file_name":      "new_resume.pdf",
+			"file_type":      "application/pdf",
+			"file_size":      2048,
+			"application_id": appID.String(),
+		}
+		jsonPayload, _ := json.Marshal(payload)
+
+		req, _ := http.NewRequest("PUT", "/api/files/"+uuid.New().String()+"/replace", bytes.NewBuffer(jsonPayload))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("QuotaExceeded", func(t *testing.T) {
+		router, fileRepo, userID, appID, _ := setupFileHandlerTest(t)
+
+		// Create existing files that total 99MB (19 x 5MB + 1 x 4MB)
+		for i := 0; i < 19; i++ {
+			existingFile := &models.File{
+				UserID:        userID,
+				ApplicationID: appID,
+				FileName:      fmt.Sprintf("file%d.pdf", i),
+				FileType:      "application/pdf",
+				FileSize:      5 * 1024 * 1024, // 5MB each = 95MB
+				S3Key:         fmt.Sprintf("user/file-%d.pdf", i),
+			}
+			_, err := fileRepo.CreateFile(existingFile)
+			require.NoError(t, err)
+		}
+
+		// Add one 4MB file
+		smallFile := &models.File{
+			UserID:        userID,
+			ApplicationID: appID,
+			FileName:      "fourMB.pdf",
+			FileType:      "application/pdf",
+			FileSize:      4 * 1024 * 1024, // 4MB
+			S3Key:         "user/fourMB.pdf",
+		}
+		_, err := fileRepo.CreateFile(smallFile)
+		require.NoError(t, err)
+		// Total is now 99MB
+
+		// Try to replace the 4MB file with a 5MB file
+		// New total would be: 99MB - 4MB + 5MB = 100MB (exactly at limit, should pass with >)
+		// Actually need to exceed, so let's use a slightly larger setup
+		// Let's add another small file to get to 99MB + 1 byte
+		tinyFile := &models.File{
+			UserID:        userID,
+			ApplicationID: appID,
+			FileName:      "tiny.pdf",
+			FileType:      "application/pdf",
+			FileSize:      1024 * 1024, // 1MB, total now 100MB
+			S3Key:         "user/tiny.pdf",
+		}
+		createdTiny, err := fileRepo.CreateFile(tinyFile)
+		require.NoError(t, err)
+		// Total is now 100MB
+
+		// Try to replace the 1MB file with a 2MB file
+		// New total would be: 100MB - 1MB + 2MB = 101MB which exceeds quota
+		payload := map[string]interface{}{
+			"file_name":      "larger.pdf",
+			"file_type":      "application/pdf",
+			"file_size":      2 * 1024 * 1024, // 2MB (within file size limit)
+			"application_id": appID.String(),
+		}
+		jsonPayload, _ := json.Marshal(payload)
+
+		req, _ := http.NewRequest("PUT", "/api/files/"+createdTiny.ID.String()+"/replace", bytes.NewBuffer(jsonPayload))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
 	})
 }

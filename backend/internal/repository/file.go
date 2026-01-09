@@ -156,3 +156,55 @@ func (r *FileRepository) GetFileByID(fileID, userID uuid.UUID) (*models.File, er
 
 	return file, nil
 }
+
+func (r *FileRepository) BeginTx() (*sqlx.Tx, error) {
+	return r.db.Beginx()
+}
+
+func (r *FileRepository) CreateFileTx(tx *sqlx.Tx, file *models.File) (*models.File, error) {
+	file.ID = uuid.New()
+	file.CreatedAt = time.Now()
+	file.UpdatedAt = time.Now()
+	file.UploadedAt = time.Now()
+
+	query := `
+		INSERT INTO files (
+			id, user_id, application_id, interview_id, file_name, file_type,
+			file_size, s3_key, uploaded_at, created_at, updated_at
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+	`
+
+	_, err := tx.Exec(query, file.ID, file.UserID, file.ApplicationID, file.InterviewID, file.FileName, file.FileType, file.FileSize, file.S3Key, file.UploadedAt, file.CreatedAt, file.UpdatedAt)
+	if err != nil {
+		return nil, errors.ConvertError(err)
+	}
+
+	return file, nil
+}
+
+func (r *FileRepository) SoftDeleteFileTx(tx *sqlx.Tx, fileID, userID uuid.UUID) error {
+	query := `
+		UPDATE files
+		SET deleted_at = $1, updated_at = $1
+		WHERE id = $2
+		AND user_id = $3
+		AND deleted_at IS NULL
+	`
+
+	result, err := tx.Exec(query, time.Now(), fileID, userID)
+	if err != nil {
+		return errors.ConvertError(err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.ConvertError(err)
+	}
+
+	if rowsAffected == 0 {
+		return errors.New(errors.ErrorNotFound, "file not found")
+	}
+
+	return nil
+}

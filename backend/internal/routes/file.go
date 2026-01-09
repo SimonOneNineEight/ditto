@@ -42,6 +42,8 @@ func RegisterFileRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState) {
 		files.POST("/confirm-upload", fileHandler.ConfirmUpload)
 		files.GET("/:id", fileHandler.GetFile)
 		files.DELETE("/:id", fileHandler.DeleteFile)
+		files.PUT("/:id/replace", fileHandler.ReplaceFile)
+		files.POST("/:id/confirm-replace", fileHandler.ConfirmReplace)
 	}
 
 	apiGroup.GET("/users/storage-stats", middleware.AuthMiddleware(), fileHandler.GetStorageStats)
