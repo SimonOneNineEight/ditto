@@ -114,7 +114,7 @@ func (h *FileHandler) GetPresignedUploadURL(c *gin.Context) {
 
 	s3Key := s3service.GenerateS3Key(userID, req.FileName)
 
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	presignedURL, err := h.s3Service.GeneratePresignedPutURL(ctx, s3Key, req.FileType)
 	if err != nil {
 		HandleError(c, errors.Wrap(errors.ErrorInternalServer, "failed to generate upload URL", err))
@@ -137,7 +137,7 @@ func (h *FileHandler) ConfirmUpload(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	exists, err := h.s3Service.HeadObject(ctx, req.S3Key)
 	if err != nil {
 		HandleError(c, errors.Wrap(errors.ErrorInternalServer, "failed to verify file upload", err))
@@ -193,7 +193,7 @@ func (h *FileHandler) GetFile(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	downloadURL, err := h.s3Service.GeneratePresignedGetURL(ctx, file.S3Key)
 	if err != nil {
 		HandleError(c, errors.Wrap(errors.ErrorInternalServer, "failed to generate download URL", err))
@@ -231,7 +231,7 @@ func (h *FileHandler) DeleteFile(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	_ = h.s3Service.DeleteObject(ctx, file.S3Key)
 
 	response.Success(c, gin.H{
@@ -314,7 +314,7 @@ func (h *FileHandler) ReplaceFile(c *gin.Context) {
 	}
 
 	s3Key := s3service.GenerateS3Key(userID, req.FileName)
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	presignedURL, err := h.s3Service.GeneratePresignedPutURL(ctx, s3Key, req.FileType)
 	if err != nil {
 		HandleError(c, errors.Wrap(errors.ErrorInternalServer, "failed to generate upload URL", err))
@@ -350,7 +350,7 @@ func (h *FileHandler) ConfirmReplace(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	exists, err := h.s3Service.HeadObject(ctx, req.S3Key)
 	if err != nil {
 		HandleError(c, errors.Wrap(errors.ErrorInternalServer, "failed to verify file upload", err))
