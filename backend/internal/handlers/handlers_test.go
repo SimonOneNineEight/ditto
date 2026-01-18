@@ -261,6 +261,139 @@ func TestCompanyAutocompleteResponse(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "[]") // Empty array
 }
 
+// Test quick create application request structure
+func TestQuickCreateApplicationRequest(t *testing.T) {
+	router := setupTestRouter()
+
+	// Mock handler for testing quick create request parsing
+	router.POST("/api/applications/quick-create", func(c *gin.Context) {
+		var req struct {
+			CompanyName string `json:"company_name" binding:"required"`
+			Title       string `json:"title" binding:"required"`
+			Description string `json:"description"`
+			Location    string `json:"location"`
+			JobType     string `json:"job_type"`
+			SourceURL   string `json:"source_url"`
+			Platform    string `json:"platform"`
+			Notes       string `json:"notes"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error":   gin.H{"error": "company_name and title are required"},
+			})
+			return
+		}
+
+		// Validate job_type if provided
+		if req.JobType != "" {
+			validTypes := map[string]bool{
+				"full-time": true, "part-time": true,
+				"contract": true, "internship": true,
+			}
+			if !validTypes[req.JobType] {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"success": false,
+					"error":   gin.H{"error": "invalid job_type"},
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"data": gin.H{
+				"application": gin.H{"id": "app-uuid"},
+				"job":         gin.H{"id": "job-uuid", "title": req.Title},
+				"company":     gin.H{"id": "company-uuid", "name": req.CompanyName},
+			},
+		})
+	})
+
+	// Test valid request with all fields
+	validPayload := map[string]interface{}{
+		"company_name": "Google",
+		"title":        "Software Engineer",
+		"description":  "Building great products",
+		"location":     "Mountain View, CA",
+		"job_type":     "full-time",
+		"source_url":   "https://careers.google.com/jobs/123",
+		"platform":     "google",
+	}
+
+	jsonPayload, _ := json.Marshal(validPayload)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/api/applications/quick-create", bytes.NewBuffer(jsonPayload))
+	req.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "success")
+	assert.Contains(t, w.Body.String(), "application")
+	assert.Contains(t, w.Body.String(), "job")
+	assert.Contains(t, w.Body.String(), "company")
+
+	// Test valid request with minimal fields
+	minimalPayload := map[string]interface{}{
+		"company_name": "Stripe",
+		"title":        "Backend Engineer",
+	}
+
+	jsonPayload, _ = json.Marshal(minimalPayload)
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/api/applications/quick-create", bytes.NewBuffer(jsonPayload))
+	req.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "Stripe")
+
+	// Test invalid request (missing company_name)
+	invalidPayload := map[string]interface{}{
+		"title": "Software Engineer",
+	}
+
+	jsonPayload, _ = json.Marshal(invalidPayload)
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/api/applications/quick-create", bytes.NewBuffer(jsonPayload))
+	req.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), "company_name and title are required")
+
+	// Test invalid request (missing title)
+	invalidPayload2 := map[string]interface{}{
+		"company_name": "Google",
+	}
+
+	jsonPayload, _ = json.Marshal(invalidPayload2)
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/api/applications/quick-create", bytes.NewBuffer(jsonPayload))
+	req.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), "company_name and title are required")
+
+	// Test invalid job_type
+	invalidJobType := map[string]interface{}{
+		"company_name": "Google",
+		"title":        "Software Engineer",
+		"job_type":     "invalid-type",
+	}
+
+	jsonPayload, _ = json.Marshal(invalidJobType)
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/api/applications/quick-create", bytes.NewBuffer(jsonPayload))
+	req.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), "invalid job_type")
+}
+
 // Test error response format
 func TestErrorResponseFormat(t *testing.T) {
 	router := setupTestRouter()

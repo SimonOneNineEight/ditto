@@ -3,15 +3,13 @@ package routes
 import (
 	"ditto-backend/internal/handlers"
 	"ditto-backend/internal/middleware"
-	"ditto-backend/internal/repository"
 	"ditto-backend/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterApplicationRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState) {
-	applicationRepo := repository.NewApplicationRepository(appState.DB)
-	applicationHandler := handlers.NewApplicationHandler(applicationRepo)
+	applicationHandler := handlers.NewApplicationHandler(appState)
 
 	applications := apiGroup.Group("/applications")
 	applications.Use(middleware.AuthMiddleware())
@@ -27,6 +25,7 @@ func RegisterApplicationRoutes(apiGroup *gin.RouterGroup, appState *utils.AppSta
 		applications.PATCH("/:id/status",
 			applicationHandler.UpdateApplicationStatus)
 		applications.DELETE("/:id", applicationHandler.DeleteApplication)
+		applications.POST("/quick-create", applicationHandler.QuickCreateApplication)
 	}
 
 	apiGroup.GET("/application-statuses",

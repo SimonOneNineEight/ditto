@@ -3,6 +3,7 @@ package handlers
 import (
 	"ditto-backend/internal/models"
 	"ditto-backend/internal/repository"
+	"ditto-backend/internal/utils"
 	"ditto-backend/pkg/errors"
 	"ditto-backend/pkg/response"
 	"strconv"
@@ -14,15 +15,30 @@ import (
 
 type ApplicationHandler struct {
 	applicationRepo *repository.ApplicationRepository
+	companyRepo     *repository.CompanyRepository
+	jobRepo         *repository.JobRepository
 }
 
 type UpdateApplicationStatusReq struct {
 	ApplicationStatusID uuid.UUID `json:"application_status_id" binding:"required"`
 }
 
-func NewApplicationHandler(applicationRepo *repository.ApplicationRepository) *ApplicationHandler {
+type QuickCreateApplicationReq struct {
+	CompanyName string `json:"company_name" binding:"required"`
+	Title       string `json:"title" binding:"required"`
+	Description string `json:"description"`
+	Location    string `json:"location"`
+	JobType     string `json:"job_type" binding:"omitempty,oneof=full-time part-time contract internship"`
+	SourceURL   string `json:"source_url" binding:"omitempty,url,max=2048"`
+	Platform    string `json:"platform" binding:"omitempty,max=50"`
+	Notes       string `json:"notes" binding:"max=10000"`
+}
+
+func NewApplicationHandler(appState *utils.AppState) *ApplicationHandler {
 	return &ApplicationHandler{
-		applicationRepo: applicationRepo,
+		applicationRepo: repository.NewApplicationRepository(appState.DB),
+		companyRepo:     repository.NewCompanyRepository(appState.DB),
+		jobRepo:         repository.NewJobRepository(appState.DB),
 	}
 }
 
@@ -134,6 +150,73 @@ func (h *ApplicationHandler) CreateApplication(c *gin.Context) {
 	}
 
 	response.Success(c, createdApplication)
+}
+
+func (h *ApplicationHandler) QuickCreateApplication(c *gin.Context) {
+	userID := c.MustGet("user_id").(uuid.UUID)
+
+	var req QuickCreateApplicationReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		HandleError(c, errors.New(errors.ErrorBadRequest, "company_name and title are required"))
+		return
+	}
+
+	company, err := h.companyRepo.GetOrCreateCompany(req.CompanyName, nil)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	job := &models.Job{
+		CompanyID:      company.ID,
+		Title:          req.Title,
+		JobDescription: req.Description,
+		Location:       req.Location,
+		JobType:        req.JobType,
+	}
+
+	if req.SourceURL != "" {
+		job.SourceURL = &req.SourceURL
+	}
+
+	if req.Platform != "" {
+		job.Platform = &req.Platform
+	}
+
+	createdJob, err := h.jobRepo.CreateJob(userID, job)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	appliedStatusID, err := h.applicationRepo.GetApplicationStatusIDByName("Applied")
+	if err != nil {
+		HandleError(c, errors.New(errors.ErrorInternalServer, err.Error()))
+		return
+	}
+
+	application := &models.Application{
+		JobID:               createdJob.ID,
+		ApplicationStatusID: appliedStatusID,
+		AppliedAt:           time.Now(),
+		AttemptNumber:       1,
+	}
+
+	if req.Notes != "" {
+		application.Notes = &req.Notes
+	}
+
+	createdApplication, err := h.applicationRepo.CreateApplication(userID, application)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	response.Success(c, gin.H{
+		"application": createdApplication,
+		"job":         createdJob,
+		"company":     company,
+	})
 }
 
 // PUT /api/application/:id

@@ -14,10 +14,11 @@ import (
 )
 
 type ApplicationRepository struct {
-	db               *sqlx.DB
-	statusCache      []*models.ApplicationStatus
-	statusCacheTime  time.Time
-	statusCacheMutex sync.RWMutex
+	db              *sqlx.DB
+	statusListCache []*models.ApplicationStatus
+	statusMapCache  map[string]uuid.UUID
+	statusCacheTime time.Time
+	statusCacheMu   sync.RWMutex
 }
 
 type ApplicationFilters struct {
@@ -385,8 +386,7 @@ func (r *ApplicationRepository) GetApplicationStatuses() ([]*models.ApplicationS
 	query := `
         SELECT id, name, created_at, updated_at
         FROM application_status
-        WHERE deleted_at IS NULL
-        ORDER BY id 
+        ORDER BY name
     `
 
 	var statuses []*models.ApplicationStatus
@@ -399,19 +399,19 @@ func (r *ApplicationRepository) GetApplicationStatuses() ([]*models.ApplicationS
 }
 
 func (r *ApplicationRepository) GetApplicationStatusCached() ([]*models.ApplicationStatus, error) {
-	r.statusCacheMutex.RLock()
-
-	if r.statusCache != nil && time.Since(r.statusCacheTime) < 5*time.Minute {
-		defer r.statusCacheMutex.RUnlock()
-		return r.statusCache, nil
+	r.statusCacheMu.RLock()
+	if r.statusListCache != nil && time.Since(r.statusCacheTime) < 5*time.Minute {
+		defer r.statusCacheMu.RUnlock()
+		return r.statusListCache, nil
 	}
+	r.statusCacheMu.RUnlock()
 
-	r.statusCacheMutex.RUnlock()
-	r.statusCacheMutex.Lock()
-	defer r.statusCacheMutex.Unlock()
+	r.statusCacheMu.Lock()
+	defer r.statusCacheMu.Unlock()
 
-	if r.statusCache != nil && time.Since(r.statusCacheTime) < 5*time.Minute {
-		return r.statusCache, nil
+	// Double-check after acquiring write lock
+	if r.statusListCache != nil && time.Since(r.statusCacheTime) < 5*time.Minute {
+		return r.statusListCache, nil
 	}
 
 	statuses, err := r.GetApplicationStatuses()
@@ -419,17 +419,51 @@ func (r *ApplicationRepository) GetApplicationStatusCached() ([]*models.Applicat
 		return nil, err
 	}
 
-	r.statusCache = statuses
+	// Populate both caches
+	r.statusListCache = statuses
+	r.statusMapCache = make(map[string]uuid.UUID)
+	for _, s := range statuses {
+		r.statusMapCache[s.Name] = s.ID
+	}
 	r.statusCacheTime = time.Now()
 
 	return statuses, nil
 }
 
-func (r *ApplicationRepository) InvalidateStatusCache() {
-	r.statusCacheMutex.Lock()
-	defer r.statusCacheMutex.Unlock()
+func (r *ApplicationRepository) GetApplicationStatusIDByName(name string) (uuid.UUID, error) {
+	r.statusCacheMu.RLock()
+	if r.statusMapCache != nil && time.Since(r.statusCacheTime) < 5*time.Minute {
+		if id, ok := r.statusMapCache[name]; ok {
+			r.statusCacheMu.RUnlock()
+			return id, nil
+		}
+		r.statusCacheMu.RUnlock()
+		return uuid.Nil, fmt.Errorf("status '%s' not found", name)
+	}
+	r.statusCacheMu.RUnlock()
 
-	r.statusCache = nil
+	// Cache miss or expired - GetApplicationStatusCached will populate both caches
+	_, err := r.GetApplicationStatusCached()
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	r.statusCacheMu.RLock()
+	defer r.statusCacheMu.RUnlock()
+
+	if id, ok := r.statusMapCache[name]; ok {
+		return id, nil
+	}
+
+	return uuid.Nil, fmt.Errorf("status '%s' not found", name)
+}
+
+func (r *ApplicationRepository) InvalidateStatusCache() {
+	r.statusCacheMu.Lock()
+	defer r.statusCacheMu.Unlock()
+
+	r.statusListCache = nil
+	r.statusMapCache = nil
 	r.statusCacheTime = time.Time{}
 }
 
