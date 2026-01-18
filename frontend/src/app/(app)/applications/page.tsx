@@ -1,8 +1,7 @@
 import React from 'react';
 import { ApplicationTable } from './application-table';
 import { Application, columns } from './application-table/columns';
-
-type Props = {};
+import { PageHeader } from '@/components/page-header';
 
 const data: Application[] = [
     {
@@ -25,9 +24,13 @@ const data: Application[] = [
     },
 ];
 
-const ApplicationPage = (props: Props) => {
+const ApplicationPage = () => {
     return (
         <>
+            <PageHeader
+                title="Applications"
+                subtitle="Track and manage your job applications"
+            />
             <ApplicationTable columns={columns} data={data} />
         </>
     );

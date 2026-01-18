@@ -1,6 +1,13 @@
-export default async function Home() {
-    // const jobs = await jobService.getAllJobs();
-    // const job_rows: JobTableRow[] = convertJobResponseToTableRow(jobs)
+import { PageHeader } from '@/components/page-header';
 
-    return <div>Dashboard</div>;
+export default async function Home() {
+    return (
+        <>
+            <PageHeader
+                title="Dashboard"
+                subtitle="Welcome back! Here's an overview of your job search"
+            />
+            <div>Dashboard content coming soon</div>
+        </>
+    );
 }

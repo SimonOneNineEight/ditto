@@ -43,6 +43,7 @@ export function ApplicationTable({ columns, data }: DataTableProps) {
                     hasIcon
                     iconPosition="left"
                     icon={<Plus size={16} />}
+                    onClick={() => router.push('/applications/new')}
                 >
                     New Application
                 </Button>

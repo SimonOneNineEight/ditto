@@ -2,8 +2,7 @@ import React from 'react';
 import { InterivewTable } from './interview-table/interview-table';
 import { Interview, columns } from './interview-table/columns';
 import PastInterviews from './past-interviews';
-
-type Props = {};
+import { PageHeader } from '@/components/page-header';
 
 const data: Interview[] = [
     {
@@ -19,9 +18,13 @@ const data: Interview[] = [
     },
 ];
 
-const InterviewPage = (props: Props) => {
+const InterviewPage = () => {
     return (
         <>
+            <PageHeader
+                title="Interviews"
+                subtitle="Prepare for and track your upcoming interviews"
+            />
             <section className="min-w-0">
                 <h3>Coming</h3>
                 <InterivewTable columns={columns} data={data} />
