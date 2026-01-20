@@ -25,11 +25,12 @@ func newGenericParser(logger *log.Logger, fetcher HTTPFetcher) Parser {
 }
 
 type jobPostingSchema struct {
-	Context     string `json:"@context"`
-	Type        string `json:"@type"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	HiringOrg   struct {
+	Context        string `json:"@context"`
+	Type           string `json:"@type"`
+	Title          string `json:"title"`
+	Description    string `json:"description"`
+	EmploymentType string `json:"employmentType"`
+	HiringOrg      struct {
 		Type string `json:"@type"`
 		Name string `json:"name"`
 	} `json:"hiringOrganization"`
@@ -90,6 +91,7 @@ func (p *genericParser) extractFromJSONLD(doc *goquery.Document) (*ExtractedJobD
 			Company:     cleanText(schema.HiringOrg.Name),
 			Location:    cleanText(location),
 			Description: extractDescription(sanitizeHTML(schema.Description)),
+			JobType:     normalizeJobType(schema.EmploymentType),
 			Platform:    "generic",
 		}
 	})

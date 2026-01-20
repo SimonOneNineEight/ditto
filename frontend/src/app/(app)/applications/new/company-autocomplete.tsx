@@ -25,9 +25,11 @@ interface CompanySelection {
 interface CompanyAutocompleteProps {
     value?: CompanySelection;
     onChange: (company: CompanySelection) => void;
+    highlight?: boolean;
+    error?: string;
 }
 
-const CompanyAutocomplete = ({ value, onChange }: CompanyAutocompleteProps) => {
+const CompanyAutocomplete = ({ value, onChange, highlight, error }: CompanyAutocompleteProps) => {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState(value?.name || '');
     const [suggestions, setSuggestions] = useState<CompanySuggestion[]>([]);
@@ -134,8 +136,8 @@ const CompanyAutocomplete = ({ value, onChange }: CompanyAutocompleteProps) => {
     };
 
     return (
-        <FormFieldWrapper>
-            <FormLabel required>Company</FormLabel>
+        <FormFieldWrapper className={highlight ? 'field-highlight' : ''}>
+            <FormLabel required error={!!error}>Company</FormLabel>
             <div ref={containerRef} className="relative">
                 <div className="flex items-center gap-2">
                     {value?.logoUrl && (
@@ -193,6 +195,7 @@ const CompanyAutocomplete = ({ value, onChange }: CompanyAutocompleteProps) => {
                     </div>
                 )}
             </div>
+            {error && <p className="text-xs text-destructive mt-1">{error}</p>}
         </FormFieldWrapper>
     );
 };

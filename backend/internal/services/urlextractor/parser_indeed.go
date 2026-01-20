@@ -25,10 +25,11 @@ func newIndeedParser(logger *log.Logger, fetcher HTTPFetcher) Parser {
 }
 
 type indeedJobSchema struct {
-	Type        string `json:"@type"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	HiringOrg   struct {
+	Type           string `json:"@type"`
+	Title          string `json:"title"`
+	Description    string `json:"description"`
+	EmploymentType string `json:"employmentType"`
+	HiringOrg      struct {
 		Name string `json:"name"`
 	} `json:"hiringOrganization"`
 	JobLocation struct {
@@ -112,6 +113,7 @@ func (p *indeedParser) extractFromJSONLD(doc *goquery.Document) (*ExtractedJobDa
 			Company:     cleanText(schema.HiringOrg.Name),
 			Location:    cleanText(location),
 			Description: extractDescription(sanitizeHTML(schema.Description)),
+			JobType:     normalizeJobType(schema.EmploymentType),
 			Platform:    "indeed",
 		}
 	})
@@ -150,11 +152,27 @@ func (p *indeedParser) extractFromHTML(doc *goquery.Document) (*ExtractedJobData
 
 	descriptionHTML, _ := doc.Find("#jobDescriptionText, .jobsearch-jobDescriptionText").First().Html()
 
+	// Try to extract job type from job details section
+	jobType := ""
+	doc.Find(".jobsearch-JobMetadataHeader-item, .jobsearch-JobDescriptionSection-sectionItem").Each(func(i int, s *goquery.Selection) {
+		text := strings.ToLower(s.Text())
+		if strings.Contains(text, "full-time") || strings.Contains(text, "full time") {
+			jobType = "full-time"
+		} else if strings.Contains(text, "part-time") || strings.Contains(text, "part time") {
+			jobType = "part-time"
+		} else if strings.Contains(text, "contract") {
+			jobType = "contract"
+		} else if strings.Contains(text, "internship") || strings.Contains(text, "intern") {
+			jobType = "internship"
+		}
+	})
+
 	data := &ExtractedJobData{
 		Title:       cleanText(title),
 		Company:     cleanText(company),
 		Location:    cleanText(location),
 		Description: extractDescription(sanitizeHTML(descriptionHTML)),
+		JobType:     jobType,
 		Platform:    "indeed",
 	}
 

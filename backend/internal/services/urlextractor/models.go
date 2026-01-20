@@ -13,5 +13,6 @@ type ExtractedJobData struct {
 	Company     string `json:"company"`
 	Location    string `json:"location"`
 	Description string `json:"description"`
-	Platform    string `json:"platform"` // "linkedin" | "indeed" | "glassdoor" | "angellist"
+	JobType     string `json:"job_type,omitempty"` // "full-time" | "part-time" | "contract" | "internship"
+	Platform    string `json:"platform"`           // "linkedin" | "indeed" | "glassdoor" | "angellist"
 }

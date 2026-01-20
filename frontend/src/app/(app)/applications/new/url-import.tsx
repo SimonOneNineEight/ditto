@@ -13,6 +13,7 @@ interface UrlImportProps {
         position: string;
         description?: string;
         location?: string;
+        jobType?: string;
         sourceUrl?: string;
         platform?: string;
     }) => void;
@@ -24,6 +25,7 @@ interface ExtractResponse {
         company: string;
         location: string;
         description: string;
+        job_type?: string;
         platform: string;
     };
     warnings?: string[];
@@ -60,6 +62,7 @@ const UrlImport = ({ onImport }: UrlImportProps) => {
                 position: extracted.title,
                 description: extracted.description || undefined,
                 location: extracted.location || undefined,
+                jobType: extracted.job_type || undefined,
                 sourceUrl: url,
                 platform: platformDisplayNames[extracted.platform] || extracted.platform,
             });
@@ -80,9 +83,9 @@ const UrlImport = ({ onImport }: UrlImportProps) => {
     const getButtonContent = () => {
         switch (status) {
             case 'loading':
-                return <Loader2 className="h-4 w-4 animate-spin" />;
+                return <Loader2 className="h-4 w-4 animate-spin text-secondary" />;
             case 'success':
-                return 'Imported';
+                return <span className="text-accent">Imported</span>;
             default:
                 return 'Import';
         }
@@ -106,7 +109,7 @@ const UrlImport = ({ onImport }: UrlImportProps) => {
                     setUrl(e.target.value);
                     if (status !== 'idle') setStatus('idle');
                 }}
-                placeholder="Paste job URL to import details..."
+                placeholder="Paste LinkedIn or Indeed URL to import..."
                 className="flex-1"
             />
             <Button

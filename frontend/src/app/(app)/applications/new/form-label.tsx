@@ -1,14 +1,15 @@
 interface FormLabelProps {
     children: React.ReactNode;
     required?: boolean;
+    error?: boolean;
     className?: string;
 }
 
-export const FormLabel = ({ children, required, className = '' }: FormLabelProps) => {
+export const FormLabel = ({ children, required, error, className = '' }: FormLabelProps) => {
     return (
-        <label className={`text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1 ${className}`}>
+        <label className={`text-xs font-medium uppercase tracking-wider flex items-center gap-1 ${error ? 'text-destructive' : 'text-muted-foreground'} ${className}`}>
             {children}
-            {required && <span className="text-primary">*</span>}
+            {required && <span className={error ? 'text-destructive' : 'text-primary'}>*</span>}
         </label>
     );
 };

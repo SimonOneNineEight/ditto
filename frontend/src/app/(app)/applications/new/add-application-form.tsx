@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -49,15 +50,18 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
+const STAGGER_DELAY = 150; // ms between each field
+
 const AddApplicationForm = () => {
     const router = useRouter();
+    const [highlightedFields, setHighlightedFields] = useState<Set<string>>(new Set());
 
     const {
         register,
         control,
         handleSubmit,
         setValue,
-        formState: { isSubmitting },
+        formState: { isSubmitting, errors },
     } = useForm<FormData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -72,23 +76,52 @@ const AddApplicationForm = () => {
         },
     });
 
+    const triggerHighlight = useCallback((fieldName: string) => {
+        setHighlightedFields((prev) => new Set(prev).add(fieldName));
+        setTimeout(() => {
+            setHighlightedFields((prev) => {
+                const next = new Set(prev);
+                next.delete(fieldName);
+                return next;
+            });
+        }, 1500); // Match animation duration
+    }, []);
+
     const handleImport = (data: {
         company: string;
         position: string;
         description?: string;
         location?: string;
+        jobType?: string;
         sourceUrl?: string;
         platform?: string;
     }) => {
         const options = { shouldDirty: true, shouldTouch: true };
-        setValue('company', { name: data.company }, options);
-        setValue('position', data.position, options);
-        if (data.description)
-            setValue('description', data.description, options);
-        if (data.location) setValue('location', data.location, options);
-        if (data.sourceUrl) setValue('sourceUrl', data.sourceUrl, options);
-        if (data.platform) setValue('platform', data.platform, options);
-        toast.success('Details imported');
+
+        // Build list of fields to populate with stagger
+        const fields: { name: keyof FormData; value: unknown }[] = [
+            { name: 'company', value: { name: data.company } },
+            { name: 'position', value: data.position },
+        ];
+
+        if (data.location) fields.push({ name: 'location', value: data.location });
+        if (data.jobType) fields.push({ name: 'jobType', value: data.jobType });
+        if (data.description) fields.push({ name: 'description', value: data.description });
+        if (data.sourceUrl) fields.push({ name: 'sourceUrl', value: data.sourceUrl });
+        if (data.platform) fields.push({ name: 'platform', value: data.platform });
+
+        // Stagger field population
+        fields.forEach((field, index) => {
+            setTimeout(() => {
+                setValue(field.name, field.value as never, options);
+                triggerHighlight(field.name);
+            }, index * STAGGER_DELAY);
+        });
+
+        // Show toast after all fields populated
+        setTimeout(() => {
+            toast.success('Details imported');
+        }, fields.length * STAGGER_DELAY);
     };
 
     const onSubmit = async (data: FormData) => {
@@ -116,10 +149,10 @@ const AddApplicationForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="w-full">
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
             <UrlImport onImport={handleImport} />
 
-            <div className="space-y-1">
+            <div className="space-y-3">
                 <Controller
                     name="company"
                     control={control}
@@ -127,6 +160,8 @@ const AddApplicationForm = () => {
                         <CompanyAutocomplete
                             value={field.value}
                             onChange={field.onChange}
+                            highlight={highlightedFields.has('company')}
+                            error={errors.company?.name?.message}
                         />
                     )}
                 />
@@ -135,18 +170,21 @@ const AddApplicationForm = () => {
                     label="Position"
                     required
                     placeholder="Job title"
+                    highlight={highlightedFields.has('position')}
+                    error={errors.position?.message}
                     {...register('position')}
                 />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-3">
                 <FormField
                     label="Location"
                     placeholder="e.g. San Francisco, CA or Remote"
+                    highlight={highlightedFields.has('location')}
                     {...register('location')}
                 />
 
-                <FormFieldWrapper>
+                <FormFieldWrapper className={highlightedFields.has('jobType') ? 'field-highlight' : ''}>
                     <FormLabel className="mb-1">Job Type</FormLabel>
                     <Controller
                         name="jobType"
@@ -175,11 +213,13 @@ const AddApplicationForm = () => {
                 </FormFieldWrapper>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-3">
                 <FormField
                     label="Description"
                     multiline
+                    rows={6}
                     placeholder="What does this role involve?"
+                    highlight={highlightedFields.has('description')}
                     {...register('description')}
                 />
                 <FormField
@@ -190,15 +230,17 @@ const AddApplicationForm = () => {
                 />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-3">
                 <FormField
                     label="Source URL"
                     placeholder="https://..."
+                    highlight={highlightedFields.has('sourceUrl')}
                     {...register('sourceUrl')}
                 />
                 <FormField
                     label="Platform"
                     placeholder="e.g. LinkedIn, Indeed, Company Website"
+                    highlight={highlightedFields.has('platform')}
                     {...register('platform')}
                 />
             </div>

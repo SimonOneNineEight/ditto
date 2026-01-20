@@ -51,12 +51,21 @@ func (p *linkedInParser) FetchAndParse(ctx context.Context, jobURL string) (*Ext
 	descriptionHTML, _ := doc.Find(".show-more-less-html__markup").First().Html()
 	descriptionHTML = sanitizeHTML(descriptionHTML)
 
-	data := &ExtractedJobData{
-		Title:   cleanText(doc.Find(".top-card-layout__title").First().Text()),
-		Company: cleanText(doc.Find(".top-card-layout__card a.topcard__org-name-link").First().Text()),
+	// Extract job type from criteria list
+	jobType := ""
+	doc.Find(".description__job-criteria-item").Each(func(i int, s *goquery.Selection) {
+		header := cleanText(s.Find(".description__job-criteria-subheader").Text())
+		if strings.Contains(strings.ToLower(header), "employment type") {
+			jobType = normalizeJobType(cleanText(s.Find(".description__job-criteria-text").Text()))
+		}
+	})
 
+	data := &ExtractedJobData{
+		Title:       cleanText(doc.Find(".top-card-layout__title").First().Text()),
+		Company:     cleanText(doc.Find(".top-card-layout__card a.topcard__org-name-link").First().Text()),
 		Location:    cleanText(doc.Find(".top-card-layout__card .topcard__flavor--bullet").First().Text()),
 		Description: extractDescription(descriptionHTML),
+		JobType:     jobType,
 		Platform:    "linkedin",
 	}
 
@@ -105,6 +114,23 @@ func cleanText(text string) string {
 	text = strings.TrimSpace(text)
 	text = regexp.MustCompile(`\s+`).ReplaceAllString(text, " ")
 	return text
+}
+
+// normalizeJobType converts various job type strings to our standard format
+func normalizeJobType(jobType string) string {
+	lower := strings.ToLower(jobType)
+	switch {
+	case strings.Contains(lower, "full-time") || strings.Contains(lower, "full time"):
+		return "full-time"
+	case strings.Contains(lower, "part-time") || strings.Contains(lower, "part time"):
+		return "part-time"
+	case strings.Contains(lower, "contract"):
+		return "contract"
+	case strings.Contains(lower, "internship") || strings.Contains(lower, "intern"):
+		return "internship"
+	default:
+		return ""
+	}
 }
 
 func extractDescription(htmlContent string) string {
