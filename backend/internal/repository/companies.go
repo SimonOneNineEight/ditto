@@ -312,7 +312,7 @@ func (r *CompanyRepository) AutocompleteCompanies(input string, limit int) ([]*m
         ORDER BY
             CASE WHEN LOWER(name) = LOWER($2) THEN 1 ELSE 2 END,
             length(name),
-            name,
+            name
         LIMIT $3
     `
 
@@ -395,7 +395,7 @@ func (r *CompanyRepository) fetchEnrichmentData(name string) (*models.CompanyEnr
 		Data []struct {
 			Name    string `json:"name"`
 			Domain  string `json:"domain"`
-			LogoURL string `json:"logo"`
+			LogoURL string `json:"logo_url"`
 			Website string `json:"website"`
 		} `json:"data"`
 	}
@@ -446,7 +446,7 @@ func (c *CompanyRepository) FetchExternalSuggestions(input string, limit int) ([
 		Data []struct {
 			Name    string `json:"name"`
 			Domain  string `json:"domain"`
-			LogoURL string `json:"logo"`
+			LogoURL string `json:"logo_url"`
 			Website string `json:"website"`
 		} `json:"data"`
 	}
