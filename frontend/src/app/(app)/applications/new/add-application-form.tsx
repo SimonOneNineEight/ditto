@@ -38,7 +38,9 @@ const formSchema = z.object({
     company: companySchema,
     position: z.string().min(1, 'Position is required'),
     location: z.string().optional(),
-    jobType: z.enum(['full-time', 'part-time', 'contract', 'internship']).optional(),
+    jobType: z
+        .enum(['full-time', 'part-time', 'contract', 'internship'])
+        .optional(),
     description: z.string().optional(),
     sourceUrl: z.string().url().optional().or(z.literal('')),
     platform: z.string().optional(),
@@ -78,12 +80,14 @@ const AddApplicationForm = () => {
         sourceUrl?: string;
         platform?: string;
     }) => {
-        setValue('company', { name: data.company });
-        setValue('position', data.position);
-        if (data.description) setValue('description', data.description);
-        if (data.location) setValue('location', data.location);
-        if (data.sourceUrl) setValue('sourceUrl', data.sourceUrl);
-        if (data.platform) setValue('platform', data.platform);
+        const options = { shouldDirty: true, shouldTouch: true };
+        setValue('company', { name: data.company }, options);
+        setValue('position', data.position, options);
+        if (data.description)
+            setValue('description', data.description, options);
+        if (data.location) setValue('location', data.location, options);
+        if (data.sourceUrl) setValue('sourceUrl', data.sourceUrl, options);
+        if (data.platform) setValue('platform', data.platform, options);
         toast.success('Details imported');
     };
 
@@ -115,7 +119,6 @@ const AddApplicationForm = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="w-full">
             <UrlImport onImport={handleImport} />
 
-            {/* Required fields */}
             <div className="space-y-1">
                 <Controller
                     name="company"
@@ -136,8 +139,6 @@ const AddApplicationForm = () => {
                 />
             </div>
 
-            
-            {/* Job details */}
             <div className="space-y-1">
                 <FormField
                     label="Location"
@@ -145,7 +146,6 @@ const AddApplicationForm = () => {
                     {...register('location')}
                 />
 
-                {/* Job Type Select */}
                 <FormFieldWrapper>
                     <FormLabel className="mb-1">Job Type</FormLabel>
                     <Controller
@@ -161,7 +161,10 @@ const AddApplicationForm = () => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {JOB_TYPES.map((type) => (
-                                        <SelectItem key={type.value} value={type.value}>
+                                        <SelectItem
+                                            key={type.value}
+                                            value={type.value}
+                                        >
                                             {type.label}
                                         </SelectItem>
                                     ))}
@@ -172,8 +175,6 @@ const AddApplicationForm = () => {
                 </FormFieldWrapper>
             </div>
 
-            
-            {/* Description */}
             <div className="space-y-1">
                 <FormField
                     label="Description"
@@ -189,8 +190,6 @@ const AddApplicationForm = () => {
                 />
             </div>
 
-            
-            {/* Source */}
             <div className="space-y-1">
                 <FormField
                     label="Source URL"

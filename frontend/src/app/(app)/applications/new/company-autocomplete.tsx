@@ -35,6 +35,13 @@ const CompanyAutocomplete = ({ value, onChange }: CompanyAutocompleteProps) => {
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const containerRef = useRef<HTMLDivElement>(null);
 
+    // Sync query with external value changes (e.g., from URL import)
+    useEffect(() => {
+        if (value?.name) {
+            setQuery(value.name);
+        }
+    }, [value?.name]);
+
     const fetchSuggestions = useCallback(async (input: string) => {
         if (input.length < 2) {
             setSuggestions([]);

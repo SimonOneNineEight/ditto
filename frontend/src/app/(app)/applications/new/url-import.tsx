@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Link2, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -16,7 +18,27 @@ interface UrlImportProps {
     }) => void;
 }
 
+interface ExtractResponse {
+    data: {
+        title: string;
+        company: string;
+        location: string;
+        description: string;
+        platform: string;
+    };
+    warnings?: string[];
+}
+
 type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
+
+// Map backend platform names to display names
+const platformDisplayNames: Record<string, string> = {
+    linkedin: 'LinkedIn',
+    indeed: 'Indeed',
+    glassdoor: 'Glassdoor',
+    angellist: 'AngelList',
+    generic: 'Website',
+};
 
 const UrlImport = ({ onImport }: UrlImportProps) => {
     const [url, setUrl] = useState('');
@@ -30,34 +52,28 @@ const UrlImport = ({ onImport }: UrlImportProps) => {
         setStatus('loading');
 
         try {
-            // TODO: Replace with actual API call to /api/jobs/extract-url
-            await new Promise((resolve) => setTimeout(resolve, 1200));
+            const response = await api.post<ExtractResponse>('/api/extract-job-url', { url });
+            const extracted = response.data.data;
 
-            // Detect platform from URL
-            const detectPlatform = (url: string): string | undefined => {
-                if (url.includes('linkedin.com')) return 'LinkedIn';
-                if (url.includes('indeed.com')) return 'Indeed';
-                if (url.includes('glassdoor.com')) return 'Glassdoor';
-                if (url.includes('greenhouse.io')) return 'Greenhouse';
-                if (url.includes('lever.co')) return 'Lever';
-                return undefined;
-            };
-
-            // Mock data for now
-            const data = {
-                company: 'Stripe',
-                position: 'Senior Software Engineer, Platform',
-                description:
-                    "Join our Platform team to build the infrastructure that powers millions of businesses worldwide.\n\nYou'll work on distributed systems, API design, and help scale our core payment processing platform.",
-                location: 'San Francisco, CA',
+            onImport({
+                company: extracted.company,
+                position: extracted.title,
+                description: extracted.description || undefined,
+                location: extracted.location || undefined,
                 sourceUrl: url,
-                platform: detectPlatform(url),
-            };
+                platform: platformDisplayNames[extracted.platform] || extracted.platform,
+            });
 
-            onImport(data);
             setStatus('success');
-        } catch {
+
+            // Show warnings if any
+            if (response.data.warnings && response.data.warnings.length > 0) {
+                toast.warning(response.data.warnings.join(', '));
+            }
+        } catch (error: unknown) {
             setStatus('error');
+            const message = error instanceof Error ? error.message : 'Failed to extract job details';
+            toast.error(message);
         }
     };
 
