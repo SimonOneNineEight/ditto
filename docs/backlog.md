@@ -11,3 +11,6 @@ Routing guidance:
 | Date | Story | Epic | Type | Severity | Owner | Status | Notes |
 | ---- | ----- | ---- | ---- | -------- | ----- | ------ | ----- |
 | 2026-01-19 | 1-3 | 1 | TechDebt | Low | TBD | Open | Frontend tests deferred (Task 9-10): URLImport, form validation, extraction flow. Target: Story 6-9 |
+| 2026-01-22 | 1-4 | 1 | Bug | Low | TBD | Open | Upload cancel doesn't abort XHR — in-flight request continues in background. Add AbortController. Target: Story 6-7 |
+| 2026-01-22 | 1-4 | 1 | Enhancement | Low | TBD | Open | No retry-from-error for file upload — user must re-select file after failure. Preserve file ref on error. Target: Story 6-7 |
+| 2026-01-22 | 1-4 | 1 | Enhancement | Low | TBD | Open | AC-4 partial: Add dedicated "Replace" button to FileItem for single-action file replacement. Target: Story 6-7 |

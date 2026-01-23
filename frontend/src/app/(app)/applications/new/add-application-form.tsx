@@ -19,6 +19,12 @@ import UrlImport from './url-import';
 import FormField from './form-field';
 import CompanyAutocomplete from './company-autocomplete';
 import { FormLabel, FormFieldWrapper } from './form-label';
+import { FileUpload } from '@/components/file-upload';
+import {
+    getPresignedUploadUrl,
+    uploadToS3,
+    confirmUpload,
+} from '@/lib/file-service';
 
 const JOB_TYPES = [
     { value: 'full-time', label: 'Full-time' },
@@ -55,6 +61,7 @@ const STAGGER_DELAY = 150; // ms between each field
 const AddApplicationForm = () => {
     const router = useRouter();
     const [highlightedFields, setHighlightedFields] = useState<Set<string>>(new Set());
+    const [pendingFile, setPendingFile] = useState<File | null>(null);
 
     const {
         register,
@@ -126,7 +133,7 @@ const AddApplicationForm = () => {
 
     const onSubmit = async (data: FormData) => {
         try {
-            await api.post('/api/applications/quick-create', {
+            const response = await api.post('/api/applications/quick-create', {
                 company_name: data.company.name,
                 title: data.position,
                 location: data.location || undefined,
@@ -137,7 +144,33 @@ const AddApplicationForm = () => {
                 notes: data.notes || undefined,
             });
 
-            toast.success('Application saved');
+            const applicationId = response.data?.data?.id;
+
+            // Upload pending file if exists
+            if (pendingFile && applicationId) {
+                try {
+                    const presigned = await getPresignedUploadUrl(
+                        pendingFile.name,
+                        pendingFile.type,
+                        pendingFile.size,
+                        applicationId
+                    );
+                    await uploadToS3(presigned.presigned_url, pendingFile);
+                    await confirmUpload(
+                        presigned.s3_key,
+                        pendingFile.name,
+                        pendingFile.type,
+                        pendingFile.size,
+                        applicationId
+                    );
+                    toast.success('Application saved with document');
+                } catch {
+                    toast.success('Application saved, but file upload failed');
+                }
+            } else {
+                toast.success('Application saved');
+            }
+
             router.push('/applications');
         } catch {
             toast.error('Failed to save application');
@@ -244,6 +277,11 @@ const AddApplicationForm = () => {
                     {...register('platform')}
                 />
             </div>
+
+            <FileUpload
+                onFileSelect={setPendingFile}
+                label="Attach Resume or Cover Letter (Optional)"
+            />
 
             <div className="flex justify-between items-center mt-12 pt-6">
                 <Button type="button" variant="ghost" onClick={handleCancel}>

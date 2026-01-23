@@ -1,0 +1,220 @@
+<story-context id="1-4-resume-and-cover-letter-upload-ui" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>4</storyId>
+    <title>Resume and Cover Letter Upload UI</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-01-21</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-4-resume-and-cover-letter-upload-ui.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>upload resume and cover letter files directly from the application form</iWant>
+    <soThat>I can keep track of which documents I sent to each company</soThat>
+    <tasks>
+      <task id="1" ac="1,2">Create FileUpload component with drag-drop, file type/size validation, progress bar</task>
+      <task id="2" ac="2">Integrate S3 upload flow: presigned URL → S3 upload → confirm to backend</task>
+      <task id="3" ac="3">Create FileList component to display uploaded files with download/delete actions</task>
+      <task id="4" ac="3,4,5">Add file management to Application Detail page (Documents section)</task>
+      <task id="5" ac="1">Add optional file upload section to Add Application form</task>
+      <task id="6" ac="6,7">Implement error handling and validation feedback (toasts, inline errors)</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1">File picker opens for PDF/DOCX/TXT when clicking Upload Resume/Cover Letter</criterion>
+    <criterion id="AC-2">Upload progress indicator shows percentage, confirmation on success</criterion>
+    <criterion id="AC-3">Uploaded files display as downloadable links with filename, type icon, size</criterion>
+    <criterion id="AC-4">File replacement: new file replaces old, confirmation shown</criterion>
+    <criterion id="AC-5">File deletion with confirmation prompt, storage quota updated</criterion>
+    <criterion id="AC-6">File size validation: error for files &gt;5MB</criterion>
+    <criterion id="AC-7">File type validation: error for unsupported types</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>File Upload Endpoint, Workflows - File Upload to S3</section>
+        <snippet>S3 presigned URLs for direct client uploads. Flow: Get presigned URL → Upload to S3 → Confirm to backend. 100MB quota per user, 5MB max file size.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.4: Resume and Cover Letter Upload UI</section>
+        <snippet>Frontend: Create FileUpload component with drag-drop support. Integrate with /api/files/upload endpoint. Show upload progress bar.</snippet>
+      </doc>
+      <doc>
+        <path>docs/design-system-principles.md</path>
+        <title>Ditto Design System Principles</title>
+        <section>Core Principles, Color Palette</section>
+        <snippet>Dark theme first, 80% Notion-like aesthetic, progressive disclosure. Hover reveals actions, borders appear on interaction.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-3-application-form-url-extraction.md</path>
+        <title>Story 1.3 (Previous Story)</title>
+        <section>Senior Developer Review - Learnings</section>
+        <snippet>FormField component for styling, toast via sonner, react-hook-form with zod, axios instance at @/lib/axios. Tests deferred to Epic 6.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>backend/internal/routes/file.go</path>
+        <kind>routes</kind>
+        <symbol>RegisterFileRoutes</symbol>
+        <lines>17-50</lines>
+        <reason>Defines file API routes: presigned-upload, confirm-upload, get, delete, replace</reason>
+      </file>
+      <file>
+        <path>backend/internal/handlers/file.go</path>
+        <kind>handler</kind>
+        <symbol>FileHandler</symbol>
+        <lines>29-413</lines>
+        <reason>Complete file handler with GetPresignedUploadURL, ConfirmUpload, GetFile, DeleteFile, ReplaceFile, GetStorageStats</reason>
+      </file>
+      <file>
+        <path>backend/internal/services/s3/service.go</path>
+        <kind>service</kind>
+        <symbol>S3Service</symbol>
+        <lines>17-125</lines>
+        <reason>S3 service for presigned URLs, object operations. GenerateS3Key, GeneratePresignedPutURL, GeneratePresignedGetURL, HeadObject, DeleteObject</reason>
+      </file>
+      <file>
+        <path>backend/internal/models/file.go</path>
+        <kind>model</kind>
+        <symbol>File</symbol>
+        <reason>File model with ID, UserID, ApplicationID, InterviewID, FileName, FileType, FileSize, S3Key, UploadedAt</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/file.go</path>
+        <kind>repository</kind>
+        <symbol>FileRepository</symbol>
+        <reason>File CRUD operations, GetUserStorageUsage, GetUserFileCount, soft deletes</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(app)/applications/new/add-application-form.tsx</path>
+        <kind>component</kind>
+        <symbol>AddApplicationForm</symbol>
+        <reason>Existing form where optional file upload section will be added</reason>
+      </file>
+      <file>
+        <path>frontend/src/lib/axios.ts</path>
+        <kind>utility</kind>
+        <symbol>api</symbol>
+        <reason>Axios instance with auth interceptors - use for API calls</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <frontend>
+        <pkg name="react" version="^18" />
+        <pkg name="next" version="14.2.15" />
+        <pkg name="axios" version="^1.7.9" />
+        <pkg name="react-hook-form" version="^7.54.2" />
+        <pkg name="zod" version="^3.24.2" />
+        <pkg name="sonner" version="^2.0.7" />
+        <pkg name="lucide-react" version="^0.452.0" />
+        <pkg name="class-variance-authority" version="^0.7.0" />
+        <note>May need to add: react-dropzone for drag-drop file uploads</note>
+      </frontend>
+      <backend>
+        <pkg name="gin-gonic/gin" version="v1.10.1" />
+        <pkg name="aws-sdk-go-v2/service/s3" version="v1.95.0" />
+        <pkg name="google/uuid" version="v1.6.0" />
+        <pkg name="jmoiron/sqlx" version="v1.4.0" />
+      </backend>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>GetPresignedUploadURL</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/files/presigned-upload { file_name, file_type, file_size, application_id } → { presigned_url, s3_key, expires_in }</signature>
+      <path>backend/internal/handlers/file.go:85</path>
+    </interface>
+    <interface>
+      <name>ConfirmUpload</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/files/confirm-upload { s3_key, file_name, file_type, file_size, application_id } → FileResponse</signature>
+      <path>backend/internal/handlers/file.go:131</path>
+    </interface>
+    <interface>
+      <name>GetFile</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/files/:id → { presigned_url, expires_in, file_name, file_size, file_type }</signature>
+      <path>backend/internal/handlers/file.go:181</path>
+    </interface>
+    <interface>
+      <name>DeleteFile</name>
+      <kind>REST endpoint</kind>
+      <signature>DELETE /api/files/:id → { message }</signature>
+      <path>backend/internal/handlers/file.go:213</path>
+    </interface>
+    <interface>
+      <name>ReplaceFile</name>
+      <kind>REST endpoint</kind>
+      <signature>PUT /api/files/:id/replace { file_name, file_type, file_size } → { presigned_url, s3_key, expires_in }</signature>
+      <path>backend/internal/handlers/file.go:274</path>
+    </interface>
+    <interface>
+      <name>ConfirmReplace</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/files/:id/confirm-replace { s3_key, file_name, file_type, file_size, application_id } → FileResponse</signature>
+      <path>backend/internal/handlers/file.go:332</path>
+    </interface>
+    <interface>
+      <name>GetStorageStats</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/users/storage-stats → { used_bytes, total_bytes, file_count, usage_percentage, warning, limit_reached }</signature>
+      <path>backend/internal/handlers/file.go:243</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint type="validation">
+      <rule>File types: application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain</rule>
+      <rule>Max file size: 5MB (5,242,880 bytes)</rule>
+      <rule>Max storage per user: 100MB</rule>
+    </constraint>
+    <constraint type="architecture">
+      <rule>Use S3 presigned URLs for direct uploads - no AWS credentials on frontend</rule>
+      <rule>Upload flow: Get presigned URL → Upload to S3 → Confirm to backend</rule>
+      <rule>Soft deletes for file records (deleted_at column)</rule>
+    </constraint>
+    <constraint type="design">
+      <rule>Dark theme first, Notion-like aesthetic</rule>
+      <rule>Progressive disclosure: hover reveals actions, borders appear on interaction</rule>
+      <rule>Use sonner for toast notifications</rule>
+      <rule>Use existing FormField patterns from Story 1.3</rule>
+    </constraint>
+    <constraint type="testing">
+      <rule>Backend tests exist in backend/internal/handlers/file_test.go and backend/internal/services/s3/service_test.go</rule>
+      <rule>Frontend tests deferred to Epic 6 (tracked in docs/backlog.md)</rule>
+    </constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Backend: Go testing framework with testify assertions. Tests use mock S3 SDK and test database.
+      Frontend: Jest + React Testing Library (deferred to Epic 6). Use MSW for API mocking.
+    </standards>
+    <locations>
+      <location>backend/internal/handlers/file_test.go</location>
+      <location>backend/internal/services/s3/service_test.go</location>
+      <location>backend/internal/repository/file_test.go</location>
+    </locations>
+    <ideas>
+      <idea ac="1,7">Test FileUpload rejects invalid file types (.exe, .js)</idea>
+      <idea ac="6">Test FileUpload rejects files &gt;5MB with error message</idea>
+      <idea ac="2">Test upload progress updates during S3 upload</idea>
+      <idea ac="3">Test FileList displays uploaded files correctly</idea>
+      <idea ac="4">Test file replacement deletes old file and uploads new</idea>
+      <idea ac="5">Test file deletion with confirmation flow</idea>
+    </ideas>
+  </tests>
+</story-context>

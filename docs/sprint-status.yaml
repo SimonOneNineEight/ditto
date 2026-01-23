@@ -45,7 +45,7 @@ development_status:
   1-1-job-url-information-extraction-service: done
   1-2-cloud-file-storage-infrastructure: done
   1-3-application-form-integration-with-url-extraction: done
-  1-4-resume-and-cover-letter-upload-ui: backlog
+  1-4-resume-and-cover-letter-upload-ui: done
   1-5-enhanced-application-list-with-filtering: backlog
   1-6-storage-quota-management-and-visibility: backlog
   epic-1-retrospective: optional

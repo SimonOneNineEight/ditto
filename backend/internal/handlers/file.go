@@ -270,6 +270,53 @@ func (h *FileHandler) GetStorageStats(c *gin.Context) {
 	})
 }
 
+// GET /api/files
+func (h *FileHandler) ListFiles(c *gin.Context) {
+	userID := c.MustGet("user_id").(uuid.UUID)
+
+	var applicationID *uuid.UUID
+	if appIDStr := c.Query("application_id"); appIDStr != "" {
+		appID, err := uuid.Parse(appIDStr)
+		if err != nil {
+			HandleError(c, errors.New(errors.ErrorBadRequest, "invalid application_id"))
+			return
+		}
+		applicationID = &appID
+	}
+
+	var interviewID *uuid.UUID
+	if intIDStr := c.Query("interview_id"); intIDStr != "" {
+		intID, err := uuid.Parse(intIDStr)
+		if err != nil {
+			HandleError(c, errors.New(errors.ErrorBadRequest, "invalid interview_id"))
+			return
+		}
+		interviewID = &intID
+	}
+
+	files, err := h.fileRepo.GetUserFiles(userID, applicationID, interviewID)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	fileResponses := make([]FileResponse, len(files))
+	for i, f := range files {
+		fileResponses[i] = FileResponse{
+			ID:         f.ID,
+			FileName:   f.FileName,
+			FileType:   f.FileType,
+			FileSize:   f.FileSize,
+			S3Key:      f.S3Key,
+			UploadedAt: f.UploadedAt,
+			CreatedAt:  f.CreatedAt,
+			UpdatedAt:  f.UpdatedAt,
+		}
+	}
+
+	response.Success(c, fileResponses)
+}
+
 // PUT /api/files/:id/replace
 func (h *FileHandler) ReplaceFile(c *gin.Context) {
 	userID := c.MustGet("user_id").(uuid.UUID)
