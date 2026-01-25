@@ -10,10 +10,14 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
-    const session = await getSession();
+    // Only attempt to get session on the client side
+    // getSession() from next-auth/react is client-side only
+    if (typeof window !== 'undefined') {
+        const session = await getSession();
 
-    if (session?.accessToken) {
-        config.headers.Authorization = `Bearer ${session.accessToken}`;
+        if (session?.accessToken) {
+            config.headers.Authorization = `Bearer ${session.accessToken}`;
+        }
     }
 
     return config;

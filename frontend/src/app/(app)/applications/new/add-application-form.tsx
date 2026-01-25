@@ -58,9 +58,30 @@ type FormData = z.infer<typeof formSchema>;
 
 const STAGGER_DELAY = 150; // ms between each field
 
-const AddApplicationForm = () => {
+interface ApplicationFormProps {
+    mode?: 'create' | 'edit';
+    applicationId?: string;
+    initialData?: {
+        company?: { id?: string; name: string };
+        position?: string;
+        location?: string;
+        jobType?: 'full-time' | 'part-time' | 'contract' | 'internship';
+        description?: string;
+        sourceUrl?: string;
+        platform?: string;
+        notes?: string;
+    };
+}
+
+const ApplicationForm = ({
+    mode = 'create',
+    applicationId,
+    initialData,
+}: ApplicationFormProps) => {
     const router = useRouter();
-    const [highlightedFields, setHighlightedFields] = useState<Set<string>>(new Set());
+    const [highlightedFields, setHighlightedFields] = useState<Set<string>>(
+        new Set()
+    );
     const [pendingFile, setPendingFile] = useState<File | null>(null);
 
     const {
@@ -72,14 +93,14 @@ const AddApplicationForm = () => {
     } = useForm<FormData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            company: { name: '' },
-            position: '',
-            location: '',
-            jobType: undefined,
-            description: '',
-            sourceUrl: '',
-            platform: '',
-            notes: '',
+            company: initialData?.company || { name: '' },
+            position: initialData?.position || '',
+            location: initialData?.location || '',
+            jobType: initialData?.jobType || undefined,
+            description: initialData?.description || '',
+            sourceUrl: initialData?.sourceUrl || '',
+            platform: initialData?.platform || '',
+            notes: initialData?.notes || '',
         },
     });
 
@@ -133,27 +154,44 @@ const AddApplicationForm = () => {
 
     const onSubmit = async (data: FormData) => {
         try {
-            const response = await api.post('/api/applications/quick-create', {
-                company_name: data.company.name,
-                title: data.position,
-                location: data.location || undefined,
-                job_type: data.jobType || undefined,
-                description: data.description || undefined,
-                source_url: data.sourceUrl || undefined,
-                platform: data.platform || undefined,
-                notes: data.notes || undefined,
-            });
+            let resultApplicationId = applicationId;
 
-            const applicationId = response.data?.data?.id;
+            if (mode === 'edit' && applicationId) {
+                await api.put(`/api/applications/${applicationId}`, {
+                    company_name: data.company.name,
+                    title: data.position,
+                    location: data.location || undefined,
+                    job_type: data.jobType || undefined,
+                    description: data.description || undefined,
+                    source_url: data.sourceUrl || undefined,
+                    platform: data.platform || undefined,
+                    notes: data.notes || undefined,
+                });
+            } else {
+                const response = await api.post(
+                    '/api/applications/quick-create',
+                    {
+                        company_name: data.company.name,
+                        title: data.position,
+                        location: data.location || undefined,
+                        job_type: data.jobType || undefined,
+                        description: data.description || undefined,
+                        source_url: data.sourceUrl || undefined,
+                        platform: data.platform || undefined,
+                        notes: data.notes || undefined,
+                    }
+                );
+                resultApplicationId = response.data?.data?.id;
+            }
 
             // Upload pending file if exists
-            if (pendingFile && applicationId) {
+            if (pendingFile && resultApplicationId) {
                 try {
                     const presigned = await getPresignedUploadUrl(
                         pendingFile.name,
                         pendingFile.type,
                         pendingFile.size,
-                        applicationId
+                        resultApplicationId
                     );
                     await uploadToS3(presigned.presigned_url, pendingFile);
                     await confirmUpload(
@@ -161,19 +199,33 @@ const AddApplicationForm = () => {
                         pendingFile.name,
                         pendingFile.type,
                         pendingFile.size,
-                        applicationId
+                        resultApplicationId
                     );
-                    toast.success('Application saved with document');
+                    toast.success(
+                        mode === 'edit'
+                            ? 'Application updated with document'
+                            : 'Application saved with document'
+                    );
                 } catch {
-                    toast.success('Application saved, but file upload failed');
+                    toast.success(
+                        mode === 'edit'
+                            ? 'Application updated, but file upload failed'
+                            : 'Application saved, but file upload failed'
+                    );
                 }
             } else {
-                toast.success('Application saved');
+                toast.success(
+                    mode === 'edit' ? 'Application updated' : 'Application saved'
+                );
             }
 
             router.push('/applications');
         } catch {
-            toast.error('Failed to save application');
+            toast.error(
+                mode === 'edit'
+                    ? 'Failed to update application'
+                    : 'Failed to save application'
+            );
         }
     };
 
@@ -288,11 +340,17 @@ const AddApplicationForm = () => {
                     Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Saving...' : 'Save'}
+                    {isSubmitting
+                        ? mode === 'edit'
+                            ? 'Updating...'
+                            : 'Saving...'
+                        : mode === 'edit'
+                          ? 'Update'
+                          : 'Save'}
                 </Button>
             </div>
         </form>
     );
 };
 
-export default AddApplicationForm;
+export default ApplicationForm;

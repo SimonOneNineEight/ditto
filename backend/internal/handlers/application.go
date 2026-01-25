@@ -417,5 +417,21 @@ func parseApplicationFilters(c *gin.Context) *repository.ApplicationFilters {
 		}
 	}
 
+	// Parse sort params
+	if sortBy := c.Query("sort_by"); sortBy != "" {
+		// Validate sort column
+		validSortColumns := map[string]bool{
+			"company": true, "position": true, "status": true,
+			"applied_at": true, "location": true,
+		}
+		if validSortColumns[sortBy] {
+			filters.SortBy = sortBy
+		}
+	}
+
+	if sortOrder := c.Query("sort_order"); sortOrder == "asc" || sortOrder == "desc" {
+		filters.SortOrder = sortOrder
+	}
+
 	return filters
 }

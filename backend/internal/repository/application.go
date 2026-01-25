@@ -30,6 +30,8 @@ type ApplicationFilters struct {
 	CompanyID     *uuid.UUID
 	DateFrom      *time.Time
 	DateTo        *time.Time
+	SortBy        string
+	SortOrder     string
 	Limit         int
 	Offset        int
 }
@@ -173,7 +175,7 @@ func (r *ApplicationRepository) GetApplicationsByUser(userID uuid.UUID, filters 
     `
 	query, args, argIndex := r.buildFilterQuery(filters, baseQuery, userID)
 
-	query += " ORDER BY applied_at DESC"
+	query += r.buildOrderByClause(filters)
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
 	args = append(args, filters.Limit, filters.Offset)
 
@@ -194,7 +196,7 @@ func (r *ApplicationRepository) GetApplicationsWithDetails(userID uuid.UUID, fil
             j.currency as "job.currency", j.is_expired as "job.is_expired", j.created_at as "job.created_at", j.updated_at as "job.updated_at",
             c.id as "company.id", c.name as "company.name", c.description as "company.description", c.website as "company.website",
             c.logo_url as "company.logo_url", c.created_at as "company.created_at", c.updated_at as "company.updated_at",
-            ast.id as "application_status.id", ast.name as "application_status.name", ast.created_at as "application_status.created_at", ast.updated_at as "application_status.updated_at",
+            ast.id as "application_status.id", ast.name as "application_status.name", ast.created_at as "application_status.created_at", ast.updated_at as "application_status.updated_at"
         FROM applications a
         LEFT JOIN jobs j ON a.job_id = j.id
         LEFT JOIN companies c ON j.company_id = c.id
@@ -202,7 +204,7 @@ func (r *ApplicationRepository) GetApplicationsWithDetails(userID uuid.UUID, fil
     `
 	query, args, argIndex := r.buildFilterQuery(filters, baseQuery, userID)
 
-	query += " ORDER BY applied_at DESC"
+	query += r.buildOrderByClause(filters)
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
 	args = append(args, filters.Limit, filters.Offset)
 
@@ -304,7 +306,7 @@ func (r *ApplicationRepository) GetRecentApplications(userID uuid.UUID, limit in
             j.currency as "job.currency", j.is_expired as "job.is_expired", j.created_at as "job.created_at", j.updated_at as "job.updated_at",
             c.id as "company.id", c.name as "company.name", c.description as "company.description", c.website as "company.website",
             c.logo_url as "company.logo_url", c.created_at as "company.created_at", c.updated_at as "company.updated_at",
-            ast.id as "application_status.id", ast.name as "application_status.name", ast.created_at as "application_status.created_at", ast.updated_at as "application_status.updated_at",
+            ast.id as "application_status.id", ast.name as "application_status.name", ast.created_at as "application_status.created_at", ast.updated_at as "application_status.updated_at"
         FROM applications a
         LEFT JOIN jobs j ON a.job_id = j.id
         LEFT JOIN companies c ON j.company_id = c.id
@@ -465,6 +467,29 @@ func (r *ApplicationRepository) InvalidateStatusCache() {
 	r.statusListCache = nil
 	r.statusMapCache = nil
 	r.statusCacheTime = time.Time{}
+}
+
+func (r *ApplicationRepository) buildOrderByClause(filters *ApplicationFilters) string {
+	// Map of allowed sort columns to their SQL expressions
+	sortColumns := map[string]string{
+		"company":    "c.name",
+		"position":   "j.title",
+		"status":     "ast.name",
+		"applied_at": "a.applied_at",
+		"location":   "j.location",
+	}
+
+	sortOrder := "DESC"
+	if filters.SortOrder == "asc" {
+		sortOrder = "ASC"
+	}
+
+	if column, ok := sortColumns[filters.SortBy]; ok {
+		return fmt.Sprintf(" ORDER BY %s %s NULLS LAST", column, sortOrder)
+	}
+
+	// Default sort: newest applications first
+	return " ORDER BY a.applied_at DESC"
 }
 
 func (r *ApplicationRepository) buildFilterQuery(filters *ApplicationFilters, baseQuery string, userID uuid.UUID) (string, []any, int) {

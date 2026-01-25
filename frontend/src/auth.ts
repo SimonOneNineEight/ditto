@@ -30,6 +30,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         email: response.user.email,
                         name: response.user.name,
                         image: response.user.avatar_url || null,
+                        accessToken: response.access_token,
+                        refreshToken: response.refresh_token,
+                        backendUserId: response.user.id,
                     };
                 } catch (error) {
                     return null;
