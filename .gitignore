@@ -1,6 +1,11 @@
 .env
 .DS_Store
 
+# Binaries
+backend/server
+
+# MCP config (user-specific)
+.mcp.json
 
 # Claude
 CLAUDE.md

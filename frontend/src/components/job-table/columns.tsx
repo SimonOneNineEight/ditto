@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { JobTableRow } from "@/types"
 import { Button } from "@/components/ui/button"
 import ApplyStatusDropdown from "./apply-status-dropdown"
+import { format } from 'date-fns'
 
 export const columns: ColumnDef<JobTableRow>[] = [
     {
@@ -26,7 +27,7 @@ export const columns: ColumnDef<JobTableRow>[] = [
         accessorKey: "date",
         header: () => <div className="text-center">Date</div>,
         cell: ({ row }) => {
-            return new Date(row.original.date).toLocaleDateString();
+            return format(new Date(row.original.date), 'MMM d, yyyy');
         }
     },
     {

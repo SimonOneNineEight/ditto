@@ -46,12 +46,12 @@ development_status:
   1-2-cloud-file-storage-infrastructure: done
   1-3-application-form-integration-with-url-extraction: done
   1-4-resume-and-cover-letter-upload-ui: done
-  1-5-enhanced-application-list-with-filtering: backlog
-  1-6-storage-quota-management-and-visibility: backlog
-  epic-1-retrospective: optional
+  1-5-enhanced-application-list-with-filtering: done
+  1-6-storage-quota-management-and-visibility: done
+  epic-1-retrospective: done
 
   # Epic 2: Deep Interview Management (Core Differentiator)
-  epic-2: backlog
+  epic-2: contexted
   2-1-interview-database-schema-and-api-foundation: backlog
   2-2-create-interview-round-basic-api: backlog
   2-3-interview-form-ui-quick-capture: backlog

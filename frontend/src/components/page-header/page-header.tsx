@@ -7,7 +7,6 @@ import {
     BreadcrumbItem,
     BreadcrumbLink,
     BreadcrumbList,
-    BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 
@@ -29,19 +28,16 @@ const PageHeader = ({ title, subtitle, breadcrumbs, actions }: PageHeaderProps) 
             {breadcrumbs && breadcrumbs.length > 0 && (
                 <Breadcrumb>
                     <BreadcrumbList>
-                        {breadcrumbs.map((crumb) => (
+                        {breadcrumbs.map((crumb, index) => (
                             <React.Fragment key={crumb.href}>
                                 <BreadcrumbItem>
                                     <BreadcrumbLink asChild>
                                         <Link href={crumb.href}>{crumb.label}</Link>
                                     </BreadcrumbLink>
                                 </BreadcrumbItem>
-                                <BreadcrumbSeparator />
+                                {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
                             </React.Fragment>
                         ))}
-                        <BreadcrumbItem>
-                            <BreadcrumbPage>{title}</BreadcrumbPage>
-                        </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
             )}

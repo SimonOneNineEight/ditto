@@ -13,7 +13,7 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import { Briefcase, LayoutDashboard, Users } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Users, FileText } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { NavUser } from './nav-user';
 import { X } from 'lucide-react';
@@ -42,6 +42,11 @@ const sidebarMenu = [
         title: 'Interviews',
         url: '/interviews',
         icon: Users,
+    },
+    {
+        title: 'Files',
+        url: '/files',
+        icon: FileText,
     },
 ];
 

@@ -47,7 +47,12 @@ func RegisterFileRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState) {
 		files.POST("/:id/confirm-replace", fileHandler.ConfirmReplace)
 	}
 
-	apiGroup.GET("/users/storage-stats", middleware.AuthMiddleware(), fileHandler.GetStorageStats)
+	users := apiGroup.Group("/users")
+	users.Use(middleware.AuthMiddleware())
+	{
+		users.GET("/storage-stats", fileHandler.GetStorageStats)
+		users.GET("/files", fileHandler.ListUserFilesWithDetails)
+	}
 }
 
 func getEnv(key, defaultValue string) string {

@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { type ApplicationWithDetails, type SortColumn, type SortOrder } from '@/services/application-service';
+import { format } from 'date-fns';
 
 interface SortState {
     column: SortColumn | null;
@@ -167,7 +168,7 @@ export const createColumns = (
         cell: ({ row }) => {
             const date = row.original.applied_at;
             if (!date) return '—';
-            return new Date(date).toLocaleDateString();
+            return format(new Date(date), 'MMM d, yyyy');
         },
     },
     {

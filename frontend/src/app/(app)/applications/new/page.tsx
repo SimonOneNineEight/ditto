@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import AddApplicationForm from './add-application-form';
+import ApplicationForm from './add-application-form';
 
 const AddApplicationPage = () => {
     return (
@@ -8,7 +8,7 @@ const AddApplicationPage = () => {
                 title="Add Application"
                 breadcrumbs={[{ label: 'Applications', href: '/applications' }]}
             />
-            <AddApplicationForm />
+            <ApplicationForm mode="create" />
         </div>
     );
 };

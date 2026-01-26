@@ -173,6 +173,13 @@ The MVP delivers a complete job search management solution with four core capabi
 
 ### Post-MVP Features (Explicitly Deferred)
 
+**Tier 0 - User Preferences & Personalization:**
+- User preferences/settings page
+- Default job type preference (full-time, part-time, contract, internship)
+- Default location preference
+- Preferred job platforms
+- Rationale: Reduces friction during quick application entry by pre-filling user's typical values
+
 **Tier 1 - Automation & Intelligence:**
 - Chrome extension for one-click application capture
 - AI resume optimization (keyword matching, ATS formatting)

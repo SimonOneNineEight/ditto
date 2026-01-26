@@ -81,6 +81,17 @@ type StorageStatsResponse struct {
 	LimitReached    bool  `json:"limit_reached"`
 }
 
+type FileWithDetailsResponse struct {
+	ID                 uuid.UUID  `json:"id"`
+	FileName           string     `json:"file_name"`
+	FileType           string     `json:"file_type"`
+	FileSize           int64      `json:"file_size"`
+	ApplicationID      uuid.UUID  `json:"application_id"`
+	UploadedAt         time.Time  `json:"uploaded_at"`
+	ApplicationCompany *string    `json:"application_company,omitempty"`
+	ApplicationTitle   *string    `json:"application_title,omitempty"`
+}
+
 // POST /api/files/presigned-upload
 func (h *FileHandler) GetPresignedUploadURL(c *gin.Context) {
 	userID := c.MustGet("user_id").(uuid.UUID)
@@ -268,6 +279,35 @@ func (h *FileHandler) GetStorageStats(c *gin.Context) {
 		Warning:         usagePercentage > 90,
 		LimitReached:    usedBytes >= MaxStoragePerUser,
 	})
+}
+
+// GET /api/users/files
+func (h *FileHandler) ListUserFilesWithDetails(c *gin.Context) {
+	userID := c.MustGet("user_id").(uuid.UUID)
+
+	sortBy := c.DefaultQuery("sort_by", "file_size")
+
+	files, err := h.fileRepo.GetUserFilesWithDetails(userID, sortBy)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	fileResponses := make([]FileWithDetailsResponse, len(files))
+	for i, f := range files {
+		fileResponses[i] = FileWithDetailsResponse{
+			ID:                 f.ID,
+			FileName:           f.FileName,
+			FileType:           f.FileType,
+			FileSize:           f.FileSize,
+			ApplicationID:      f.ApplicationID,
+			UploadedAt:         f.UploadedAt,
+			ApplicationCompany: f.ApplicationCompany,
+			ApplicationTitle:   f.ApplicationTitle,
+		}
+	}
+
+	response.Success(c, gin.H{"files": fileResponses})
 }
 
 // GET /api/files

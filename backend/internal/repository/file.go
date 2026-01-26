@@ -208,3 +208,41 @@ func (r *FileRepository) SoftDeleteFileTx(tx *sqlx.Tx, fileID, userID uuid.UUID)
 
 	return nil
 }
+
+type FileWithDetails struct {
+	models.File
+	ApplicationCompany *string `db:"application_company" json:"application_company,omitempty"`
+	ApplicationTitle   *string `db:"application_title" json:"application_title,omitempty"`
+}
+
+func (r *FileRepository) GetUserFilesWithDetails(userID uuid.UUID, sortBy string) ([]*FileWithDetails, error) {
+	query := `
+		SELECT f.id, f.user_id, f.application_id, f.interview_id, f.file_name,
+				f.file_type, f.file_size, f.s3_key, f.uploaded_at, f.created_at, f.updated_at,
+				c.name as application_company,
+				j.title as application_title
+		FROM files f
+		LEFT JOIN applications a ON f.application_id = a.id AND a.deleted_at IS NULL
+		LEFT JOIN jobs j ON a.job_id = j.id AND j.deleted_at IS NULL
+		LEFT JOIN companies c ON j.company_id = c.id AND c.deleted_at IS NULL
+		WHERE f.user_id = $1
+		AND f.deleted_at IS NULL
+	`
+
+	switch sortBy {
+	case "file_name":
+		query += " ORDER BY f.file_name ASC"
+	case "uploaded_at":
+		query += " ORDER BY f.uploaded_at DESC"
+	default:
+		query += " ORDER BY f.file_size DESC"
+	}
+
+	var files []*FileWithDetails
+	err := r.db.Select(&files, query, userID)
+	if err != nil {
+		return nil, errors.ConvertError(err)
+	}
+
+	return files, nil
+}
