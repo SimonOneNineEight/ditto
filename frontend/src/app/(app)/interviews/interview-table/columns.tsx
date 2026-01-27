@@ -1,108 +1,106 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import Link from 'next/link';
-import { Pencil, Trash, FileText } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+    InterviewListItem,
+    getInterviewTypeLabel,
+} from '@/services/interview-service';
 
-// Simple meta interface for Tailwind classes
 export interface ColumnMeta {
     className?: string;
 }
 
-export type Interview = {
-    id: string;
-    company: string;
-    position: string;
-    stage: string;
-    tags: string[];
-    interviewDate: string;
-    notes: string;
-    interviewerName: string;
-    interviewerUrl: string;
+const formatDate = (dateStr: string) => {
+    try {
+        return format(parseISO(dateStr), 'MMM d, yyyy');
+    } catch {
+        return dateStr;
+    }
 };
 
-export const columns: (ColumnDef<Interview, any> & { meta?: ColumnMeta })[] = [
+const formatTime = (timeStr?: string) => {
+    if (!timeStr) return '';
+    try {
+        const [hours, minutes] = timeStr.split(':');
+        const date = new Date();
+        date.setHours(parseInt(hours), parseInt(minutes));
+        return format(date, 'h:mm a');
+    } catch {
+        return timeStr;
+    }
+};
+
+export const columns: (ColumnDef<InterviewListItem, unknown> & {
+    meta?: ColumnMeta;
+})[] = [
     {
-        accessorKey: 'company',
+        accessorKey: 'company_name',
         header: 'Company',
         meta: {
-            className: 'w-[15%]',
+            className: 'w-[18%]',
         },
     },
     {
-        accessorKey: 'position',
+        accessorKey: 'job_title',
         header: 'Position',
         meta: {
+            className: 'w-[18%]',
+        },
+    },
+    {
+        accessorKey: 'round_number',
+        header: 'Round',
+        cell: ({ row }) => {
+            return <span>Round {row.original.round_number}</span>;
+        },
+        meta: {
+            className: 'w-[10%]',
+        },
+    },
+    {
+        accessorKey: 'interview_type',
+        header: 'Type',
+        cell: ({ row }) => {
+            return (
+                <Badge variant="secondary">
+                    {getInterviewTypeLabel(row.original.interview_type)}
+                </Badge>
+            );
+        },
+        meta: {
             className: 'w-[15%]',
         },
     },
     {
-        accessorKey: 'stage',
-        header: 'Stage',
-        cell: ({ row }) => {
-            return <Badge className="">{row.original.stage}</Badge>;
-        },
-        meta: {
-            className: 'w-25',
-        },
-    },
-    {
-        accessorKey: 'interviewDate',
+        accessorKey: 'scheduled_date',
         header: 'Date',
-        meta: {
-            className: 'w-30',
-        },
-    },
-    {
-        accessorKey: 'tags',
-        header: 'Tags',
         cell: ({ row }) => {
+            const date = formatDate(row.original.scheduled_date);
+            const time = formatTime(row.original.scheduled_time);
             return (
-                <div className="flex flex-wrap gap-2">
-                    {row.original.tags.map((tag, index) => (
-                        <Badge key={index} variant="outline">{`#${tag}`}</Badge>
-                    ))}
+                <div>
+                    <span>{date}</span>
+                    {time && (
+                        <span className="text-muted-foreground ml-2">{time}</span>
+                    )}
                 </div>
             );
         },
-    },
-
-    {
-        accessorKey: 'interviewer',
-        header: 'Interviewer',
-        cell: ({ row }) => {
-            return (
-                <Link
-                    href={row.original.interviewerUrl}
-                    className="block truncate"
-                >
-                    {row.original.interviewerName}
-                </Link>
-            );
-        },
-    },
-
-    {
-        id: 'action',
-        header: 'Actions',
         meta: {
-            className: 'w-20',
+            className: 'w-[20%]',
         },
+    },
+    {
+        accessorKey: 'duration_minutes',
+        header: 'Duration',
         cell: ({ row }) => {
-            return (
-                <div className="flex items-center gap-2">
-                    <FileText size={16} />
-                    <Pencil size={16} />
-                    <Trash size={16} />
-                </div>
-            );
+            const duration = row.original.duration_minutes;
+            return duration ? <span>{duration} min</span> : <span>-</span>;
+        },
+        meta: {
+            className: 'w-[10%]',
         },
     },
 ];

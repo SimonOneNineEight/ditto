@@ -19,11 +19,12 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { Interview, ColumnMeta } from './columns';
+import { ColumnMeta } from './columns';
+import { InterviewListItem } from '@/services/interview-service';
 
 interface DataTableProps {
-    columns: ColumnDef<Interview, any>[];
-    data: Interview[];
+    columns: ColumnDef<InterviewListItem, unknown>[];
+    data: InterviewListItem[];
 }
 
 export function InterivewTable({ columns, data }: DataTableProps) {
@@ -86,7 +87,7 @@ export function InterivewTable({ columns, data }: DataTableProps) {
                                     }
                                     onClick={() =>
                                         router.push(
-                                            `/applications/${row.original.id}`
+                                            `/interviews/${row.original.id}`
                                         )
                                     }
                                 >

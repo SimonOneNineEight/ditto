@@ -1,0 +1,880 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <story-id>2-4</story-id>
+    <story-name>Interview Detail View - Structured Data Display</story-name>
+    <created>2026-01-26</created>
+    <epic>Epic 2: Deep Interview Management</epic>
+  </metadata>
+
+  <story-file>
+    <path>docs/stories/2-4-interview-detail-view-structured-data-display.md</path>
+    <note>Primary story file with acceptance criteria and tasks</note>
+  </story-file>
+
+  <backend-context>
+    <file path="backend/internal/handlers/interview.go">
+      <![CDATA[
+package handlers
+
+import (
+	"ditto-backend/internal/models"
+	"ditto-backend/internal/repository"
+	"ditto-backend/internal/utils"
+	"ditto-backend/pkg/errors"
+	"ditto-backend/pkg/response"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+)
+
+type CreateInterviewRequest struct {
+	ApplicationID   uuid.UUID `json:"application_id" binding:"required"`
+	InterviewType   string    `json:"interview_type" binding:"required,oneof=phone_screen technical behavioral panel onsite other"`
+	ScheduledDate   string    `json:"scheduled_date" binding:"required"`
+	ScheduledTime   *string   `json:"scheduled_time"`
+	DurationMinutes *int      `json:"duration_minutes"`
+}
+
+type InterviewHandler struct {
+	interviewRepo   *repository.InterviewRepository
+	applicationRepo *repository.ApplicationRepository
+}
+
+func NewInterviewHandler(appState *utils.AppState) *InterviewHandler {
+	return &InterviewHandler{
+		interviewRepo:   repository.NewInterviewRepository(appState.DB),
+		applicationRepo: repository.NewApplicationRepository(appState.DB),
+	}
+}
+
+func (h *InterviewHandler) CreateInterview(c *gin.Context) {
+	userID := c.MustGet("user_id").(uuid.UUID)
+
+	var req CreateInterviewRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid request body"))
+		return
+	}
+
+	_, err := h.applicationRepo.GetApplicationByID(req.ApplicationID, userID)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	scheduledDate, err := time.Parse("2006-01-02", req.ScheduledDate)
+	if err != nil {
+		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid scheduled date format, use YYYY-MM-DD"))
+		return
+	}
+
+	interview := &models.Interview{
+		UserID:          userID,
+		ApplicationID:   req.ApplicationID,
+		ScheduledDate:   scheduledDate,
+		ScheduledTime:   req.ScheduledTime,
+		InterviewType:   req.InterviewType,
+		DurationMinutes: req.DurationMinutes,
+	}
+
+	createdInterview, err := h.interviewRepo.CreateInterview(interview)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	response.Success(c, gin.H{
+		"interview": createdInterview,
+	})
+}
+      ]]>
+      <note>
+        Add these handlers:
+        - GetInterviewByID: GET /api/interviews/:id - return interview with application info
+        - GetInterviewWithDetails: GET /api/interviews/:id/details - return interview with interviewers, questions, notes
+        - UpdateInterview: PUT /api/interviews/:id - partial update of interview fields
+      </note>
+    </file>
+
+    <file path="backend/internal/repository/interview.go">
+      <![CDATA[
+package repository
+
+import (
+	"ditto-backend/internal/models"
+	"ditto-backend/pkg/database"
+	"ditto-backend/pkg/errors"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
+)
+
+type InterviewRepository struct {
+	db *sqlx.DB
+}
+
+func NewInterviewRepository(database *database.Database) *InterviewRepository {
+	return &InterviewRepository{
+		db: database.DB,
+	}
+}
+
+func (r *InterviewRepository) CreateInterview(interview *models.Interview) (*models.Interview, error) {
+	// ... existing implementation
+}
+
+func (r *InterviewRepository) GetNextRoundNumber(applicationID uuid.UUID) (int, error) {
+	// ... existing implementation
+}
+
+func (r *InterviewRepository) GetInterviewByID(id, userID uuid.UUID) (*models.Interview, error) {
+	query := `
+		SELECT
+			id, user_id, application_id, round_number, scheduled_date, scheduled_time,
+			duration_minutes, outcome, overall_feeling, went_well, could_improve,
+			confidence_level, interview_type, created_at, updated_at
+		FROM interviews
+		WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
+	`
+
+	interview := &models.Interview{}
+	err := r.db.Get(interview, query, id, userID)
+	if err != nil {
+		return nil, errors.ConvertError(err)
+	}
+
+	return interview, nil
+}
+
+func (r *InterviewRepository) UpdateInterview(interviewID, userID uuid.UUID, updates map[string]any) (*models.Interview, error) {
+	// ... existing implementation - supports partial updates
+}
+
+func (r *InterviewRepository) SoftDeleteInterview(interviewID, userID uuid.UUID) error {
+	// ... existing implementation
+}
+
+func (r *InterviewRepository) GetInterviewsByApplicationID(applicationID, userID uuid.UUID) ([]*models.Interview, error) {
+	// ... existing implementation
+}
+
+func (r *InterviewRepository) GetInterviewsByUser(userID uuid.UUID) ([]*models.Interview, error) {
+	// ... existing implementation
+}
+      ]]>
+      <note>
+        Repository methods exist. For GetInterviewWithDetails, may need to:
+        1. Add method to fetch interviewers by interview_id
+        2. Add method to fetch questions by interview_id
+        3. Add method to fetch notes by interview_id
+        Or create a single method that joins all data
+      </note>
+    </file>
+
+    <file path="backend/internal/routes/interview.go">
+      <![CDATA[
+package routes
+
+import (
+	"ditto-backend/internal/handlers"
+	"ditto-backend/internal/middleware"
+	"ditto-backend/internal/utils"
+
+	"github.com/gin-gonic/gin"
+)
+
+func RegisterInterviewRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState) {
+	interviewHandler := handlers.NewInterviewHandler(appState)
+
+	interviews := apiGroup.Group("/interviews")
+	interviews.Use(middleware.AuthMiddleware())
+	{
+		interviews.POST("", interviewHandler.CreateInterview)
+	}
+}
+      ]]>
+      <note>
+        Add these routes:
+        - interviews.GET("/:id", interviewHandler.GetInterviewByID)
+        - interviews.GET("/:id/details", interviewHandler.GetInterviewWithDetails)
+        - interviews.PUT("/:id", interviewHandler.UpdateInterview)
+        - interviews.GET("", interviewHandler.ListInterviews) // for interviews list page
+      </note>
+    </file>
+
+    <file path="backend/internal/models/interview.go">
+      <![CDATA[
+package models
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+const (
+	InterviewTypePhoneScreen = "phone_screen"
+	InterviewTypeTechnical   = "technical"
+	InterviewTypeBehavioral  = "behavioral"
+	InterviewTypePanel       = "panel"
+	InterviewTypeOnsite      = "onsite"
+	InterviewTypeOther       = "other"
+)
+
+const (
+	NoteTypePreparation     = "preparation"
+	NoteTypeCompanyResearch = "company_research"
+	NoteTypeFeedback        = "feedback"
+	NoteTypeReflection      = "reflection"
+	NoteTypeGeneral         = "general"
+)
+
+type Interview struct {
+	ID              uuid.UUID  `json:"id" db:"id"`
+	UserID          uuid.UUID  `json:"user_id" db:"user_id" validate:"required"`
+	ApplicationID   uuid.UUID  `json:"application_id" db:"application_id" validate:"required"`
+	RoundNumber     int        `json:"round_number" db:"round_number"`
+	ScheduledTime   *string    `json:"scheduled_time,omitempty" db:"scheduled_time"`
+	ScheduledDate   time.Time  `json:"scheduled_date" db:"scheduled_date"`
+	DurationMinutes *int       `json:"duration_minutes,omitempty" db:"duration_minutes"`
+	Outcome         *string    `json:"outcome,omitempty" db:"outcome"`
+	OverallFeeling  *string    `json:"overall_feeling,omitempty" db:"overall_feeling"`
+	WentWell        *string    `json:"went_well,omitempty" db:"went_well"`
+	CouldImprove    *string    `json:"could_improve,omitempty" db:"could_improve"`
+	ConfidenceLevel *int       `json:"confidence_level,omitempty" db:"confidence_level"`
+	InterviewType   string     `json:"interview_type" db:"interview_type" validate:"required,max=50"`
+	CreatedAt       time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at" db:"updated_at"`
+	DeletedAt       *time.Time `json:"-" db:"deleted_at"`
+}
+
+type Interviewer struct {
+	ID          uuid.UUID  `json:"id" db:"id"`
+	InterviewID uuid.UUID  `json:"interview_id" db:"interview_id" validate:"required"`
+	Name        string     `json:"name" db:"name"`
+	Role        *string    `json:"role,omitempty" db:"role"`
+	CreatedAt   time.Time  `json:"created_at" db:"created_at"`
+	DeletedAt   *time.Time `json:"-" db:"deleted_at"`
+}
+
+type InterviewQuestion struct {
+	ID           uuid.UUID  `json:"id" db:"id"`
+	InterviewID  uuid.UUID  `json:"interview_id" db:"interview_id" validate:"required"`
+	QuestionText string     `json:"question_text" db:"question_text"`
+	AnswerText   *string    `json:"answer_text,omitempty" db:"answer_text"`
+	Order        int        `json:"order" db:"order"`
+	CreatedAt    time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at" db:"updated_at"`
+	DeletedAt    *time.Time `json:"-" db:"deleted_at"`
+}
+
+type InterviewNote struct {
+	ID          uuid.UUID  `json:"id" db:"id"`
+	InterviewID uuid.UUID  `json:"interview_id" db:"interview_id" validate:"required"`
+	NoteType    string     `json:"note_type" db:"note_type"`
+	Content     *string    `json:"content,omitempty" db:"content"`
+	CreatedAt   time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at"`
+	DeletedAt   *time.Time `json:"-" db:"deleted_at"`
+}
+
+type InterviewWithDetails struct {
+	Interview
+	Interviewers       []Interviewer       `json:"interviewers"`
+	InterviewQuestions []InterviewQuestion `json:"interview_questions"`
+	InterviewNotes     []InterviewNote     `json:"interview_notes"`
+}
+      ]]>
+    </file>
+  </backend-context>
+
+  <frontend-context>
+    <file path="frontend/src/services/interview-service.ts">
+      <![CDATA[
+import api from '@/lib/axios';
+
+export interface CreateInterviewRequest {
+    application_id: string;
+    interview_type:
+        | 'phone_screen'
+        | 'technical'
+        | 'behavioral'
+        | 'panel'
+        | 'onsite'
+        | 'other';
+    scheduled_date: string;
+    scheduled_time?: string;
+    duration_minutes?: number;
+}
+
+export interface Interview {
+    id: string;
+    application_id: string;
+    round_number: number;
+    interview_type: string;
+    scheduled_date: string;
+    scheduled_time?: string;
+    duration_minutes?: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export const createInterview = async (
+    data: CreateInterviewRequest
+): Promise<Interview> => {
+    const response = await api.post('/api/interviews', data);
+    return response.data.data.interview;
+};
+      ]]>
+      <note>
+        Add these functions:
+        - getInterviewById(id: string): Promise&lt;InterviewWithApplication&gt;
+        - getInterviewWithDetails(id: string): Promise&lt;InterviewDetailsResponse&gt;
+        - updateInterview(id: string, data: UpdateInterviewRequest): Promise&lt;Interview&gt;
+        - listInterviews(): Promise&lt;Interview[]&gt; // for interviews list page
+
+        Add these interfaces:
+        - InterviewWithApplication (interview + company_name, job_title)
+        - InterviewDetailsResponse (interview + interviewers + questions + notes)
+        - UpdateInterviewRequest
+        - Interviewer, InterviewQuestion, InterviewNote
+      </note>
+    </file>
+
+    <file path="frontend/src/components/interview-form/interview-form-modal.tsx">
+      <![CDATA[
+'use client';
+
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+
+import { createInterview, Interview } from '@/services/interview-service';
+
+const INTERVIEW_TYPES = [
+    { value: 'phone_screen', label: 'Phone Screen' },
+    { value: 'technical', label: 'Technical' },
+    { value: 'behavioral', label: 'Behavioral' },
+    { value: 'panel', label: 'Panel' },
+    { value: 'onsite', label: 'Onsite' },
+    { value: 'other', label: 'Other' },
+] as const;
+
+// ... form schema and component implementation
+// Use this as reference for form patterns: react-hook-form + zod + toast notifications
+      ]]>
+      <note>
+        Reference for:
+        - Form validation with react-hook-form + zod
+        - Select component with Controller
+        - Toast notifications (sonner)
+        - Loading states with isSubmitting
+        - INTERVIEW_TYPES constant for labels
+      </note>
+    </file>
+
+    <file path="frontend/src/app/(app)/interviews/page.tsx">
+      <![CDATA[
+import React from 'react';
+import { InterivewTable } from './interview-table/interview-table';
+import { Interview, columns } from './interview-table/columns';
+import PastInterviews from './past-interviews';
+import { PageHeader } from '@/components/page-header';
+
+const data: Interview[] = [
+    {
+        id: '1',
+        company: 'Google',
+        position: 'Software Engineer',
+        stage: 'First Round',
+        tags: ['Important!', 'Technical'],
+        interviewDate: '2025-06-19',
+        interviewerName: 'Cool man',
+        interviewerUrl: 'www.simon198.com',
+        notes: 'note.md',
+    },
+];
+
+const InterviewPage = () => {
+    return (
+        <>
+            <PageHeader
+                title="Interviews"
+                subtitle="Prepare for and track your upcoming interviews"
+            />
+            <section className="min-w-0">
+                <h3>Coming</h3>
+                <InterivewTable columns={columns} data={data} />
+            </section>
+            <section>
+                <h3>Past</h3>
+                <PastInterviews />
+            </section>
+        </>
+    );
+};
+
+export default InterviewPage;
+      ]]>
+      <note>
+        This page currently uses hardcoded mock data.
+        Task 8.2 should:
+        1. Convert to client component ('use client')
+        2. Fetch real data from GET /api/interviews
+        3. Update columns.tsx to use real Interview type from service
+        4. Add click handler to navigate to /interviews/[id]
+      </note>
+    </file>
+
+    <file path="frontend/src/components/page-header/page-header.tsx">
+      <![CDATA[
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+
+export interface BreadcrumbItem {
+    label: string;
+    href: string;
+}
+
+export interface PageHeaderProps {
+    title: string;
+    subtitle?: string;
+    breadcrumbs?: BreadcrumbItem[];
+    actions?: React.ReactNode;
+}
+
+const PageHeader = ({ title, subtitle, breadcrumbs, actions }: PageHeaderProps) => {
+    return (
+        <div className="flex flex-col gap-2">
+            {breadcrumbs && breadcrumbs.length > 0 && (
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        {breadcrumbs.map((crumb, index) => (
+                            <React.Fragment key={crumb.href}>
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink asChild>
+                                        <Link href={crumb.href}>{crumb.label}</Link>
+                                    </BreadcrumbLink>
+                                </BreadcrumbItem>
+                                {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
+                            </React.Fragment>
+                        ))}
+                    </BreadcrumbList>
+                </Breadcrumb>
+            )}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="pb-2">{title}</h1>
+                    {subtitle && <h5 className="text-muted-foreground">{subtitle}</h5>}
+                </div>
+                {actions && <div className="flex items-center gap-2">{actions}</div>}
+            </div>
+        </div>
+    );
+};
+
+export default PageHeader;
+      ]]>
+      <note>
+        Use this for the interview detail page header.
+        Can pass breadcrumbs like: [{ label: 'Interviews', href: '/interviews' }]
+        Can pass actions for edit/delete buttons
+      </note>
+    </file>
+
+    <file path="frontend/src/lib/axios.ts">
+      <![CDATA[
+import axios from 'axios';
+import { getSession } from 'next-auth/react';
+
+const api = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081',
+    timeout: 30000,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+api.interceptors.request.use(async (config) => {
+    if (typeof window !== 'undefined') {
+        const session = await getSession();
+        if (session?.accessToken) {
+            config.headers.Authorization = `Bearer ${session.accessToken}`;
+        }
+    }
+    return config;
+});
+
+// ... error handling interceptor
+
+export default api;
+      ]]>
+      <note>Auth is handled automatically by axios interceptor</note>
+    </file>
+  </frontend-context>
+
+  <ui-components>
+    <file path="frontend/src/components/ui/collapsible.tsx">
+      <![CDATA[
+"use client"
+
+import * as CollapsiblePrimitive from "@radix-ui/react-collapsible"
+
+function Collapsible({
+  ...props
+}: React.ComponentProps<typeof CollapsiblePrimitive.Root>) {
+  return <CollapsiblePrimitive.Root data-slot="collapsible" {...props} />
+}
+
+function CollapsibleTrigger({
+  ...props
+}: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleTrigger>) {
+  return (
+    <CollapsiblePrimitive.CollapsibleTrigger
+      data-slot="collapsible-trigger"
+      {...props}
+    />
+  )
+}
+
+function CollapsibleContent({
+  ...props
+}: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleContent>) {
+  return (
+    <CollapsiblePrimitive.CollapsibleContent
+      data-slot="collapsible-content"
+      {...props}
+    />
+  )
+}
+
+export { Collapsible, CollapsibleTrigger, CollapsibleContent }
+      ]]>
+      <note>
+        Use for collapsible sections. Example:
+        &lt;Collapsible open={isOpen} onOpenChange={setIsOpen}&gt;
+          &lt;CollapsibleTrigger&gt;Section Header&lt;/CollapsibleTrigger&gt;
+          &lt;CollapsibleContent&gt;Section Content&lt;/CollapsibleContent&gt;
+        &lt;/Collapsible&gt;
+      </note>
+    </file>
+
+    <file path="frontend/src/components/ui/card.tsx">
+      <![CDATA[
+import { cn } from "@/lib/utils"
+
+function Card({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card"
+      className={cn("rounded-xl border bg-card text-card-foreground shadow-sm", className)}
+      {...props}
+    />
+  )
+}
+
+function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+  return <div data-slot="card-header" className={cn("flex flex-col space-y-1.5 p-6", className)} {...props} />
+}
+
+function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+  return <div data-slot="card-title" className={cn("font-semibold leading-none tracking-tight", className)} {...props} />
+}
+
+function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
+  return <div data-slot="card-description" className={cn("text-sm text-muted-foreground", className)} {...props} />
+}
+
+function CardContent({ className, ...props }: React.ComponentProps<"div">) {
+  return <div data-slot="card-content" className={cn("p-6 pt-0", className)} {...props} />
+}
+
+function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return <div data-slot="card-footer" className={cn("flex items-center p-6 pt-0", className)} {...props} />
+}
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+      ]]>
+      <note>Use Card for section containers in the detail page</note>
+    </file>
+  </ui-components>
+
+  <api-contracts>
+    <endpoint method="GET" path="/api/interviews/:id">
+      <description>Get interview by ID with application info</description>
+      <response>
+        <![CDATA[
+{
+  "status": "success",
+  "data": {
+    "interview": {
+      "id": "uuid",
+      "application_id": "uuid",
+      "round_number": 2,
+      "interview_type": "technical",
+      "scheduled_date": "2026-02-01",
+      "scheduled_time": "14:00",
+      "duration_minutes": 60,
+      "outcome": null,
+      "overall_feeling": null,
+      "went_well": null,
+      "could_improve": null,
+      "confidence_level": null,
+      "created_at": "2026-01-25T10:30:00Z",
+      "updated_at": "2026-01-25T10:30:00Z"
+    },
+    "application": {
+      "company_name": "Acme Corp",
+      "job_title": "Senior Engineer"
+    }
+  }
+}
+        ]]>
+      </response>
+    </endpoint>
+
+    <endpoint method="GET" path="/api/interviews/:id/details">
+      <description>Get interview with all related data</description>
+      <response>
+        <![CDATA[
+{
+  "status": "success",
+  "data": {
+    "interview": { /* Interview object */ },
+    "application": {
+      "company_name": "Acme Corp",
+      "job_title": "Senior Engineer"
+    },
+    "interviewers": [
+      { "id": "uuid", "interview_id": "uuid", "name": "Alice Smith", "role": "Engineering Manager" }
+    ],
+    "questions": [
+      { "id": "uuid", "interview_id": "uuid", "question_text": "...", "answer_text": "...", "order": 1 }
+    ],
+    "notes": [
+      { "id": "uuid", "interview_id": "uuid", "note_type": "preparation", "content": "<p>...</p>" }
+    ]
+  }
+}
+        ]]>
+      </response>
+    </endpoint>
+
+    <endpoint method="PUT" path="/api/interviews/:id">
+      <description>Update interview (partial update)</description>
+      <request>
+        <![CDATA[
+{
+  "scheduled_date": "2026-02-02",
+  "scheduled_time": "15:00",
+  "duration_minutes": 90,
+  "interview_type": "panel",
+  "outcome": "Positive feedback"
+}
+        ]]>
+      </request>
+      <response>
+        <![CDATA[
+{
+  "status": "success",
+  "data": {
+    "interview": { /* Updated Interview object */ }
+  }
+}
+        ]]>
+      </response>
+    </endpoint>
+
+    <endpoint method="GET" path="/api/interviews">
+      <description>List all interviews for user (for interviews page)</description>
+      <response>
+        <![CDATA[
+{
+  "status": "success",
+  "data": {
+    "interviews": [
+      {
+        "id": "uuid",
+        "application_id": "uuid",
+        "round_number": 1,
+        "interview_type": "phone_screen",
+        "scheduled_date": "2026-02-01",
+        "scheduled_time": "10:00",
+        "duration_minutes": 30,
+        "company_name": "Acme Corp",
+        "job_title": "Senior Engineer"
+      }
+    ]
+  }
+}
+        ]]>
+      </response>
+      <note>Include company_name and job_title via JOIN for list display</note>
+    </endpoint>
+  </api-contracts>
+
+  <design-patterns>
+    <pattern name="Interview Type Labels">
+      <![CDATA[
+const INTERVIEW_TYPES = [
+    { value: 'phone_screen', label: 'Phone Screen' },
+    { value: 'technical', label: 'Technical' },
+    { value: 'behavioral', label: 'Behavioral' },
+    { value: 'panel', label: 'Panel' },
+    { value: 'onsite', label: 'Onsite' },
+    { value: 'other', label: 'Other' },
+] as const;
+
+// Helper to get label
+const getInterviewTypeLabel = (value: string) =>
+  INTERVIEW_TYPES.find(t => t.value === value)?.label || value;
+      ]]>
+    </pattern>
+
+    <pattern name="Date Formatting">
+      <![CDATA[
+import { format, parseISO } from 'date-fns';
+
+// Format date for display
+const formatDate = (dateStr: string) => format(parseISO(dateStr), 'MMMM d, yyyy');
+// Example: "February 1, 2026"
+
+// Format time for display
+const formatTime = (timeStr: string) => {
+  const [hours, minutes] = timeStr.split(':');
+  const date = new Date();
+  date.setHours(parseInt(hours), parseInt(minutes));
+  return format(date, 'h:mm a');
+};
+// Example: "2:00 PM"
+      ]]>
+    </pattern>
+
+    <pattern name="Loading Skeleton">
+      <![CDATA[
+import { Skeleton } from '@/components/ui/skeleton';
+
+const InterviewDetailSkeleton = () => (
+  <div className="space-y-6">
+    <div className="space-y-2">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-4 w-32" />
+    </div>
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-24" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-20 w-full" />
+      </CardContent>
+    </Card>
+  </div>
+);
+      ]]>
+    </pattern>
+
+    <pattern name="Empty State">
+      <![CDATA[
+const EmptyState = ({
+  message,
+  actionLabel,
+  onAction
+}: {
+  message: string;
+  actionLabel: string;
+  onAction: () => void;
+}) => (
+  <div className="flex flex-col items-center justify-center py-8 text-center">
+    <p className="text-muted-foreground mb-4">{message}</p>
+    <Button variant="outline" onClick={onAction}>
+      {actionLabel}
+    </Button>
+  </div>
+);
+
+// Usage:
+<EmptyState
+  message="No interviewers added yet"
+  actionLabel="Add Interviewer"
+  onAction={() => setShowAddForm(true)}
+/>
+      ]]>
+    </pattern>
+  </design-patterns>
+
+  <file-structure>
+    <![CDATA[
+New files to create:
+frontend/
+├── src/
+│   ├── app/(app)/interviews/[id]/
+│   │   └── page.tsx                    # Interview detail page
+│   └── components/interview-detail/
+│       ├── interview-header.tsx        # Header with round, type, date, company
+│       ├── collapsible-section.tsx     # Reusable section wrapper
+│       ├── interviewers-section.tsx    # Interviewers list (read-only for now)
+│       ├── questions-section.tsx       # Q&A list (read-only for now)
+│       ├── feedback-section.tsx        # Notes display (read-only for now)
+│       └── index.ts                    # Barrel exports
+
+Files to modify:
+- frontend/src/services/interview-service.ts  # Add get/update functions
+- frontend/src/app/(app)/interviews/page.tsx  # Fetch real data, add navigation
+- backend/internal/handlers/interview.go      # Add GET/:id, PUT/:id handlers
+- backend/internal/routes/interview.go        # Register new routes
+    ]]>
+  </file-structure>
+
+  <learnings-from-previous-stories>
+    <learning story="2.3">
+      Dialog title can carry contextual info (e.g., "Add Interview - Round 2")
+    </learning>
+    <learning story="2.3">
+      Use mode: 'onChange' in useForm for real-time validation
+    </learning>
+    <learning story="2.3">
+      Design principle: Use plain text for read-only values, not disabled inputs
+    </learning>
+    <learning story="2.3">
+      Zod .transform() handles NaN from empty number inputs
+    </learning>
+    <learning story="1.3">
+      Toast via sonner: toast.success(), toast.error()
+    </learning>
+  </learnings-from-previous-stories>
+</story-context>

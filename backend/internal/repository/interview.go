@@ -179,7 +179,7 @@ func (r *InterviewRepository) GetInterviewsByApplicationID(applicationID, userID
 
 func (r *InterviewRepository) GetInterviewsByUser(userID uuid.UUID) ([]*models.Interview, error) {
 	query := `
-		SELECT 
+		SELECT
 			id, user_id, application_id, round_number, scheduled_date, scheduled_time,
 			duration_minutes, outcome, overall_feeling, went_well, could_improve,
 			confidence_level, interview_type, created_at, updated_at
@@ -188,6 +188,67 @@ func (r *InterviewRepository) GetInterviewsByUser(userID uuid.UUID) ([]*models.I
 	`
 
 	var interviews []*models.Interview
+	err := r.db.Select(&interviews, query, userID)
+	if err != nil {
+		return nil, errors.ConvertError(err)
+	}
+
+	return interviews, nil
+}
+
+// InterviewWithApplicationInfo holds interview data along with related application info
+type InterviewWithApplicationInfo struct {
+	models.Interview
+	CompanyName string `json:"company_name" db:"company_name"`
+	JobTitle    string `json:"job_title" db:"job_title"`
+}
+
+func (r *InterviewRepository) GetInterviewWithApplicationInfo(interviewID, userID uuid.UUID) (*InterviewWithApplicationInfo, error) {
+	query := `
+		SELECT
+			i.id, i.user_id, i.application_id, i.round_number, i.scheduled_date, i.scheduled_time,
+			i.duration_minutes, i.outcome, i.overall_feeling, i.went_well, i.could_improve,
+			i.confidence_level, i.interview_type, i.created_at, i.updated_at,
+			c.name as company_name, j.title as job_title
+		FROM interviews i
+		JOIN applications a ON i.application_id = a.id
+		JOIN jobs j ON a.job_id = j.id
+		JOIN companies c ON j.company_id = c.id
+		WHERE i.id = $1 AND i.user_id = $2 AND i.deleted_at IS NULL
+	`
+
+	result := &InterviewWithApplicationInfo{}
+	err := r.db.Get(result, query, interviewID, userID)
+	if err != nil {
+		return nil, errors.ConvertError(err)
+	}
+
+	return result, nil
+}
+
+// InterviewListItem holds interview data for list display with application info
+type InterviewListItem struct {
+	models.Interview
+	CompanyName string `json:"company_name" db:"company_name"`
+	JobTitle    string `json:"job_title" db:"job_title"`
+}
+
+func (r *InterviewRepository) GetInterviewsWithApplicationInfo(userID uuid.UUID) ([]*InterviewListItem, error) {
+	query := `
+		SELECT
+			i.id, i.user_id, i.application_id, i.round_number, i.scheduled_date, i.scheduled_time,
+			i.duration_minutes, i.outcome, i.overall_feeling, i.went_well, i.could_improve,
+			i.confidence_level, i.interview_type, i.created_at, i.updated_at,
+			c.name as company_name, j.title as job_title
+		FROM interviews i
+		JOIN applications a ON i.application_id = a.id
+		JOIN jobs j ON a.job_id = j.id
+		JOIN companies c ON j.company_id = c.id
+		WHERE i.user_id = $1 AND i.deleted_at IS NULL
+		ORDER BY i.scheduled_date DESC, i.scheduled_time DESC
+	`
+
+	var interviews []*InterviewListItem
 	err := r.db.Select(&interviews, query, userID)
 	if err != nil {
 		return nil, errors.ConvertError(err)

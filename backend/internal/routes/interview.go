@@ -15,5 +15,9 @@ func RegisterInterviewRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState
 	interviews.Use(middleware.AuthMiddleware())
 	{
 		interviews.POST("", interviewHandler.CreateInterview)
+		interviews.GET("", interviewHandler.ListInterviews)
+		interviews.GET("/:id", interviewHandler.GetInterviewByID)
+		interviews.GET("/:id/details", interviewHandler.GetInterviewWithDetails)
+		interviews.PUT("/:id", interviewHandler.UpdateInterview)
 	}
 }
