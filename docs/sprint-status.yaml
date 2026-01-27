@@ -52,9 +52,9 @@ development_status:
 
   # Epic 2: Deep Interview Management (Core Differentiator)
   epic-2: contexted
-  2-1-interview-database-schema-and-api-foundation: backlog
-  2-2-create-interview-round-basic-api: backlog
-  2-3-interview-form-ui-quick-capture: backlog
+  2-1-interview-database-schema-and-api-foundation: done
+  2-2-create-interview-round-basic-api: done
+  2-3-interview-form-ui-quick-capture: ready-for-dev
   2-4-interview-detail-view-structured-data-display: backlog
   2-5-add-interviewers-to-interview: backlog
   2-6-questions-and-answers-dynamic-list-management: backlog

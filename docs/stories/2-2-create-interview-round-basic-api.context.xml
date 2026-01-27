@@ -1,0 +1,204 @@
+<story-context id="2-2-create-interview-round-basic-api" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2</storyId>
+    <title>Create Interview Round - Basic API</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-01-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-2-create-interview-round-basic-api.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>to create a new interview round for an application via API</iWant>
+    <soThat>I can start tracking interview details</soThat>
+    <tasks>
+      <task id="1" name="Create interview handler">
+        <subtask>1.1: Create backend/internal/handlers/interview.go with handler struct</subtask>
+        <subtask>1.2: Implement CreateInterview handler method</subtask>
+        <subtask>1.3: Add request validation (required fields, interview_type enum)</subtask>
+        <subtask>1.4: Add application ownership check using user_id from JWT</subtask>
+      </task>
+      <task id="2" name="Create interview service layer" note="SKIP - codebase uses handler+repo pattern without service layer">
+        <subtask>Handlers directly use repositories in this codebase</subtask>
+      </task>
+      <task id="3" name="Wire up routes">
+        <subtask>3.1: Create backend/internal/routes/interview.go</subtask>
+        <subtask>3.2: Register POST /api/interviews route with auth middleware</subtask>
+        <subtask>3.3: Wire handler to router in main routes setup</subtask>
+      </task>
+      <task id="4" name="Integration with application ownership check">
+        <subtask>4.1: Use existing applicationRepo.GetApplicationByID(appID, userID) for ownership check</subtask>
+        <subtask>4.2: Call ownership check in handler before creating interview</subtask>
+      </task>
+      <task id="5" name="Manual API testing">
+        <subtask>5.1: Test successful interview creation with valid data</subtask>
+        <subtask>5.2: Test round_number auto-increment (create 2 interviews)</subtask>
+        <subtask>5.3: Test validation errors (missing fields, invalid type)</subtask>
+        <subtask>5.4: Test authorization (wrong user's application)</subtask>
+        <subtask>5.5: Test 404 for non-existent application</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1" name="Create Interview Endpoint">
+      POST /api/interviews with application_id, interview_type, scheduled_date creates interview with auto-incremented round_number. Returns 201 Created.
+    </ac>
+    <ac id="2" name="Required Field Validation">
+      Missing application_id, interview_type returns 400 Bad Request with field errors.
+    </ac>
+    <ac id="3" name="Application Ownership Validation">
+      application_id belonging to another user returns 403 Forbidden.
+    </ac>
+    <ac id="4" name="Application Existence Validation">
+      Non-existent application_id returns 404 Not Found.
+    </ac>
+    <ac id="5" name="Default Values">
+      scheduled_date defaults to today if not provided. Optional fields default to NULL.
+    </ac>
+    <ac id="6" name="Interview Type Validation">
+      Invalid interview_type returns 400 Bad Request. Valid: phone_screen, technical, behavioral, panel, onsite, other.
+    </ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-2.md" title="Epic 2 Tech Spec" section="APIs and Interfaces">
+        POST /api/interviews endpoint contract with request/response schema. Round auto-increment logic.
+      </doc>
+      <doc path="docs/stories/2-1-interview-database-schema-and-api-foundation.md" title="Story 2.1" section="Completion Notes">
+        Repository methods already implemented: CreateInterview, GetNextRoundNumber. Models defined.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture" section="Backend">
+        Go + Gin framework, handler/repository pattern, JWT auth middleware.
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Models (from Story 2.1) -->
+      <artifact path="backend/internal/models/interview.go" kind="model" symbol="Interview" reason="Main model struct with all fields including ScheduledDate as time.Time">
+        <note>Type constants: InterviewTypePhoneScreen, InterviewTypeTechnical, InterviewTypeBehavioral, InterviewTypePanel, InterviewTypeOnsite, InterviewTypeOther</note>
+      </artifact>
+
+      <!-- Repository (from Story 2.1) -->
+      <artifact path="backend/internal/repository/interview.go" kind="repository" symbol="InterviewRepository" reason="Already has CreateInterview and GetNextRoundNumber methods">
+        <method name="CreateInterview" signature="(interview *models.Interview) (*models.Interview, error)" />
+        <method name="GetNextRoundNumber" signature="(applicationID uuid.UUID) (int, error)" />
+        <method name="GetInterviewByID" signature="(id, userID uuid.UUID) (*models.Interview, error)" />
+      </artifact>
+
+      <!-- Application Repository for ownership check -->
+      <artifact path="backend/internal/repository/application.go" kind="repository" symbol="ApplicationRepository" lines="77-95" reason="GetApplicationByID(applicationID, userID) validates ownership - returns error if not found or wrong user">
+        <method name="GetApplicationByID" signature="(applicationID, userID uuid.UUID) (*models.Application, error)" />
+      </artifact>
+
+      <!-- Reference handler pattern -->
+      <artifact path="backend/internal/handlers/application.go" kind="handler" symbol="ApplicationHandler" reason="Reference for handler pattern: struct with repos, constructor, CreateApplication method">
+        <pattern>Handler struct embeds repositories</pattern>
+        <pattern>NewXxxHandler(appState *utils.AppState) constructor</pattern>
+        <pattern>userID := c.MustGet("user_id").(uuid.UUID)</pattern>
+        <pattern>c.ShouldBindJSON for request parsing</pattern>
+        <pattern>HandleError(c, err) for errors</pattern>
+        <pattern>response.Success(c, data) for success</pattern>
+      </artifact>
+
+      <!-- Reference routes pattern -->
+      <artifact path="backend/internal/routes/application.go" kind="routes" symbol="RegisterApplicationRoutes" reason="Reference for route registration pattern">
+        <pattern>RegisterXxxRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState)</pattern>
+        <pattern>group := apiGroup.Group("/xxx")</pattern>
+        <pattern>group.Use(middleware.AuthMiddleware())</pattern>
+        <pattern>group.POST("", handler.Method)</pattern>
+      </artifact>
+
+      <!-- Helpers -->
+      <artifact path="backend/internal/handlers/helpers.go" kind="helper" symbol="HandleError" reason="Error handling helper used by all handlers" />
+
+      <!-- Response package -->
+      <artifact path="backend/pkg/response/response.go" kind="util" symbol="Success, Error" reason="Response formatting: response.Success(c, data), response.Error(c, appErr)" />
+
+      <!-- Errors package -->
+      <artifact path="backend/pkg/errors/errors.go" kind="util" symbol="New, ErrorBadRequest, ErrorNotFound, ErrorForbidden" reason="Error creation: errors.New(errors.ErrorBadRequest, message)" />
+
+      <!-- Middleware -->
+      <artifact path="backend/internal/middleware/auth.go" kind="middleware" symbol="AuthMiddleware" reason="Sets user_id in context: c.Set('user_id', claims.UserID)" />
+
+      <!-- AppState -->
+      <artifact path="backend/internal/utils/state.go" kind="util" symbol="AppState" reason="Passed to handlers, contains DB connection" />
+    </code>
+
+    <dependencies>
+      <go>
+        <dep name="github.com/gin-gonic/gin" version="v1.10.1" use="Web framework" />
+        <dep name="github.com/google/uuid" version="v1.6.0" use="UUID generation and parsing" />
+        <dep name="github.com/jmoiron/sqlx" version="v1.4.0" use="Database operations" />
+        <dep name="github.com/go-playground/validator/v10" version="v10.26.0" use="Struct validation with binding tags" />
+      </go>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">NO service layer - handlers use repositories directly</constraint>
+    <constraint type="pattern">Request structs use gin binding tags: `binding:"required"`, `binding:"oneof=a b c"`</constraint>
+    <constraint type="pattern">User ID from JWT: `userID := c.MustGet("user_id").(uuid.UUID)`</constraint>
+    <constraint type="pattern">Error handling: `HandleError(c, err)` then `return`</constraint>
+    <constraint type="pattern">Success response: `response.Success(c, data)`</constraint>
+    <constraint type="pattern">Validation uses gin binding, not separate validator calls</constraint>
+    <constraint type="architecture">Repository already handles round_number auto-increment in CreateInterview</constraint>
+    <constraint type="security">Must verify application ownership before creating interview</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="POST /api/interviews" kind="REST endpoint">
+      <request>
+        {
+          "application_id": "uuid (required)",
+          "interview_type": "string (required, oneof: phone_screen|technical|behavioral|panel|onsite|other)",
+          "scheduled_date": "string (optional, ISO date, defaults to today)",
+          "scheduled_time": "string (optional, HH:MM format)",
+          "duration_minutes": "int (optional)"
+        }
+      </request>
+      <response status="201">
+        {
+          "success": true,
+          "data": {
+            "id": "uuid",
+            "user_id": "uuid",
+            "application_id": "uuid",
+            "round_number": 1,
+            "interview_type": "technical",
+            "scheduled_date": "2026-01-26T00:00:00Z",
+            ...
+          }
+        }
+      </response>
+      <errors>
+        <error status="400" code="BAD_REQUEST">Missing required fields or invalid interview_type</error>
+        <error status="403" code="FORBIDDEN">Application belongs to another user</error>
+        <error status="404" code="NOT_FOUND">Application not found</error>
+      </errors>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Manual API testing via curl or Postman. Backend uses Go testing framework with testify assertions.
+      Tests should cover: success path, validation errors, authorization errors, not found errors.
+    </standards>
+    <locations>
+      <location>backend/internal/handlers/*_test.go</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Create interview with valid data, verify round_number=1 for first interview</idea>
+      <idea ac="1">Create second interview for same application, verify round_number=2</idea>
+      <idea ac="2">Submit without application_id, verify 400 response</idea>
+      <idea ac="2">Submit without interview_type, verify 400 response</idea>
+      <idea ac="3">Submit with another user's application_id, verify 403 response</idea>
+      <idea ac="4">Submit with non-existent application_id, verify 404 response</idea>
+      <idea ac="5">Submit without scheduled_date, verify defaults to today</idea>
+      <idea ac="6">Submit with invalid interview_type "invalid", verify 400 response</idea>
+    </ideas>
+  </tests>
+</story-context>
