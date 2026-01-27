@@ -110,12 +110,18 @@ CREATE TABLE applications (
 
 CREATE TABLE interviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    application_id UUID REFERENCES applications(id),
-    date TIMESTAMP NOT NULL,
-    interview_type TEXT NOT NULL,
-    question_asked TEXT,
-    notes TEXT,
-    feedback TEXT,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    round_number INT NOT NULL,
+    interview_type VARCHAR(60) NOT NULL,
+    scheduled_date DATE NOT NULL,
+    scheduled_time TIME,
+    duration_minutes INT,
+    outcome TEXT,
+    overall_feeling VARCHAR(20),
+    went_well TEXT,
+    could_improve TEXT,
+    confidence_level INT CHECK (confidence_level BETWEEN 1 AND 5),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL
@@ -158,8 +164,10 @@ CREATE INDEX idx_applications_user_id ON applications(user_id);
 CREATE INDEX idx_applications_job_id ON applications(job_id);
 CREATE INDEX idx_applications_status_id ON applications(application_status_id);
 CREATE INDEX idx_applications_deleted_at ON applications(deleted_at);
-CREATE INDEX idx_interviews_application_id ON interviews(application_id);
-CREATE INDEX idx_interviews_deleted_at ON interviews(deleted_at);
+CREATE INDEX idx_interviews_user_id ON interviews(user_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_interviews_application_id ON interviews(application_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_interviews_scheduled_date ON interviews(scheduled_date) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX idx_interviews_unique_round ON interviews(application_id, round_number) WHERE deleted_at IS NULL;
 CREATE INDEX idx_companies_domain ON companies(domain) WHERE deleted_at IS NULL;
 CREATE INDEX idx_companies_name_lower ON companies(LOWER(name)) WHERE deleted_at IS NULL;
 
