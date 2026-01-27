@@ -1,0 +1,233 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>3</storyId>
+    <title>Interview Form UI - Quick Capture</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-01-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-3-interview-form-ui-quick-capture.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a job seeker</asA>
+    <iWant>a streamlined form to quickly capture initial interview details</iWant>
+    <soThat>I can create the interview record with minimal friction right after scheduling</soThat>
+    <tasks>
+      <task id="1" ac="1,2">Create Interview Form Modal Component
+        <subtask id="1.1">Create frontend/src/components/interview-form/interview-form-modal.tsx</subtask>
+        <subtask id="1.2">Add Dialog/Modal wrapper using shadcn/ui Dialog</subtask>
+        <subtask id="1.3">Create form layout with all required fields</subtask>
+        <subtask id="1.4">Use react-hook-form with zod validation schema</subtask>
+      </task>
+      <task id="2" ac="2">Implement Form Fields
+        <subtask id="2.1">Add interview type Select dropdown with enum options</subtask>
+        <subtask id="2.2">Add date picker for scheduled_date</subtask>
+        <subtask id="2.3">Add time input for scheduled_time (optional)</subtask>
+        <subtask id="2.4">Add number input for duration_minutes (optional)</subtask>
+        <subtask id="2.5">Display round_number as read-only</subtask>
+      </task>
+      <task id="3" ac="3,5,6">Form Submission and API Integration
+        <subtask id="3.1">Create interview service function in frontend/src/services/interview-service.ts</subtask>
+        <subtask id="3.2">Implement form submission handler calling POST /api/interviews</subtask>
+        <subtask id="3.3">Handle success: show toast, navigate to interview detail or close modal</subtask>
+        <subtask id="3.4">Handle error: show error toast, keep form open</subtask>
+        <subtask id="3.5">Implement loading state with disabled inputs</subtask>
+      </task>
+      <task id="4" ac="4">Validation and UX Polish
+        <subtask id="4.1">Add zod schema for interview form validation</subtask>
+        <subtask id="4.2">Show inline validation errors for required fields</subtask>
+        <subtask id="4.3">Disable submit button when form is invalid</subtask>
+        <subtask id="4.4">Default date picker to today's date</subtask>
+      </task>
+      <task id="5" ac="1">Integration with Application Detail Page
+        <subtask id="5.1">Add "Add Interview Round" button to application detail page</subtask>
+        <subtask id="5.2">Wire up button to open InterviewFormModal</subtask>
+        <subtask id="5.3">Pass application_id to the form</subtask>
+        <subtask id="5.4">Refresh interview list after successful creation</subtask>
+      </task>
+      <task id="6">Manual Testing
+        <subtask id="6.1">Test modal opens from application detail page</subtask>
+        <subtask id="6.2">Test form validation (missing required fields)</subtask>
+        <subtask id="6.3">Test successful interview creation</subtask>
+        <subtask id="6.4">Test error handling (simulate API failure)</subtask>
+        <subtask id="6.5">Verify toast notifications appear correctly</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1" title="Add Interview Action">
+      <given>I am viewing an application detail page</given>
+      <when>I click "Add Interview Round" button</when>
+      <then>a modal or dedicated page opens with an interview creation form</then>
+    </criterion>
+    <criterion id="AC-2" title="Form Fields Display">
+      <given>I am viewing an application detail page</given>
+      <when>the form opens</when>
+      <then>I see the following fields: Round number (auto-calculated, read-only), Interview type (dropdown), Scheduled date (date picker, required), Scheduled time (time input, optional), Duration in minutes (number input, optional)</then>
+    </criterion>
+    <criterion id="AC-3" title="Successful Submission">
+      <given>I am viewing an application detail page</given>
+      <when>I fill in required fields and click "Create Interview"</when>
+      <then>the interview is created via POST /api/interviews, a success toast is shown, I am navigated to the interview detail page or back to application detail</then>
+    </criterion>
+    <criterion id="AC-4" title="Validation Feedback">
+      <given>I am viewing an application detail page</given>
+      <when>I try to submit without required fields (interview_type, scheduled_date)</when>
+      <then>validation errors are shown inline on the form, the submit button remains disabled until errors are resolved</then>
+    </criterion>
+    <criterion id="AC-5" title="Loading State">
+      <given>I am viewing an application detail page</given>
+      <when>I click submit and the API call is in progress</when>
+      <then>the submit button shows a loading state (e.g., "Creating..."), the form inputs are disabled during submission</then>
+    </criterion>
+    <criterion id="AC-6" title="Error Handling">
+      <given>I am viewing an application detail page</given>
+      <when>the API returns an error</when>
+      <then>an error toast notification is shown with a helpful message, the form remains open so the user can retry</then>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-2.md" title="Epic 2 Technical Specification" section="Story 2.1-2.3: Create Interview Round" snippet="User clicks 'Add Interview Round' on application detail page. Frontend opens InterviewForm modal. Form shows round number, interview type dropdown, date/time pickers, duration input." />
+      <doc path="docs/architecture.md" title="Architecture Document" section="Implementation Patterns - React Component Pattern" snippet="Use useState for state, useForm for form handling, define types and props interfaces, implement handlers, render JSX. All forms follow react-hook-form + zod pattern." />
+      <doc path="docs/architecture.md" title="Architecture Document" section="Novel Pattern Designs - Multi-Round Interview Context Pattern" snippet="Interview detail page with 70/30 layout. Left column for editing, right column for context. Single API call for data loading." />
+      <doc path="docs/epics.md" title="Epic Breakdown" section="Story 2.3" snippet="InterviewFormModal component using shadcn/ui Dialog, DatePicker, Select, Input. Integrate with POST /api/interviews. Show optimistic UI update. Handle errors with toast notifications." />
+      <doc path="docs/stories/2-2-create-interview-round-basic-api.md" title="Story 2.2 (Completed)" section="Dev Notes" snippet="POST /api/interviews endpoint implemented and tested. Backend returns interview object with round_number auto-calculated. Uses YYYY-MM-DD date format." />
+    </docs>
+    <code>
+      <artifact path="frontend/src/app/(app)/applications/new/add-application-form.tsx" kind="component" symbol="ApplicationForm" reason="Reference implementation for form patterns: react-hook-form, zod validation, Controller for Select, toast notifications, loading states" />
+      <artifact path="frontend/src/app/(app)/applications/new/form-field.tsx" kind="component" symbol="FormField" reason="Reusable form field component with label, input, error display, and highlight animation" />
+      <artifact path="frontend/src/app/(app)/applications/new/form-label.tsx" kind="component" symbol="FormLabel, FormFieldWrapper" reason="Styled form label and wrapper components for consistent form styling" />
+      <artifact path="frontend/src/app/(app)/applications/[id]/page.tsx" kind="page" symbol="ApplicationPage" reason="Application detail page where 'Add Interview Round' button will be added" />
+      <artifact path="frontend/src/components/ui/dialog.tsx" kind="component" symbol="Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter" reason="shadcn/ui Dialog component to be used for the interview form modal" />
+      <artifact path="frontend/src/components/ui/select.tsx" kind="component" symbol="Select, SelectTrigger, SelectValue, SelectContent, SelectItem" reason="shadcn/ui Select component for interview type dropdown" />
+      <artifact path="frontend/src/components/ui/input.tsx" kind="component" symbol="Input" reason="shadcn/ui Input component for text and number inputs" />
+      <artifact path="frontend/src/components/ui/button.tsx" kind="component" symbol="Button" reason="shadcn/ui Button component for form submission" />
+      <artifact path="frontend/src/lib/axios.ts" kind="utility" symbol="api" reason="Pre-configured axios instance with auth interceptor for API calls" />
+      <artifact path="backend/internal/handlers/interview.go" kind="handler" symbol="InterviewHandler.CreateInterview" reason="Backend handler for POST /api/interviews - defines CreateInterviewRequest schema and response format" />
+      <artifact path="backend/internal/routes/interview.go" kind="router" symbol="RegisterInterviewRoutes" reason="Backend route registration for interview endpoints, confirms POST /api/interviews path" />
+    </code>
+    <dependencies>
+      <ecosystem name="frontend" manifest="frontend/package.json">
+        <package name="react-hook-form" version="^7.54.2" purpose="Form state management" />
+        <package name="@hookform/resolvers" version="^4.1.2" purpose="Zod resolver for react-hook-form" />
+        <package name="zod" version="^3.24.2" purpose="Schema validation" />
+        <package name="sonner" version="^2.0.7" purpose="Toast notifications" />
+        <package name="@radix-ui/react-dialog" version="^1.1.2" purpose="Dialog/Modal primitive" />
+        <package name="@radix-ui/react-select" version="^2.2.6" purpose="Select dropdown primitive" />
+        <package name="date-fns" version="^4.1.0" purpose="Date formatting and manipulation" />
+        <package name="axios" version="^1.7.9" purpose="HTTP client for API calls" />
+        <package name="lucide-react" version="^0.452.0" purpose="Icons" />
+      </ecosystem>
+      <ecosystem name="backend" manifest="backend/go.mod">
+        <package name="github.com/gin-gonic/gin" purpose="Web framework - handlers" />
+        <package name="github.com/google/uuid" purpose="UUID generation for IDs" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture" type="pattern">Use react-hook-form with zod for form validation (consistent with existing forms)</constraint>
+    <constraint source="architecture" type="pattern">Use shadcn/ui components (Dialog, Select, Input, Button) - do not create custom primitives</constraint>
+    <constraint source="architecture" type="pattern">Use sonner for toast notifications (toast.success, toast.error)</constraint>
+    <constraint source="architecture" type="api">API calls use axios instance from frontend/src/lib/axios.ts which handles auth headers</constraint>
+    <constraint source="tech-spec" type="format">Date format for API: YYYY-MM-DD (ISO 8601)</constraint>
+    <constraint source="tech-spec" type="format">Time format for API: HH:MM (24-hour)</constraint>
+    <constraint source="tech-spec" type="enum">Interview types: phone_screen, technical, behavioral, panel, onsite, other</constraint>
+    <constraint source="architecture" type="naming">Components use PascalCase (InterviewFormModal.tsx)</constraint>
+    <constraint source="architecture" type="naming">Service functions use camelCase (createInterview)</constraint>
+    <constraint source="story-2.2" type="api">POST /api/interviews returns { interview: { id, round_number, ... } } - round_number is auto-calculated</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="POST /api/interviews" kind="REST endpoint" path="backend/internal/handlers/interview.go">
+      <signature>
+        POST /api/interviews
+        Authorization: Bearer {jwt_token}
+        Content-Type: application/json
+
+        Request:
+        {
+          "application_id": "uuid",
+          "interview_type": "phone_screen" | "technical" | "behavioral" | "panel" | "onsite" | "other",
+          "scheduled_date": "YYYY-MM-DD",
+          "scheduled_time"?: "HH:MM",
+          "duration_minutes"?: number
+        }
+
+        Response (200 OK):
+        {
+          "data": {
+            "interview": {
+              "id": "uuid",
+              "application_id": "uuid",
+              "round_number": 1,
+              "interview_type": "technical",
+              "scheduled_date": "2026-01-27",
+              "scheduled_time": "14:00",
+              "duration_minutes": 60,
+              "created_at": "2026-01-26T10:30:00Z",
+              "updated_at": "2026-01-26T10:30:00Z"
+            }
+          }
+        }
+
+        Errors:
+        - 400: Missing required fields or invalid interview_type
+        - 403: Application belongs to another user
+        - 404: Application not found
+      </signature>
+    </interface>
+    <interface name="InterviewFormModal" kind="React component" path="frontend/src/components/interview-form/interview-form-modal.tsx">
+      <signature>
+        interface InterviewFormModalProps {
+          applicationId: string;
+          open: boolean;
+          onOpenChange: (open: boolean) => void;
+          onSuccess?: (interview: Interview) => void;
+        }
+      </signature>
+    </interface>
+    <interface name="createInterview" kind="service function" path="frontend/src/services/interview-service.ts">
+      <signature>
+        interface CreateInterviewRequest {
+          application_id: string;
+          interview_type: InterviewType;
+          scheduled_date: string;
+          scheduled_time?: string;
+          duration_minutes?: number;
+        }
+
+        type InterviewType = 'phone_screen' | 'technical' | 'behavioral' | 'panel' | 'onsite' | 'other';
+
+        const createInterview = async (data: CreateInterviewRequest): Promise&lt;Interview&gt;
+      </signature>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Frontend components use Jest and React Testing Library for unit/component tests. API calls should be mocked using MSW or jest.mock. Form interactions tested via userEvent. Toast notifications can be verified by checking for toast calls. For this story, manual testing is the primary verification method as specified in tasks.
+    </standards>
+    <locations>
+      <location>frontend/src/**/__tests__/*.test.tsx</location>
+      <location>frontend/src/**/*.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test that clicking "Add Interview Round" button opens the modal dialog</idea>
+      <idea ac="2">Test that all form fields render correctly with proper labels</idea>
+      <idea ac="2">Test that interview type dropdown contains all 6 options</idea>
+      <idea ac="3">Test successful form submission calls API and shows success toast</idea>
+      <idea ac="3">Test navigation occurs after successful creation</idea>
+      <idea ac="4">Test submit button is disabled when required fields are empty</idea>
+      <idea ac="4">Test inline error messages appear for invalid/missing fields</idea>
+      <idea ac="5">Test loading state shows "Creating..." text on submit button</idea>
+      <idea ac="5">Test form inputs are disabled during submission</idea>
+      <idea ac="6">Test error toast appears when API returns error</idea>
+      <idea ac="6">Test form remains open after error for retry</idea>
+    </ideas>
+  </tests>
+</story-context>

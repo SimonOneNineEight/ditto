@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { useState } from 'react';
 import {
     ChartNoAxesColumn,
     Link as LinkIcon,
@@ -13,6 +13,8 @@ import Link from 'next/link';
 import JobDescription from './job-description';
 import { DocumentsSection } from '@/components/file-upload';
 import { useParams } from 'next/navigation';
+import { InterviewFormModal } from '@/components/interview-form/interview-form-modal';
+import { Button } from '@/components/ui/button';
 
 const data = {
     application: {
@@ -59,6 +61,7 @@ const applicationDetail = [
 const ApplicationPage = () => {
     const params = useParams();
     const applicationId = params.id as string;
+    const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
 
     return (
         <div className="flex flex-col p-4 w-full">
@@ -92,6 +95,16 @@ const ApplicationPage = () => {
                     jobDescription={data.application.jobDescription}
                 />
             </section>
+            <section>
+                <Button onClick={() => setIsInterviewModalOpen(true)}>
+                    Add Interview
+                </Button>
+            </section>
+            <InterviewFormModal
+                applicationId={applicationId}
+                open={isInterviewModalOpen}
+                onOpenChange={setIsInterviewModalOpen}
+            />
         </div>
     );
 };
