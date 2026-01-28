@@ -32,13 +32,12 @@ import { PageHeader } from '@/components/page-header';
 import {
     InterviewersSection,
     QuestionsSection,
-    FeedbackSection,
+    NoteSection,
 } from '@/components/interview-detail';
 import {
     getInterviewWithDetails,
     updateInterview,
     InterviewWithDetails,
-    UpdateInterviewRequest,
     INTERVIEW_TYPES,
     getInterviewTypeLabel,
 } from '@/services/interview-service';
@@ -248,7 +247,7 @@ const InterviewDetailPage = () => {
                     onUpdate={fetchInterview}
                 />
 
-                <FeedbackSection
+                <NoteSection
                     notes={notes}
                     interviewId={interviewId}
                     onUpdate={fetchInterview}

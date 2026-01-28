@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"ditto-backend/internal/models"
 	"ditto-backend/pkg/database"
 	"ditto-backend/pkg/errors"
@@ -16,7 +17,7 @@ type InterviewNoteRepository struct {
 	db *sqlx.DB
 }
 
-func NewInterviewNoteRepository(database database.Database) *InterviewNoteRepository {
+func NewInterviewNoteRepository(database *database.Database) *InterviewNoteRepository {
 	return &InterviewNoteRepository{
 		db: database.DB,
 	}
@@ -143,4 +144,23 @@ func (r *InterviewNoteRepository) SoftDeleteInterviewNote(interviewNoteID uuid.U
 	}
 
 	return nil
+}
+
+func (r *InterviewNoteRepository) GetNoteByInterviewAndType(interviewID uuid.UUID, noteType string) (*models.InterviewNote, error) {
+	query := `
+		SELECT id, interview_id, note_type, content, created_at, updated_at
+		FROM interview_notes
+		WHERE interview_id = $1 AND note_type = $2 AND deleted_at IS NULL
+	`
+
+	var interviewNote models.InterviewNote
+	err := r.db.Get(&interviewNote, query, interviewID, noteType)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, errors.ConvertError(err)
+	}
+
+	return &interviewNote, nil
 }
