@@ -1,0 +1,314 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>6</storyId>
+    <title>Questions and Answers - Dynamic List Management</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-27</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-6-questions-and-answers-dynamic-list-management.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>to add questions I was asked and how I answered them</iWant>
+    <soThat>I can review my performance and prepare better for future rounds</soThat>
+    <tasks>
+      <task id="1" ac="1,2,3">Create Question Handler - backend/internal/handlers/interview_question.go with CreateQuestion for POST /api/interviews/:id/questions</task>
+      <task id="2" ac="5">Update Question Endpoint - PUT /api/interview-questions/:id with partial update support</task>
+      <task id="3" ac="6">Delete Question Endpoint - DELETE /api/interview-questions/:id with soft delete</task>
+      <task id="4" ac="7">Reorder Questions Endpoint - PATCH /api/interviews/:id/questions/reorder</task>
+      <task id="5" ac="1-7">Create Question Repository - CRUD operations in backend/internal/repository/interview_question.go</task>
+      <task id="6" ac="1-7">Register Question Routes - backend/internal/routes/interview_question.go with auth middleware</task>
+      <task id="7" ac="1,2,5,6,7">Update Interview Service - Add question CRUD functions to frontend/src/services/interview-service.ts</task>
+      <task id="8" ac="1,2,3">Create Add Question Form - frontend/src/components/interview-detail/add-question-form.tsx with react-hook-form + zod</task>
+      <task id="9" ac="4,5,6,7,8">Create QuestionsSection Component - Rewrite frontend/src/components/interview-detail/questions-section.tsx with full CRUD, reorder, auto-save</task>
+      <task id="10" ac="4">Integrate QuestionsSection - Wire into interview detail page with questions data and onUpdate callback</task>
+      <task id="11" ac="1-8">Manual Testing - Test all CRUD operations, reorder, auto-save, validation, empty states</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Add Question Button - Click "Add" in Questions section, new question entry appears with Question field (textarea) and Answer field (textarea)</ac>
+    <ac id="2">Create Single Question - Fill question text and optional answer, click Save, question created and linked to interview, success toast, question appears with auto-numbering (Q1, Q2, Q3...)</ac>
+    <ac id="3">Add Multiple Questions - Click "Add Another Question" to add entries, "Save All" creates all in batch</ac>
+    <ac id="4">Display Questions List - Questions display as numbered list (Q1, Q2, Q3...), each shows question text, answer text (if provided), edit/delete icons on hover, ordered by order field</ac>
+    <ac id="5">Edit Question - Click edit icon, fields become editable inline, click Save updates question, success toast</ac>
+    <ac id="6">Delete Question - Click delete icon, confirmation prompt, confirming soft-deletes, success toast, removed from list, remaining questions renumber automatically</ac>
+    <ac id="7">Reorder Questions - Use up/down arrows to move questions, order updates immediately in UI, new order persisted to database</ac>
+    <ac id="8">Auto-Save for Questions - Stop typing for 30 seconds, content auto-saves with "Saving..." / "Saved" indicator</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Data Models and Contracts - Question Entity</section>
+        <snippet>interview_questions table with id, interview_id, question_text, answer_text, order, created_at, updated_at, deleted_at. Index on interview_id WHERE deleted_at IS NULL.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>APIs and Interfaces - Question Endpoints</section>
+        <snippet>POST /api/interviews/:id/questions, PUT /api/interview-questions/:id, DELETE /api/interview-questions/:id, PATCH /api/interviews/:id/questions/reorder</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Non-Functional Requirements - Auto-Save</section>
+        <snippet>Auto-save triggers after 30 seconds of inactivity (debounced). Save operation completes in less than 1 second. UI indicator shows save status: "Saving..." to "Saved checkmark".</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Overview</title>
+        <section>Story 2.6</section>
+        <snippet>Questions and Answers - Dynamic List Management: Add Q&A with numbering, inline edit, delete with confirmation, reorder with arrows, auto-save for edits.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Implementation Patterns</section>
+        <snippet>Repository pattern for database operations, soft deletes for all entities, JWT auth middleware on all protected routes.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-5-add-interviewers-to-interview.md</path>
+        <title>Story 2.5 - Add Interviewers</title>
+        <section>Dev Agent Record</section>
+        <snippet>Established CRUD handler pattern with ownership validation, AddForm with useFieldArray for batch creation, Section component with inline editing and delete confirmation dialog. APPROVED.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>backend/internal/handlers/interviewer.go</path>
+        <kind>handler</kind>
+        <symbol>InterviewerHandler, CreateInterviewer, UpdateInterviewer, DeleteInterviewer</symbol>
+        <lines>1-217</lines>
+        <reason>Reference pattern for question CRUD handlers - validates ownership via interview→user chain, supports single and bulk creation</reason>
+      </file>
+      <file>
+        <path>backend/internal/routes/interviewer.go</path>
+        <kind>routes</kind>
+        <symbol>RegisterInterviewerRoutes</symbol>
+        <lines>1-28</lines>
+        <reason>Reference pattern for registering question routes with auth middleware - nested route for creation, direct routes for update/delete</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/interviewer.go</path>
+        <kind>repository</kind>
+        <symbol>InterviewerRepository, CreateInterviewer, GetInterviewerByID, UpdateInterviewer, SoftDeleteInterviewer</symbol>
+        <lines>1-140</lines>
+        <reason>Reference pattern for question repository - CRUD operations with soft delete, partial updates via map</reason>
+      </file>
+      <file>
+        <path>backend/internal/models/interview.go</path>
+        <kind>model</kind>
+        <symbol>InterviewQuestion</symbol>
+        <lines>60-73</lines>
+        <reason>InterviewQuestion model already exists with ID, InterviewID, QuestionText, AnswerText, Order, CreatedAt, UpdatedAt, DeletedAt fields</reason>
+      </file>
+      <file>
+        <path>frontend/src/services/interview-service.ts</path>
+        <kind>service</kind>
+        <symbol>InterviewQuestion, createInterviewer, createInterviewers, updateInterviewer, deleteInterviewer</symbol>
+        <lines>86-194</lines>
+        <reason>InterviewQuestion type already defined. Interviewer CRUD functions show pattern for question service functions</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/interview-detail/add-interviewer-form.tsx</path>
+        <kind>component</kind>
+        <symbol>AddInterviewerForm</symbol>
+        <lines>1-233</lines>
+        <reason>Reference for add-question-form - uses react-hook-form + zod + useFieldArray for "Add Another" support in Dialog</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/interview-detail/interviewers-section.tsx</path>
+        <kind>component</kind>
+        <symbol>InterviewersSection</symbol>
+        <lines>1-260</lines>
+        <reason>Reference for questions-section - inline editing state management, delete confirmation AlertDialog, hover-reveal edit/delete icons, toast notifications</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/interview-detail/questions-section.tsx</path>
+        <kind>component</kind>
+        <symbol>QuestionsSection</symbol>
+        <lines>1-73</lines>
+        <reason>EXISTING PLACEHOLDER - needs full rewrite to add CRUD, reorder arrows, auto-save. Currently read-only display with TODO comment</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/interview-detail/collapsible-section.tsx</path>
+        <kind>component</kind>
+        <symbol>CollapsibleSection</symbol>
+        <lines>1-80</lines>
+        <reason>Reusable section wrapper with onAdd prop for hover-reveal Add button - questions section should use this</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(app)/interviews/[id]/page.tsx</path>
+        <kind>page</kind>
+        <symbol>InterviewDetailPage</symbol>
+        <lines>194-256</lines>
+        <reason>QuestionsSection already imported and rendered at line 245-249. Passes questions data and onUpdate callback - no page changes needed</reason>
+      </file>
+      <file>
+        <path>backend/cmd/server/main.go</path>
+        <kind>entrypoint</kind>
+        <symbol>main</symbol>
+        <reason>Need to register question routes - look for where interviewer routes are registered and follow same pattern</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <backend>
+        <go_mod>
+          <package name="github.com/gin-gonic/gin" version="v1.10.1">Web framework for HTTP handlers</package>
+          <package name="github.com/google/uuid" version="v1.6.0">UUID generation for question IDs</package>
+          <package name="github.com/jmoiron/sqlx" version="v1.4.0">SQL extensions for database operations</package>
+          <package name="github.com/lib/pq" version="v1.10.9">PostgreSQL driver</package>
+        </go_mod>
+      </backend>
+      <frontend>
+        <package_json>
+          <package name="react-hook-form" version="^7.54.2">Form state management with useFieldArray for batch adding</package>
+          <package name="@hookform/resolvers" version="^4.1.2">Zod resolver for form validation</package>
+          <package name="zod" version="^3.24.2">Schema validation for question form</package>
+          <package name="sonner" version="^2.0.7">Toast notifications for CRUD feedback</package>
+          <package name="lucide-react" version="^0.452.0">Icons for edit, delete, reorder arrows</package>
+          <package name="@radix-ui/react-alert-dialog" version="^1.1.15">Delete confirmation dialog</package>
+          <package name="@radix-ui/react-dialog" version="^1.1.2">Add question form modal</package>
+        </package_json>
+      </frontend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Follow existing repository pattern - InterviewerRepository as template</constraint>
+    <constraint type="pattern">Follow existing handler pattern - InterviewerHandler with ownership validation through interview→user</constraint>
+    <constraint type="pattern">Use soft deletes (deleted_at column) for all entities</constraint>
+    <constraint type="pattern">Use partial updates via map[string]any for PUT endpoints</constraint>
+    <constraint type="auth">All question endpoints require JWT auth middleware</constraint>
+    <constraint type="validation">question_text is required, answer_text is optional</constraint>
+    <constraint type="ordering">Questions ordered by "order" field, auto-calculate MAX(order)+1 on create</constraint>
+    <constraint type="ui">Use shadcn/ui components (Dialog, Button, Textarea, AlertDialog)</constraint>
+    <constraint type="ui">Use sonner for toast notifications</constraint>
+    <constraint type="ui">Use react-hook-form + zod for form validation</constraint>
+    <constraint type="auto-save">30 second debounce for auto-save per PRD requirement</constraint>
+    <constraint type="database">interview_questions table already exists from migration 000005 - no new migration needed for table</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>POST /api/interviews/:id/questions</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Request: { question_text: string (required), answer_text?: string, order?: number }
+Bulk: { questions: [{ question_text, answer_text?, order? }] }
+Response: { question: InterviewQuestion } or { questions: InterviewQuestion[] }
+      </signature>
+      <path>backend/internal/handlers/interview_question.go</path>
+    </interface>
+    <interface>
+      <name>PUT /api/interview-questions/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Request: { question_text?: string, answer_text?: string }
+Response: { question: InterviewQuestion }
+      </signature>
+      <path>backend/internal/handlers/interview_question.go</path>
+    </interface>
+    <interface>
+      <name>DELETE /api/interview-questions/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Response: { message: "question deleted successfully" }
+      </signature>
+      <path>backend/internal/handlers/interview_question.go</path>
+    </interface>
+    <interface>
+      <name>PATCH /api/interviews/:id/questions/reorder</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Request: { question_ids: string[] }
+Response: { questions: InterviewQuestion[] }
+      </signature>
+      <path>backend/internal/handlers/interview_question.go</path>
+    </interface>
+    <interface>
+      <name>InterviewQuestion</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface InterviewQuestion {
+  id: string;
+  interview_id: string;
+  question_text: string;
+  answer_text?: string;
+  order: number;
+  created_at: string;
+  updated_at: string;
+}
+      </signature>
+      <path>frontend/src/services/interview-service.ts</path>
+    </interface>
+    <interface>
+      <name>createQuestion</name>
+      <kind>function signature</kind>
+      <signature>
+(interviewId: string, data: { question_text: string; answer_text?: string }) => Promise&lt;InterviewQuestion&gt;
+      </signature>
+      <path>frontend/src/services/interview-service.ts</path>
+    </interface>
+    <interface>
+      <name>createQuestions</name>
+      <kind>function signature</kind>
+      <signature>
+(interviewId: string, questions: { question_text: string; answer_text?: string }[]) => Promise&lt;InterviewQuestion[]&gt;
+      </signature>
+      <path>frontend/src/services/interview-service.ts</path>
+    </interface>
+    <interface>
+      <name>updateQuestion</name>
+      <kind>function signature</kind>
+      <signature>
+(questionId: string, data: { question_text?: string; answer_text?: string }) => Promise&lt;InterviewQuestion&gt;
+      </signature>
+      <path>frontend/src/services/interview-service.ts</path>
+    </interface>
+    <interface>
+      <name>deleteQuestion</name>
+      <kind>function signature</kind>
+      <signature>
+(questionId: string) => Promise&lt;void&gt;
+      </signature>
+      <path>frontend/src/services/interview-service.ts</path>
+    </interface>
+    <interface>
+      <name>reorderQuestions</name>
+      <kind>function signature</kind>
+      <signature>
+(interviewId: string, questionIds: string[]) => Promise&lt;InterviewQuestion[]&gt;
+      </signature>
+      <path>frontend/src/services/interview-service.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Manual testing for MVP. Follow existing patterns - no automated test infrastructure yet. Test all CRUD operations, validate error cases, verify toast notifications appear. Verify ownership validation prevents unauthorized access.</standards>
+    <locations>
+      <location>Manual browser testing on http://localhost:8080</location>
+      <location>Backend API testing via curl or Postman</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2">Test add single question with question_text only, verify success toast and question appears numbered</idea>
+      <idea ac="2">Test add question with both question_text and answer_text, verify both display</idea>
+      <idea ac="3">Test add multiple questions (3+) using "Add Another", verify batch creation and numbering</idea>
+      <idea ac="4">Test questions display in correct order, verify hover reveals edit/delete icons</idea>
+      <idea ac="5">Test edit question text inline, verify save updates and toast appears</idea>
+      <idea ac="5">Test edit answer text inline, verify partial update works</idea>
+      <idea ac="6">Test delete question, verify confirmation dialog, verify removal and renumbering</idea>
+      <idea ac="7">Test reorder with up/down arrows, verify order persists after page refresh</idea>
+      <idea ac="8">Test auto-save by typing then waiting 30s, verify "Saving..." then "Saved" indicator</idea>
+      <idea ac="2">Test validation: empty question_text shows error, cannot save</idea>
+      <idea ac="6">Test deleting all questions shows empty state again</idea>
+    </ideas>
+  </tests>
+</story-context>
