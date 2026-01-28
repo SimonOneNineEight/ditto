@@ -1,0 +1,255 @@
+<story-context id="2-5-add-interviewers-to-interview" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>5</storyId>
+    <title>Add Interviewers to Interview</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-27</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-5-add-interviewers-to-interview.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>add interviewer names and roles to an interview</iWant>
+    <soThat>I can remember who I spoke with and reference them in follow-ups</soThat>
+    <tasks>
+      <task id="1" name="Create Interviewer Handler" ac="1,2,3">
+        <subtask>1.1: Create backend/internal/handlers/interviewer.go</subtask>
+        <subtask>1.2: Implement CreateInterviewer handler for POST /api/interviews/:id/interviewers</subtask>
+        <subtask>1.3: Validate name required, interview exists and belongs to user</subtask>
+        <subtask>1.4: Support bulk creation (array of interviewers)</subtask>
+      </task>
+      <task id="2" name="Update Interviewer Endpoint" ac="5">
+        <subtask>2.1: Add UpdateInterviewer handler for PUT /api/interviewers/:id</subtask>
+        <subtask>2.2: Validate interviewer belongs to user's interview</subtask>
+        <subtask>2.3: Allow partial updates (name and/or role)</subtask>
+      </task>
+      <task id="3" name="Delete Interviewer Endpoint" ac="6">
+        <subtask>3.1: Add DeleteInterviewer handler for DELETE /api/interviewers/:id</subtask>
+        <subtask>3.2: Validate interviewer belongs to user's interview</subtask>
+        <subtask>3.3: Use existing SoftDeleteInterviewer repository method</subtask>
+      </task>
+      <task id="4" name="Register Interviewer Routes" ac="all">
+        <subtask>4.1: Create backend/internal/routes/interviewer.go</subtask>
+        <subtask>4.2: Register routes: POST, PUT, DELETE</subtask>
+        <subtask>4.3: Apply auth middleware</subtask>
+      </task>
+      <task id="5" name="Update Interview Service" ac="1,2,5,6">
+        <subtask>5.1: Add createInterviewer(interviewId, data) function</subtask>
+        <subtask>5.2: Add updateInterviewer(interviewerId, data) function</subtask>
+        <subtask>5.3: Add deleteInterviewer(interviewerId) function</subtask>
+      </task>
+      <task id="6" name="Create Add Interviewer Form" ac="1,2,3">
+        <subtask>6.1: Create add interviewer modal/inline form component</subtask>
+        <subtask>6.2: Implement form with name (required) and role (optional) fields</subtask>
+        <subtask>6.3: Use react-hook-form + zod for validation</subtask>
+        <subtask>6.4: Support Add Another for batch adding</subtask>
+      </task>
+      <task id="7" name="Update InterviewersSection Component" ac="4,5,6">
+        <subtask>7.1: Wire Add button to open add interviewer form</subtask>
+        <subtask>7.2: Add hover-reveal edit/delete icons to interviewer items</subtask>
+        <subtask>7.3: Implement edit inline or modal functionality</subtask>
+        <subtask>7.4: Implement delete with confirmation dialog</subtask>
+        <subtask>7.5: Show toast notifications for all actions</subtask>
+        <subtask>7.6: Call onUpdate callback after successful operations</subtask>
+      </task>
+      <task id="8" name="Manual Testing" ac="all">
+        <subtask>8.1: Test add single interviewer</subtask>
+        <subtask>8.2: Test add multiple interviewers</subtask>
+        <subtask>8.3: Test edit interviewer name and role</subtask>
+        <subtask>8.4: Test delete interviewer with confirmation</subtask>
+        <subtask>8.5: Test validation (empty name error)</subtask>
+        <subtask>8.6: Test empty state returns after deleting all interviewers</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1" name="Add Interviewer Button">
+      When I click Add in the Interviewers section, a form appears with Name (required) and Role (optional) fields
+    </criterion>
+    <criterion id="AC-2" name="Create Single Interviewer">
+      When I fill in name and optional role then click Save, the interviewer is created and appears in the list with success toast
+    </criterion>
+    <criterion id="AC-3" name="Add Multiple Interviewers">
+      When I want to add multiple interviewers, I can click Add Another for batch adding with Save All
+    </criterion>
+    <criterion id="AC-4" name="Display Interviewer List">
+      When interviewers exist, they display as a list with name and role, showing edit/delete icons on hover
+    </criterion>
+    <criterion id="AC-5" name="Edit Interviewer">
+      When I click edit icon, name and role become editable with save functionality and success toast
+    </criterion>
+    <criterion id="AC-6" name="Delete Interviewer">
+      When I click delete icon, a confirmation prompt appears; confirming soft deletes and shows success toast
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>APIs and Interfaces - Interviewer Endpoints</section>
+        <snippet>POST /api/interviews/:id/interviewers, PUT /api/interviewers/:id, DELETE /api/interviewers/:id. Request includes name (required) and role (optional).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic and Story Breakdown</title>
+        <section>Story 2.5: Add Interviewers to Interview</section>
+        <snippet>Acceptance criteria for adding, editing, deleting interviewers with name and role fields. Support bulk add via Add Another.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-4-interview-detail-view-structured-data-display.md</path>
+        <title>Previous Story - Interview Detail View</title>
+        <section>Dev Agent Record - Completion Notes</section>
+        <snippet>Created InterviewersSection component with display logic and onUpdate callback. Empty states show Add button (hover-reveal). Functionality deferred to Story 2.5.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>backend/internal/repository/interviewer.go</path>
+        <kind>repository</kind>
+        <symbol>InterviewerRepository</symbol>
+        <reason>Existing repository with CreateInterviewer, GetInterviewerByInterview, SoftDeleteInterviewer. Missing: UpdateInterviewer, GetInterviewerByID</reason>
+      </file>
+      <file>
+        <path>backend/internal/models/interview.go</path>
+        <kind>model</kind>
+        <symbol>Interviewer struct</symbol>
+        <lines>50-57</lines>
+        <reason>Interviewer model with ID, InterviewID, Name, Role, CreatedAt, DeletedAt fields</reason>
+      </file>
+      <file>
+        <path>backend/internal/handlers/interview.go</path>
+        <kind>handler</kind>
+        <symbol>InterviewHandler</symbol>
+        <reason>Existing interview handlers pattern to follow for new interviewer handler</reason>
+      </file>
+      <file>
+        <path>backend/internal/routes/interview.go</path>
+        <kind>routes</kind>
+        <symbol>RegisterInterviewRoutes</symbol>
+        <reason>Pattern for registering new interviewer routes</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/interview-detail/interviewers-section.tsx</path>
+        <kind>component</kind>
+        <symbol>InterviewersSection</symbol>
+        <reason>Existing component with handleAddInterviewer placeholder (TODO for Story 2.5), uses CollapsibleSection, displays interviewer list</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/interview-detail/collapsible-section.tsx</path>
+        <kind>component</kind>
+        <symbol>CollapsibleSection</symbol>
+        <reason>Reusable wrapper with hover-reveal Add button and empty state support</reason>
+      </file>
+      <file>
+        <path>frontend/src/services/interview-service.ts</path>
+        <kind>service</kind>
+        <symbol>Interviewer interface</symbol>
+        <lines>67-73</lines>
+        <reason>Interviewer TypeScript interface matching backend model. Add createInterviewer, updateInterviewer, deleteInterviewer functions here</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(app)/interviews/[id]/page.tsx</path>
+        <kind>page</kind>
+        <symbol>InterviewDetailPage</symbol>
+        <reason>Parent page that renders InterviewersSection and passes onUpdate callback</reason>
+      </file>
+    </code>
+    <dependencies>
+      <backend>
+        <dep name="gin" version="v1.10.1">Web framework</dep>
+        <dep name="sqlx" version="v1.4.0">SQL extensions for database</dep>
+        <dep name="uuid" version="v1.6.0">UUID generation</dep>
+        <dep name="validator" version="v10.26.0">Request validation</dep>
+      </backend>
+      <frontend>
+        <dep name="react-hook-form" version="^7.54.2">Form handling</dep>
+        <dep name="zod" version="^3.24.2">Schema validation</dep>
+        <dep name="sonner" version="^2.0.7">Toast notifications</dep>
+        <dep name="@radix-ui/react-dialog" version="^1.1.2">Dialog component</dep>
+        <dep name="@radix-ui/react-collapsible" version="^1.1.11">Collapsible sections</dep>
+        <dep name="lucide-react" version="^0.452.0">Icons (User, Pencil, Trash)</dep>
+      </frontend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Follow existing repository pattern (Go backend with sqlx)</constraint>
+    <constraint type="pattern">Use existing auth middleware for all endpoints</constraint>
+    <constraint type="pattern">Implement soft deletes (deleted_at column)</constraint>
+    <constraint type="pattern">Use react-hook-form + zod for form validation</constraint>
+    <constraint type="pattern">Use sonner for toast notifications</constraint>
+    <constraint type="ui">Follow Notion-like aesthetic: transparent sections, hover-reveal actions</constraint>
+    <constraint type="security">Validate interview belongs to authenticated user before CRUD operations</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>POST /api/interviews/:id/interviewers</name>
+      <kind>REST endpoint</kind>
+      <signature>{ name: string (required), role?: string } => { id, interview_id, name, role, created_at }</signature>
+      <path>backend/internal/handlers/interviewer.go (to be created)</path>
+    </interface>
+    <interface>
+      <name>PUT /api/interviewers/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>{ name?: string, role?: string } => { id, interview_id, name, role, created_at }</signature>
+      <path>backend/internal/handlers/interviewer.go (to be created)</path>
+    </interface>
+    <interface>
+      <name>DELETE /api/interviewers/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>void => 204 No Content</signature>
+      <path>backend/internal/handlers/interviewer.go (to be created)</path>
+    </interface>
+    <interface>
+      <name>InterviewerRepository.UpdateInterviewer</name>
+      <kind>repository method</kind>
+      <signature>func (r *InterviewerRepository) UpdateInterviewer(interviewerID uuid.UUID, updates map[string]any) (*models.Interviewer, error)</signature>
+      <path>backend/internal/repository/interviewer.go (to be added)</path>
+    </interface>
+    <interface>
+      <name>createInterviewer</name>
+      <kind>frontend service function</kind>
+      <signature>(interviewId: string, data: { name: string; role?: string }) => Promise&lt;Interviewer&gt;</signature>
+      <path>frontend/src/services/interview-service.ts (to be added)</path>
+    </interface>
+    <interface>
+      <name>updateInterviewer</name>
+      <kind>frontend service function</kind>
+      <signature>(interviewerId: string, data: { name?: string; role?: string }) => Promise&lt;Interviewer&gt;</signature>
+      <path>frontend/src/services/interview-service.ts (to be added)</path>
+    </interface>
+    <interface>
+      <name>deleteInterviewer</name>
+      <kind>frontend service function</kind>
+      <signature>(interviewerId: string) => Promise&lt;void&gt;</signature>
+      <path>frontend/src/services/interview-service.ts (to be added)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Manual testing per story specification. Backend uses Go testing framework with testify. Frontend uses Jest and React Testing Library. Follow existing test patterns in the codebase.</standards>
+    <locations>
+      <location>backend/*_test.go</location>
+      <location>frontend/src/**/*.test.ts(x)</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-1">Verify Add button opens form with name and role fields</idea>
+      <idea ac="AC-2">Test API creates interviewer with name and optional role</idea>
+      <idea ac="AC-2">Verify success toast appears after creation</idea>
+      <idea ac="AC-3">Test batch creation of multiple interviewers</idea>
+      <idea ac="AC-4">Verify interviewer list renders with name and role</idea>
+      <idea ac="AC-4">Verify hover shows edit/delete icons</idea>
+      <idea ac="AC-5">Test inline edit saves changes with success toast</idea>
+      <idea ac="AC-6">Test delete shows confirmation dialog</idea>
+      <idea ac="AC-6">Test soft delete removes from list</idea>
+      <idea ac="validation">Test empty name shows validation error</idea>
+      <idea ac="security">Test cannot modify interviewer from other user's interview</idea>
+    </ideas>
+  </tests>
+</story-context>

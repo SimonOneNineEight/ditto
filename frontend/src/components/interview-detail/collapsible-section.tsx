@@ -20,6 +20,7 @@ interface CollapsibleSectionProps {
         onAction: () => void;
     };
     isEmpty?: boolean;
+    onAdd?: () => void;
 }
 
 export const CollapsibleSection = ({
@@ -28,6 +29,7 @@ export const CollapsibleSection = ({
     defaultOpen,
     emptyState,
     isEmpty = false,
+    onAdd,
 }: CollapsibleSectionProps) => {
     // Default to closed if empty, open if has content
     const [isOpen, setIsOpen] = useState(defaultOpen ?? !isEmpty);
@@ -46,14 +48,14 @@ export const CollapsibleSection = ({
                             {title}
                         </span>
                     </div>
-                    {isEmpty && emptyState && (
+                    {onAdd && (
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs"
+                            className="h-7 text-xs text-muted-foreground hover:text-foreground"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                emptyState.onAction();
+                                onAdd();
                             }}
                         >
                             <Plus className="h-3 w-3 mr-1" />

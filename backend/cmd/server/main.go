@@ -53,6 +53,9 @@ func main() {
 		routes.RegisterExtractRoutes(apiGroup, appState)
 		routes.RegisterFileRoutes(apiGroup, appState)
 		routes.RegisterInterviewRoutes(apiGroup, appState)
+		routes.RegisterInterviewerRoutes(apiGroup, appState)
+		routes.RegisterInterviewQuestionRoutes(apiGroup, appState)
+		routes.RegisterInterviewNoteRoutes(apiGroup, appState)
 	}
 
 	port := os.Getenv("PORT")

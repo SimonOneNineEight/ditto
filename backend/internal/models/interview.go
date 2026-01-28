@@ -53,6 +53,7 @@ type Interviewer struct {
 	Name        string     `json:"name" db:"name"`
 	Role        *string    `json:"role,omitempty" db:"role"`
 	CreatedAt   time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at"`
 	DeletedAt   *time.Time `json:"-" db:"deleted_at"`
 }
 

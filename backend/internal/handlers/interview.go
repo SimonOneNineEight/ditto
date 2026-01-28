@@ -40,9 +40,9 @@ func NewInterviewHandler(appState *utils.AppState) *InterviewHandler {
 	return &InterviewHandler{
 		interviewRepo:         repository.NewInterviewRepository(appState.DB),
 		applicationRepo:       repository.NewApplicationRepository(appState.DB),
-		interviewerRepo:       repository.NewInterviewerRepository(*appState.DB),
-		interviewQuestionRepo: repository.NewInterviewQuestionRepository(*appState.DB),
-		interviewNoteRepo:     repository.NewInterviewNoteRepository(*appState.DB),
+		interviewerRepo:       repository.NewInterviewerRepository(appState.DB),
+		interviewQuestionRepo: repository.NewInterviewQuestionRepository(appState.DB),
+		interviewNoteRepo:     repository.NewInterviewNoteRepository(appState.DB),
 	}
 }
 
