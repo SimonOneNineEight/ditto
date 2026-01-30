@@ -1,6 +1,6 @@
 # Story 2.8: File Uploads for Interview Prep Documents
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -238,7 +238,7 @@ frontend/
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- `docs/stories/2-8-file-uploads-for-interview-prep-documents.context.xml`
 
 ### Agent Model Used
 

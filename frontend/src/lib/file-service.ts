@@ -68,13 +68,15 @@ export async function getPresignedUploadUrl(
     fileName: string,
     fileType: string,
     fileSize: number,
-    applicationId: string
+    applicationId: string,
+    interviewId?: string
 ): Promise<PresignedUploadResponse> {
     const response = await api.post('/api/files/presigned-upload', {
         file_name: fileName,
         file_type: fileType,
         file_size: fileSize,
         application_id: applicationId,
+        ...(interviewId && { interview_id: interviewId }),
     });
     return response.data.data;
 }
@@ -121,7 +123,8 @@ export async function confirmUpload(
     fileName: string,
     fileType: string,
     fileSize: number,
-    applicationId: string
+    applicationId: string,
+    interviewId?: string
 ): Promise<FileRecord> {
     const response = await api.post('/api/files/confirm-upload', {
         s3_key: s3Key,
@@ -129,11 +132,15 @@ export async function confirmUpload(
         file_type: fileType,
         file_size: fileSize,
         application_id: applicationId,
+        ...(interviewId && { interview_id: interviewId }),
     });
     return response.data.data;
 }
 
-export async function listFiles(applicationId?: string, interviewId?: string): Promise<FileRecord[]> {
+export async function listFiles(
+    applicationId?: string,
+    interviewId?: string
+): Promise<FileRecord[]> {
     const params = new URLSearchParams();
     if (applicationId) params.append('application_id', applicationId);
     if (interviewId) params.append('interview_id', interviewId);
@@ -143,7 +150,9 @@ export async function listFiles(applicationId?: string, interviewId?: string): P
     return response.data.data || [];
 }
 
-export async function getFileDownloadUrl(fileId: string): Promise<FileDownloadResponse> {
+export async function getFileDownloadUrl(
+    fileId: string
+): Promise<FileDownloadResponse> {
     const response = await api.get(`/api/files/${fileId}`);
     return response.data.data;
 }

@@ -7,6 +7,7 @@ import { listFiles, type FileRecord } from '@/lib/file-service';
 import { Loader2 } from 'lucide-react';
 
 interface DocumentsSectionProps {
+    interviewId?: string;
     applicationId: string;
     title?: string;
     className?: string;
@@ -14,8 +15,9 @@ interface DocumentsSectionProps {
 
 export function DocumentsSection({
     applicationId,
-    title = 'Documents',
+    title = '',
     className = '',
+    interviewId = '',
 }: DocumentsSectionProps) {
     const [files, setFiles] = useState<FileRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -25,14 +27,14 @@ export function DocumentsSection({
         try {
             setIsLoading(true);
             setError(null);
-            const fetchedFiles = await listFiles(applicationId);
+            const fetchedFiles = await listFiles(applicationId, interviewId);
             setFiles(fetchedFiles);
         } catch {
             setError('Failed to load files');
         } finally {
             setIsLoading(false);
         }
-    }, [applicationId]);
+    }, [applicationId, interviewId]);
 
     useEffect(() => {
         fetchFiles();
@@ -48,12 +50,15 @@ export function DocumentsSection({
 
     return (
         <div className={className}>
-            <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
-                {title}
-            </h3>
+            {title && (
+                <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
+                    {title}
+                </h3>
+            )}
 
             <div className="space-y-4">
                 <FileUpload
+                    interviewId={interviewId}
                     applicationId={applicationId}
                     onUploadComplete={handleUploadComplete}
                     label="Upload Resume or Cover Letter"
@@ -64,7 +69,9 @@ export function DocumentsSection({
                         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                     </div>
                 ) : error ? (
-                    <div className="text-sm text-destructive text-center py-4">{error}</div>
+                    <div className="text-sm text-destructive text-center py-4">
+                        {error}
+                    </div>
                 ) : (
                     <FileList
                         files={files}

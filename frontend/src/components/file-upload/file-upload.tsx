@@ -14,7 +14,13 @@ import {
 } from '@/lib/file-service';
 import { toast } from 'sonner';
 
-export type UploadStatus = 'idle' | 'validating' | 'uploading' | 'confirming' | 'success' | 'error';
+export type UploadStatus =
+    | 'idle'
+    | 'validating'
+    | 'uploading'
+    | 'confirming'
+    | 'success'
+    | 'error';
 
 interface FileUploadProps {
     applicationId?: string;
@@ -23,6 +29,7 @@ interface FileUploadProps {
     disabled?: boolean;
     label?: string;
     className?: string;
+    interviewId?: string;
 }
 
 export function FileUpload({
@@ -32,6 +39,7 @@ export function FileUpload({
     disabled = false,
     label = 'Upload File',
     className = '',
+    interviewId = '',
 }: FileUploadProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [status, setStatus] = useState<UploadStatus>('idle');
@@ -81,7 +89,8 @@ export function FileUpload({
                     file.name,
                     file.type,
                     file.size,
-                    applicationId
+                    applicationId,
+                    interviewId
                 );
 
                 await uploadToS3(presigned.presigned_url, file, setProgress);
@@ -93,7 +102,8 @@ export function FileUpload({
                     file.name,
                     file.type,
                     file.size,
-                    applicationId
+                    applicationId,
+                    interviewId
                 );
 
                 setStatus('success');
@@ -106,21 +116,25 @@ export function FileUpload({
                 setTimeout(resetState, 2000);
             } catch (err) {
                 setStatus('error');
-                const message = err instanceof Error ? err.message : 'Upload failed';
+                const message =
+                    err instanceof Error ? err.message : 'Upload failed';
                 setError(message);
                 toast.error(message);
             }
         },
-        [applicationId, onFileSelect, onUploadComplete, resetState]
+        [applicationId, interviewId, onFileSelect, onUploadComplete, resetState]
     );
 
-    const handleDragOver = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!disabled) {
-            setIsDragging(true);
-        }
-    }, [disabled]);
+    const handleDragOver = useCallback(
+        (e: React.DragEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!disabled) {
+                setIsDragging(true);
+            }
+        },
+        [disabled]
+    );
 
     const handleDragLeave = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -207,8 +221,10 @@ export function FileUpload({
                                     {selectedFile?.name}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                    {selectedFile && formatFileSize(selectedFile.size)}
-                                    {status === 'confirming' && ' • Confirming...'}
+                                    {selectedFile &&
+                                        formatFileSize(selectedFile.size)}
+                                    {status === 'confirming' &&
+                                        ' • Confirming...'}
                                     {status === 'success' && ' • Uploaded'}
                                 </p>
                             </div>
@@ -229,9 +245,13 @@ export function FileUpload({
                         <div className="h-1.5 w-full bg-muted/40 rounded-full overflow-hidden">
                             <div
                                 className={`h-full transition-all duration-300 rounded-full ${
-                                    status === 'success' ? 'bg-accent' : 'bg-secondary'
+                                    status === 'success'
+                                        ? 'bg-accent'
+                                        : 'bg-secondary'
                                 }`}
-                                style={{ width: `${status === 'success' ? 100 : progress}%` }}
+                                style={{
+                                    width: `${status === 'success' ? 100 : progress}%`,
+                                }}
                             />
                         </div>
                     </div>
@@ -239,9 +259,12 @@ export function FileUpload({
                     <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-muted-foreground" />
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm truncate">{selectedFile.name}</p>
+                            <p className="text-sm truncate">
+                                {selectedFile.name}
+                            </p>
                             <p className="text-xs text-muted-foreground">
-                                {formatFileSize(selectedFile.size)} • Ready to upload
+                                {formatFileSize(selectedFile.size)} • Ready to
+                                upload
                             </p>
                         </div>
                         <Button
@@ -271,7 +294,9 @@ export function FileUpload({
                 )}
 
                 {error && status === 'error' && (
-                    <p className="text-xs text-destructive mt-2 text-center">{error}</p>
+                    <p className="text-xs text-destructive mt-2 text-center">
+                        {error}
+                    </p>
                 )}
             </div>
         </div>

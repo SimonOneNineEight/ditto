@@ -33,6 +33,7 @@ import {
     InterviewersSection,
     QuestionsSection,
     NoteSection,
+    CollapsibleSection,
 } from '@/components/interview-detail';
 import {
     getInterviewWithDetails,
@@ -41,6 +42,7 @@ import {
     INTERVIEW_TYPES,
     getInterviewTypeLabel,
 } from '@/services/interview-service';
+import { DocumentsSection } from '@/components/file-upload';
 
 const editFormSchema = z.object({
     interview_type: z.enum([
@@ -98,7 +100,9 @@ const InterviewDetailPage = () => {
             setData(result);
         } catch (err) {
             console.error('Failed to fetch interview:', err);
-            setError('Interview not found or you do not have access to view it.');
+            setError(
+                'Interview not found or you do not have access to view it.'
+            );
         } finally {
             setLoading(false);
         }
@@ -113,7 +117,8 @@ const InterviewDetailPage = () => {
     const handleEditOpen = () => {
         if (!data) return;
         reset({
-            interview_type: data.interview.interview_type as EditFormData['interview_type'],
+            interview_type: data.interview
+                .interview_type as EditFormData['interview_type'],
             scheduled_date: data.interview.scheduled_date.split('T')[0],
             scheduled_time: data.interview.scheduled_time || '',
             duration_minutes: data.interview.duration_minutes || undefined,
@@ -181,7 +186,10 @@ const InterviewDetailPage = () => {
                     <p className="text-muted-foreground mb-4">
                         {error || 'Interview not found'}
                     </p>
-                    <Button variant="outline" onClick={() => router.push('/interviews')}>
+                    <Button
+                        variant="outline"
+                        onClick={() => router.push('/interviews')}
+                    >
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Back to Interviews
                     </Button>
@@ -200,11 +208,19 @@ const InterviewDetailPage = () => {
                 breadcrumbs={[{ label: 'Interviews', href: '/interviews' }]}
                 actions={
                     <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" onClick={handleEditOpen}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleEditOpen}
+                        >
                             <Pencil className="h-4 w-4 mr-2" />
                             Edit
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => router.back()}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => router.back()}
+                        >
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Back
                         </Button>
@@ -252,6 +268,12 @@ const InterviewDetailPage = () => {
                     interviewId={interviewId}
                     onUpdate={fetchInterview}
                 />
+                <CollapsibleSection title="Documents" defaultOpen={false}>
+                    <DocumentsSection
+                        applicationId={data.interview.application_id}
+                        interviewId={interviewId}
+                    />
+                </CollapsibleSection>
             </div>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
@@ -259,7 +281,10 @@ const InterviewDetailPage = () => {
                     <DialogHeader>
                         <DialogTitle>Edit Interview</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4"
+                    >
                         <div className="space-y-2">
                             <Label>Interview Type</Label>
                             <Controller
@@ -276,7 +301,10 @@ const InterviewDetailPage = () => {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {INTERVIEW_TYPES.map((type) => (
-                                                <SelectItem key={type.value} value={type.value}>
+                                                <SelectItem
+                                                    key={type.value}
+                                                    value={type.value}
+                                                >
                                                     {type.label}
                                                 </SelectItem>
                                             ))}
@@ -315,7 +343,9 @@ const InterviewDetailPage = () => {
                                 type="number"
                                 placeholder="60"
                                 disabled={isSubmitting}
-                                {...register('duration_minutes', { valueAsNumber: true })}
+                                {...register('duration_minutes', {
+                                    valueAsNumber: true,
+                                })}
                             />
                         </div>
 
@@ -328,7 +358,10 @@ const InterviewDetailPage = () => {
                             >
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={isSubmitting || !isValid}>
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting || !isValid}
+                            >
                                 {isSubmitting ? 'Saving...' : 'Save'}
                             </Button>
                         </DialogFooter>
