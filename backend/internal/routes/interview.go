@@ -18,6 +18,8 @@ func RegisterInterviewRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState
 		interviews.GET("", interviewHandler.ListInterviews)
 		interviews.GET("/:id", interviewHandler.GetInterviewByID)
 		interviews.GET("/:id/details", interviewHandler.GetInterviewWithDetails)
+		interviews.GET("/:id/with-context", interviewHandler.GetInterviewWithContext)
 		interviews.PUT("/:id", interviewHandler.UpdateInterview)
+		interviews.DELETE("/:id", interviewHandler.DeleteInterview)
 	}
 }

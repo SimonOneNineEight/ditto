@@ -7,8 +7,6 @@ import {
     useReactTable,
 } from '@tanstack/react-table';
 
-import { Plus } from 'lucide-react';
-
 import {
     Table,
     TableBody,
@@ -17,17 +15,17 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { ColumnMeta } from './columns';
+import { ColumnMeta, getRowBorderClass } from './columns';
 import { InterviewListItem } from '@/services/interview-service';
+import { cn } from '@/lib/utils';
 
 interface DataTableProps {
     columns: ColumnDef<InterviewListItem, unknown>[];
     data: InterviewListItem[];
 }
 
-export function InterivewTable({ columns, data }: DataTableProps) {
+export function InterviewTable({ columns, data }: DataTableProps) {
     const table = useReactTable({
         data,
         columns,
@@ -38,16 +36,6 @@ export function InterivewTable({ columns, data }: DataTableProps) {
 
     return (
         <div className="w-full rounded-md">
-            <div className="flex justify-end items-center mb-2 mr-2">
-                <Button
-                    size="sm"
-                    hasIcon
-                    iconPosition="left"
-                    icon={<Plus size={16} />}
-                >
-                    New Interview
-                </Button>
-            </div>
             <div className="overflow-x-auto w-full">
                 <Table className="table-fixed min-w-[768px] w-full mb-2">
                     <TableHeader>
@@ -90,6 +78,13 @@ export function InterivewTable({ columns, data }: DataTableProps) {
                                             `/interviews/${row.original.id}`
                                         )
                                     }
+                                    className={cn(
+                                        'cursor-pointer',
+                                        getRowBorderClass(
+                                            row.original.scheduled_date,
+                                            row.original.outcome
+                                        )
+                                    )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
@@ -113,14 +108,6 @@ export function InterivewTable({ columns, data }: DataTableProps) {
                         )}
                     </TableBody>
                 </Table>
-            </div>
-            <div
-                id="application-table-footer"
-                className="flex justify-end pr-2"
-            >
-                <span className="text-metadata">
-                    Coming Interviews: {data.length}
-                </span>
             </div>
         </div>
     );

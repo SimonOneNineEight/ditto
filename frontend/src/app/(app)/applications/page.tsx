@@ -18,16 +18,7 @@ import {
 } from '@/services/application-service';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 
 const ApplicationPage = () => {
     const searchParams = useSearchParams();
@@ -208,28 +199,14 @@ const ApplicationPage = () => {
                 />
             )}
 
-            <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Application</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete this application?
-                            This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={deleting}>
-                            Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDeleteConfirm}
-                            disabled={deleting}
-                        >
-                            {deleting ? 'Deleting...' : 'Delete'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <DeleteConfirmDialog
+                open={!!deleteId}
+                onOpenChange={() => setDeleteId(null)}
+                onConfirm={handleDeleteConfirm}
+                title="Delete Application"
+                description="Are you sure you want to delete this application? This action cannot be undone."
+                isDeleting={deleting}
+            />
         </>
     );
 };

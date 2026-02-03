@@ -28,6 +28,15 @@ export const getInterviewTypeLabel = (value: string): string => {
     return INTERVIEW_TYPES.find((t) => t.value === value)?.label || value;
 };
 
+// Short labels for compact displays (tables, badges)
+const SHORT_LABELS: Record<string, string> = {
+    phone_screen: 'Phone',
+};
+
+export const getInterviewTypeShortLabel = (value: string): string => {
+    return SHORT_LABELS[value] || getInterviewTypeLabel(value);
+};
+
 export interface CreateInterviewRequest {
     application_id: string;
     interview_type: InterviewType;
@@ -36,12 +45,18 @@ export interface CreateInterviewRequest {
     duration_minutes?: number;
 }
 
+export type OverallFeeling = 'excellent' | 'good' | 'okay' | 'poor';
+
 export interface UpdateInterviewRequest {
     scheduled_date?: string;
     scheduled_time?: string;
     duration_minutes?: number;
     interview_type?: InterviewType;
     outcome?: string;
+    overall_feeling?: OverallFeeling;
+    went_well?: string;
+    could_improve?: string;
+    confidence_level?: number;
 }
 
 export interface Interview {
@@ -115,6 +130,27 @@ export interface InterviewWithDetails extends InterviewWithApplication {
     notes: InterviewNote[];
 }
 
+export interface InterviewerSummary {
+    name: string;
+    role?: string;
+}
+
+export interface RoundSummary {
+    id: string;
+    round_number: number;
+    interview_type: string;
+    scheduled_date: string;
+    interviewers: InterviewerSummary[];
+    questions_preview: string;
+    feedback_preview: string;
+}
+
+export interface InterviewWithContext {
+    current_interview: InterviewWithDetails;
+    all_rounds: RoundSummary[];
+    application: ApplicationInfo;
+}
+
 export interface InterviewListItem extends Interview {
     company_name: string;
     job_title: string;
@@ -155,6 +191,24 @@ export const getInterviewWithDetails = async (
     };
 };
 
+export const getInterviewWithContext = async (
+    id: string
+): Promise<InterviewWithContext> => {
+    const response = await api.get(`/api/interviews/${id}/with-context`);
+    const data = response.data.data;
+    return {
+        current_interview: {
+            interview: data.current_interview.interview,
+            application: data.current_interview.application,
+            interviewers: data.current_interview.interviewers || [],
+            questions: data.current_interview.questions || [],
+            notes: data.current_interview.notes || [],
+        },
+        all_rounds: data.all_rounds || [],
+        application: data.application,
+    };
+};
+
 export const updateInterview = async (
     id: string,
     data: UpdateInterviewRequest
@@ -163,9 +217,55 @@ export const updateInterview = async (
     return response.data.data.interview;
 };
 
-export const listInterviews = async (): Promise<InterviewListItem[]> => {
-    const response = await api.get('/api/interviews');
-    return response.data.data.interviews || [];
+export type InterviewFilter = 'all' | 'upcoming' | 'past';
+
+export interface ListInterviewsOptions {
+    filter?: InterviewFilter;
+    upcoming?: boolean;
+    range?: 'today' | 'week' | 'month' | 'all';
+    page?: number;
+    limit?: number;
+}
+
+export interface InterviewListResponse {
+    interviews: InterviewListItem[];
+    meta?: {
+        page: number;
+        limit: number;
+        total_items: number;
+        total_pages: number;
+    };
+}
+
+export const listInterviews = async (
+    options?: ListInterviewsOptions
+): Promise<InterviewListResponse> => {
+    const params = new URLSearchParams();
+
+    if (options?.filter) {
+        params.append('filter', options.filter);
+    }
+    if (options?.upcoming) {
+        params.append('upcoming', 'true');
+    }
+    if (options?.range && options.range !== 'all') {
+        params.append('range', options.range);
+    }
+    if (options?.page) {
+        params.append('page', options.page.toString());
+    }
+    if (options?.limit) {
+        params.append('limit', options.limit.toString());
+    }
+
+    const queryString = params.toString();
+    const url = queryString ? `/api/interviews?${queryString}` : '/api/interviews';
+
+    const response = await api.get(url);
+    return {
+        interviews: response.data.data.interviews || [],
+        meta: response.data.data.meta,
+    };
 };
 
 // Interviewer CRUD operations
@@ -273,4 +373,8 @@ export const createOrUpdateNote = async (
         data
     );
     return response.data.data.interviewNote;
+};
+
+export const deleteInterview = async (id: string): Promise<void> => {
+    await api.delete(`/api/interviews/${id}`);
 };

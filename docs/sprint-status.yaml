@@ -58,13 +58,17 @@ development_status:
   2-4-interview-detail-view-structured-data-display: done
   2-5-add-interviewers-to-interview: done
   2-6-questions-and-answers-dynamic-list-management: done
-  2-7-rich-text-notes-preparation-area: ready-for-dev
-  2-8-file-uploads-for-interview-prep-documents: ready-for-dev
-  2-9-multi-round-context-previous-rounds-display: backlog
-  2-10-interview-list-and-timeline-view: backlog
-  2-11-update-and-delete-interview-operations: backlog
-  2-12-interview-performance-self-assessment: backlog
-  epic-2-retrospective: optional
+  2-7-rich-text-notes-preparation-area: done
+  2-8-file-uploads-for-interview-prep-documents: done
+  2-9-multi-round-context-previous-rounds-display: done
+  2-10-interview-list-and-timeline-view: done
+  2-11-update-and-delete-interview-operations: done
+  2-12-interview-performance-self-assessment: done
+  epic-2-retrospective: completed
+
+  # Design System Update Sprint (between Epic 2 and Epic 3)
+  # Decision from Epic 2 retrospective: update UI to match ditto-design.pen before Epic 3
+  0-1-design-system-update: drafted
 
   # Epic 3: Technical Assessment Tracking
   epic-3: backlog

@@ -9,6 +9,8 @@ Status: Draft
 
 ## Overview
 
+**Design Reference:** [ditto-design.pen](../ditto-design.pen) - Contains Application forms, Application list, Dashboard, and file upload component designs.
+
 Epic 1 completes the application tracking foundation with smart URL extraction and document management capabilities. Building on the existing brownfield infrastructure (Go + PostgreSQL + Next.js), this epic enables users to capture job applications in under 30 seconds using automated URL extraction and store resumes/cover letters centrally for cross-device access.
 
 The epic introduces two key infrastructure components: (1) a web scraping service that extracts job details from major job boards (LinkedIn, Indeed, Glassdoor, AngelList) with intelligent caching and rate limiting, and (2) an S3-based file storage system that stores user documents with quota management. These capabilities directly address the PRD goal of eliminating manual data entry friction while maintaining data portability across devices.

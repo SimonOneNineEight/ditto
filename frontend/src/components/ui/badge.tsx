@@ -17,6 +17,28 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        // Interview type variants (pill style)
+        phone_screen:
+          "border-transparent rounded-full px-3 py-1 bg-[#1a3a4a] text-white",
+        technical:
+          "border-transparent rounded-full px-3 py-1 bg-[#2d2a4a] text-white",
+        behavioral:
+          "border-transparent rounded-full px-3 py-1 bg-[#1a3a2a] text-white",
+        onsite:
+          "border-transparent rounded-full px-3 py-1 bg-[#4a3a1a] text-white",
+        panel:
+          "border-transparent rounded-full px-3 py-1 bg-[#3a1a3a] text-white",
+        other:
+          "border-transparent rounded-full px-3 py-1 bg-[#3a3a3a] text-white",
+        // Status variants (pill style)
+        today:
+          "border-transparent rounded-full px-3 py-1 bg-[#7c2d12] text-white",
+        soon:
+          "border-transparent rounded-full px-3 py-1 bg-[#1e3a5f] text-white",
+        awaiting:
+          "border-transparent rounded-full px-3 py-1 bg-accent-muted text-white",
+        overdue:
+          "border-transparent rounded-full px-3 py-1 bg-[#5c2a2a] text-white",
       },
     },
     defaultVariants: {

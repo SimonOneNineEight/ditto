@@ -19,6 +19,29 @@
 | **API Endpoints** | 30+ RESTful endpoints |
 | **UI Components** | 15 shadcn/ui components + Radix UI |
 | **Deployment** | Docker Compose (development ready) |
+| **Design File** | `ditto-design.pen` (Pencil design file) |
+
+---
+
+## 🎨 Design Assets
+
+### [Design File](../ditto-design.pen)
+**Pencil Design File - Complete UI/UX Reference**
+
+The `ditto-design.pen` file contains the complete visual design for Ditto including:
+- **Design System**: 80 reusable components (buttons, inputs, cards, badges, etc.)
+- **22 Screen Designs**: Login, Register, Dashboard, Applications, Application Detail, Interviews, Interview Detail, Files, and more
+- **Component States**: Default, hover, focus, active, disabled variants
+- **Color Palette**: Dark theme first with blue (primary), orange (secondary), yellow (accent)
+
+**When to use:**
+- UI/UX reference for implementing new screens
+- Component library reference for consistent styling
+- Visual specifications for spacing, typography, and colors
+- Design system documentation for new component creation
+
+**Related:**
+- [Design System Principles](./design-system-principles.md) - Documented design rules and patterns
 
 ---
 

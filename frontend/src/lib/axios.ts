@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getSession } from 'next-auth/react';
+import { getSession, signOut } from 'next-auth/react';
 
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081',
@@ -10,10 +10,13 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
-    // Only attempt to get session on the client side
-    // getSession() from next-auth/react is client-side only
     if (typeof window !== 'undefined') {
         const session = await getSession();
+
+        if (session?.error === 'RefreshTokenError') {
+            await signOut({ callbackUrl: '/login' });
+            return Promise.reject(new Error('Session expired'));
+        }
 
         if (session?.accessToken) {
             config.headers.Authorization = `Bearer ${session.accessToken}`;
@@ -25,12 +28,16 @@ api.interceptors.request.use(async (config) => {
 
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
         if (error.response) {
             console.error('Response Error: ', error.response.data);
             console.error('Status: ', error.response.status);
+
+            if (error.response.status === 401 && typeof window !== 'undefined') {
+                await signOut({ callbackUrl: '/login' });
+            }
         } else if (error.request) {
-            console.error('Request Error: ', error.resquest);
+            console.error('Request Error: ', error.request);
         } else {
             console.error('Error: ', error.message);
         }

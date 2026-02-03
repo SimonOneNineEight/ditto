@@ -214,7 +214,7 @@ func (r *InterviewRepository) GetInterviewWithApplicationInfo(interviewID, userI
 		JOIN applications a ON i.application_id = a.id
 		JOIN jobs j ON a.job_id = j.id
 		JOIN companies c ON j.company_id = c.id
-		WHERE i.id = $1 AND i.user_id = $2 AND i.deleted_at IS NULL
+		WHERE i.id = $1 AND i.user_id = $2 AND i.deleted_at IS NULL AND a.deleted_at IS NULL
 	`
 
 	result := &InterviewWithApplicationInfo{}
@@ -233,26 +233,154 @@ type InterviewListItem struct {
 	JobTitle    string `json:"job_title" db:"job_title"`
 }
 
-func (r *InterviewRepository) GetInterviewsWithApplicationInfo(userID uuid.UUID) ([]*InterviewListItem, error) {
-	query := `
+// InterviewListFilter holds filter parameters for interview listing
+type InterviewListFilter struct {
+	Upcoming bool   // Filter to future interviews only (scheduled_date >= today)
+	Range    string // Time range filter: today, week, month, all
+	Filter   string // Simple filter: all, upcoming, past
+	Page     int    // Page number (1-based)
+	Limit    int    // Items per page
+}
+
+func (r *InterviewRepository) GetInterviewsWithApplicationInfo(userID uuid.UUID, filter *InterviewListFilter) ([]*InterviewListItem, int, error) {
+	// Build base query
+	baseQuery := `
+		FROM interviews i
+		JOIN applications a ON i.application_id = a.id
+		JOIN jobs j ON a.job_id = j.id
+		JOIN companies c ON j.company_id = c.id
+		WHERE i.user_id = $1 AND i.deleted_at IS NULL AND a.deleted_at IS NULL
+	`
+
+	args := []any{userID}
+	argIndex := 2
+
+	// Add filter conditions
+	if filter != nil {
+		// Handle simple filter (all, upcoming, past) - takes precedence
+		switch filter.Filter {
+		case "upcoming":
+			baseQuery += fmt.Sprintf(" AND i.scheduled_date >= $%d", argIndex)
+			args = append(args, time.Now().Format("2006-01-02"))
+			argIndex++
+		case "past":
+			baseQuery += fmt.Sprintf(" AND i.scheduled_date < $%d", argIndex)
+			args = append(args, time.Now().Format("2006-01-02"))
+			argIndex++
+		case "all":
+			// No additional filtering
+		default:
+			// Fall back to legacy filters if no simple filter specified
+			if filter.Upcoming {
+				baseQuery += fmt.Sprintf(" AND i.scheduled_date >= $%d", argIndex)
+				args = append(args, time.Now().Format("2006-01-02"))
+				argIndex++
+			}
+
+			switch filter.Range {
+			case "today":
+				baseQuery += fmt.Sprintf(" AND i.scheduled_date = $%d", argIndex)
+				args = append(args, time.Now().Format("2006-01-02"))
+				argIndex++
+			case "week":
+				baseQuery += fmt.Sprintf(" AND i.scheduled_date >= $%d AND i.scheduled_date <= $%d", argIndex, argIndex+1)
+				args = append(args, time.Now().Format("2006-01-02"))
+				args = append(args, time.Now().AddDate(0, 0, 7).Format("2006-01-02"))
+				argIndex += 2
+			case "month":
+				baseQuery += fmt.Sprintf(" AND i.scheduled_date >= $%d AND i.scheduled_date <= $%d", argIndex, argIndex+1)
+				args = append(args, time.Now().Format("2006-01-02"))
+				args = append(args, time.Now().AddDate(0, 1, 0).Format("2006-01-02"))
+				argIndex += 2
+			}
+		}
+	}
+
+	// Get total count
+	countQuery := "SELECT COUNT(*) " + baseQuery
+	var totalCount int
+	err := r.db.Get(&totalCount, countQuery, args...)
+	if err != nil {
+		return nil, 0, errors.ConvertError(err)
+	}
+
+	// Build select query with ordering (ASC for soonest first)
+	selectQuery := `
 		SELECT
 			i.id, i.user_id, i.application_id, i.round_number, i.scheduled_date, i.scheduled_time,
 			i.duration_minutes, i.outcome, i.overall_feeling, i.went_well, i.could_improve,
 			i.confidence_level, i.interview_type, i.created_at, i.updated_at,
 			c.name as company_name, j.title as job_title
-		FROM interviews i
-		JOIN applications a ON i.application_id = a.id
-		JOIN jobs j ON a.job_id = j.id
-		JOIN companies c ON j.company_id = c.id
-		WHERE i.user_id = $1 AND i.deleted_at IS NULL
-		ORDER BY i.scheduled_date DESC, i.scheduled_time DESC
+	` + baseQuery + `
+		ORDER BY i.scheduled_date ASC, COALESCE(i.scheduled_time, '00:00:00') ASC
 	`
 
+	// Add pagination if specified
+	if filter != nil && filter.Limit > 0 {
+		offset := 0
+		if filter.Page > 1 {
+			offset = (filter.Page - 1) * filter.Limit
+		}
+		selectQuery += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
+		args = append(args, filter.Limit, offset)
+	}
+
 	var interviews []*InterviewListItem
-	err := r.db.Select(&interviews, query, userID)
+	err = r.db.Select(&interviews, selectQuery, args...)
+	if err != nil {
+		return nil, 0, errors.ConvertError(err)
+	}
+
+	return interviews, totalCount, nil
+}
+
+type PreviousRoundSummary struct {
+	ID               uuid.UUID            `json:"id" db:"id"`
+	RoundNumber      int                  `json:"round_number" db:"round_number"`
+	InterviewType    string               `json:"interview_type" db:"interview_type"`
+	ScheduledDate    string               `json:"scheduled_date" db:"scheduled_date"`
+	Interviewers     []InterviewerSummary `json:"interviewers"`
+	QuestionsPreview string               `json:"questions_preview"`
+	FeedbackPreview  string               `json:"feedback_preview"`
+}
+
+type InterviewerSummary struct {
+	Name string  `json:"name"`
+	Role *string `json:"role,omitempty"`
+}
+
+func (r *InterviewRepository) GetAllRoundsSummary(applicationID uuid.UUID, userID uuid.UUID) ([]*PreviousRoundSummary, error) {
+	query := `
+		SELECT id, round_number, interview_type, scheduled_date
+		FROM interviews
+		WHERE application_id = $1 AND user_id = $2 AND deleted_at IS NULL
+		ORDER BY round_number ASC
+	`
+
+	type interviewRow struct {
+		ID            uuid.UUID `db:"id"`
+		RoundNumber   int       `db:"round_number"`
+		InterviewType string    `db:"interview_type"`
+		ScheduledDate time.Time `db:"scheduled_date"`
+	}
+
+	var rows []interviewRow
+	err := r.db.Select(&rows, query, applicationID, userID)
 	if err != nil {
 		return nil, errors.ConvertError(err)
 	}
 
-	return interviews, nil
+	summaries := make([]*PreviousRoundSummary, 0, len(rows))
+	for _, row := range rows {
+		summary := &PreviousRoundSummary{
+			ID:            row.ID,
+			RoundNumber:   row.RoundNumber,
+			InterviewType: row.InterviewType,
+			ScheduledDate: row.ScheduledDate.Format("2006-01-02"),
+			Interviewers:  []InterviewerSummary{},
+		}
+		summaries = append(summaries, summary)
+	}
+
+	return summaries, nil
 }

@@ -62,3 +62,7 @@ func SuccessWithWarnings(c *gin.Context, data interface{}, warnings []string) {
 		Warnings: warnings,
 	})
 }
+
+func NoContent(c *gin.Context) {
+	c.Status(204)
+}

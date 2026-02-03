@@ -17,16 +17,7 @@ import { CollapsibleSection } from './collapsible-section';
 import { AddQuestionForm } from './add-question-form';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 
 import {
     InterviewQuestion,
@@ -431,32 +422,15 @@ export const QuestionsSection = ({
                 onSuccess={handleAddSuccess}
             />
 
-            <AlertDialog
+            <DeleteConfirmDialog
                 open={!!deleteTarget}
                 onOpenChange={(open) => !open && setDeleteTarget(null)}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Question</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete this question? This action
-                            cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeleting}>
-                            Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            {isDeleting ? 'Deleting...' : 'Delete'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                onConfirm={handleDelete}
+                title="Delete Question"
+                description="Are you sure you want to delete this question? This action cannot be undone."
+                isDeleting={isDeleting}
+                destructive
+            />
         </>
     );
 };

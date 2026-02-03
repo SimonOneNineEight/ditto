@@ -1,0 +1,277 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>9</storyId>
+    <title>Multi-Round Context - Previous Rounds Display</title>
+    <status>drafted</status>
+    <generatedAt>2026-01-29</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-9-multi-round-context-previous-rounds-display.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>to see all previous interview rounds when viewing or editing a current round</iWant>
+    <soThat>I can build continuous context and prepare effectively for the next stage</soThat>
+    <tasks>
+      <task id="1" name="Create GetInterviewWithContext API Endpoint" acs="1,2,3,6">
+        <subtask>1.1: Add route GET /api/interviews/:id/with-context in routes/interview.go</subtask>
+        <subtask>1.2: Create GetInterviewWithContext handler function in interview.go</subtask>
+        <subtask>1.3: Create GetInterviewWithContextByID repository method</subtask>
+        <subtask>1.4: Query all interviews for same application_id, sorted by round_number</subtask>
+        <subtask>1.5: For each previous round, include: interviewers, questions (preview), notes (preview)</subtask>
+        <subtask>1.6: Return InterviewWithContext response structure</subtask>
+      </task>
+      <task id="2" name="Create PreviousRoundsPanel Component" acs="1,2,3">
+        <subtask>2.1: Create frontend/src/components/interview-detail/previous-rounds-panel.tsx</subtask>
+        <subtask>2.2: Accept previousRounds prop (array of round summaries)</subtask>
+        <subtask>2.3: Render collapsible sections for each round using Accordion component</subtask>
+        <subtask>2.4: Default state: all rounds collapsed</subtask>
+        <subtask>2.5: Show round number, type badge, date, interviewers in collapsed state</subtask>
+        <subtask>2.6: On expand: show questions preview, feedback preview, "View Full Details" link</subtask>
+      </task>
+      <task id="3" name="Create TimelineIndicator Component" acs="4">
+        <subtask>3.1: Create frontend/src/components/interview-detail/timeline-indicator.tsx</subtask>
+        <subtask>3.2: Calculate days between scheduled dates</subtask>
+        <subtask>3.3: Display "X days after Round Y" for each round</subtask>
+        <subtask>3.4: Integrate into PreviousRoundsPanel</subtask>
+      </task>
+      <task id="4" name="Update Interview Service for Context Endpoint" acs="6">
+        <subtask>4.1: Add getInterviewWithContext function in interview-service.ts</subtask>
+        <subtask>4.2: Define TypeScript interfaces: InterviewWithContext, PreviousRoundSummary</subtask>
+        <subtask>4.3: Call GET /api/interviews/:id/with-context</subtask>
+      </task>
+      <task id="5" name="Integrate PreviousRoundsPanel into Interview Detail Page" acs="1,5">
+        <subtask>5.1: Update frontend/src/app/(app)/interviews/[id]/page.tsx</subtask>
+        <subtask>5.2: Replace getInterviewWithDetails with getInterviewWithContext call</subtask>
+        <subtask>5.3: Conditionally render PreviousRoundsPanel when round_number > 1</subtask>
+        <subtask>5.4: Layout: 70% main content, 30% context sidebar (desktop); stacked on mobile</subtask>
+        <subtask>5.5: Handle Round 1 case (no previous rounds panel)</subtask>
+      </task>
+      <task id="6" name="Export Components from Barrel File" acs="1">
+        <subtask>6.1: Export PreviousRoundsPanel from frontend/src/components/interview-detail/index.ts</subtask>
+        <subtask>6.2: Export TimelineIndicator from same barrel file</subtask>
+      </task>
+      <task id="7" name="Manual Testing" acs="1,2,3,4,5,6">
+        <subtask>7.1: Create application with 3 interview rounds</subtask>
+        <subtask>7.2: Navigate to Round 3 detail page</subtask>
+        <subtask>7.3: Verify Round 1 and Round 2 appear in previous rounds panel</subtask>
+        <subtask>7.4: Verify collapsed state shows summary (round, type, date, interviewers)</subtask>
+        <subtask>7.5: Expand Round 1 and verify questions/feedback preview visible</subtask>
+        <subtask>7.6: Click "View Full Details" and verify navigation to Round 1 page</subtask>
+        <subtask>7.7: Verify timeline indicator shows correct days between rounds</subtask>
+        <subtask>7.8: Navigate to Round 1 detail page and verify no previous rounds panel</subtask>
+        <subtask>7.9: Test page load time is less than 2 seconds</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1" name="Previous Rounds Sidebar Panel">
+      When the interview detail page loads, user sees a collapsible sidebar/panel showing all previous rounds for this application. Panel positioned on right side (30% width) or as collapsible section. Current round NOT shown in previous rounds list.
+    </criterion>
+    <criterion id="AC-2" name="Previous Round Summary Display">
+      Each previous round displays: round number, interview type, scheduled date, interviewer names. Rounds sorted by round_number ascending. Each round entry is collapsible (default: collapsed).
+    </criterion>
+    <criterion id="AC-3" name="Expand Previous Round Details">
+      On expand: shows questions asked (preview), answers (preview), feedback notes (preview). Expanded view is read-only. "View Full Details" link navigates to that round's page.
+    </criterion>
+    <criterion id="AC-4" name="Timeline Visualization">
+      Timeline indicator shows days between rounds (e.g., "5 days after Round 1"). Current round shows days since last interview.
+    </criterion>
+    <criterion id="AC-5" name="Round 1 Behavior">
+      For Round 1 interviews, panel shows "No previous rounds" or is hidden. No API errors for applications with single interview.
+    </criterion>
+    <criterion id="AC-6" name="Single API Call">
+      All previous round data fetched in single API call (GET /api/interviews/:id/with-context). No additional calls when expanding/collapsing. Page loads within 2 seconds per NFR-2.1.
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Story 2.9: Multi-Round Context Display</section>
+        <snippet>Defines PreviousRoundsPanel in right sidebar, collapsible sections, data flow from single /with-context call, and visual hierarchy requirements.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Data Models - InterviewWithContext</section>
+        <snippet>Defines InterviewWithContext and PreviousRoundSummary interfaces with fields: id, round_number, interview_type, scheduled_date, interviewers, questions_preview, feedback_preview.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>API Contracts - GET /api/interviews/:id/with-context</section>
+        <snippet>Returns current_interview (full details), previous_rounds (summaries), and application info. Single call for all context data.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Overview</title>
+        <section>Story 2.9: Multi-Round Context - Previous Rounds Display</section>
+        <snippet>When viewing Round 2+, sidebar shows previous rounds with quick reference. Collapsible sections, 200-char previews for questions/feedback.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-8-file-uploads-for-interview-prep-documents.md</path>
+        <title>Story 2.8 - Previous Story</title>
+        <section>Senior Developer Review</section>
+        <snippet>Learnings: Use CollapsibleSection pattern, DRY approach for components, export via barrel file, use sonner for toasts, Skeleton for loading.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/internal/handlers/interview.go</path>
+        <kind>handler</kind>
+        <symbol>InterviewHandler, GetInterviewWithDetails</symbol>
+        <lines>115-172</lines>
+        <reason>Existing handler to extend with GetInterviewWithContext. Shows pattern for fetching interview with related entities.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/repository/interview.go</path>
+        <kind>repository</kind>
+        <symbol>InterviewRepository, GetInterviewsByApplicationID, GetInterviewWithApplicationInfo</symbol>
+        <lines>161-227</lines>
+        <reason>Existing methods to reuse/extend. GetInterviewsByApplicationID returns all interviews for an application. GetInterviewWithApplicationInfo shows JOIN pattern.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/routes/interview.go</path>
+        <kind>routes</kind>
+        <symbol>RegisterInterviewRoutes</symbol>
+        <lines>1-24</lines>
+        <reason>Add new route GET /:id/with-context here following existing pattern.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/services/interview-service.ts</path>
+        <kind>service</kind>
+        <symbol>getInterviewWithDetails, InterviewWithDetails</symbol>
+        <lines>145-156</lines>
+        <reason>Add getInterviewWithContext function following this pattern. Define new interfaces.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/app/(app)/interviews/[id]/page.tsx</path>
+        <kind>page</kind>
+        <symbol>InterviewDetailPage</symbol>
+        <lines>74-376</lines>
+        <reason>Main page to modify. Add context sidebar, update data fetching to use new endpoint.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/components/interview-detail/collapsible-section.tsx</path>
+        <kind>component</kind>
+        <symbol>CollapsibleSection</symbol>
+        <lines>1-81</lines>
+        <reason>Reusable collapsible pattern. Use for previous rounds or as reference for Accordion usage.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/components/interview-detail/index.ts</path>
+        <kind>barrel</kind>
+        <symbol>exports</symbol>
+        <lines>1-6</lines>
+        <reason>Add PreviousRoundsPanel and TimelineIndicator exports here.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/repository/interviewer.go</path>
+        <kind>repository</kind>
+        <symbol>GetInterviewerByInterview</symbol>
+        <reason>Needed to fetch interviewers for previous rounds.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/repository/interview_question.go</path>
+        <kind>repository</kind>
+        <symbol>GetInterviewQuestionByInterviewID</symbol>
+        <reason>Needed to fetch questions for preview in previous rounds.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/repository/interview_note.go</path>
+        <kind>repository</kind>
+        <symbol>GetInterviewNotesByInterviewID</symbol>
+        <reason>Needed to fetch feedback note for preview in previous rounds.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <frontend>
+        <package name="@radix-ui/react-accordion" version="^1.2.11">For collapsible previous rounds</package>
+        <package name="@radix-ui/react-collapsible" version="^1.1.11">Existing collapsible pattern</package>
+        <package name="date-fns" version="^4.1.0">For calculating days between dates</package>
+        <package name="lucide-react" version="^0.452.0">Icons for UI</package>
+        <package name="sonner" version="^2.0.7">Toast notifications</package>
+      </frontend>
+      <backend>
+        <package name="github.com/gin-gonic/gin" version="v1.10.1">HTTP framework</package>
+        <package name="github.com/jmoiron/sqlx" version="v1.4.0">Database operations</package>
+        <package name="github.com/google/uuid" version="v1.6.0">UUID handling</package>
+      </backend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="performance">NFR-2.1: Page load with context must complete in less than 2 seconds</constraint>
+    <constraint type="api">Single API call for all context data - no lazy loading for previous rounds</constraint>
+    <constraint type="preview-limits">Limit questions_preview and feedback_preview to 200 characters each</constraint>
+    <constraint type="auth">All endpoints must validate user_id from JWT - cannot view other users' interviews</constraint>
+    <constraint type="soft-delete">All entities use soft delete (deleted_at column) - filter WHERE deleted_at IS NULL</constraint>
+    <constraint type="pattern">Follow existing repository pattern - new methods in interview_repository.go</constraint>
+    <constraint type="ui-pattern">Use existing CollapsibleSection or shadcn Accordion for consistent UI</constraint>
+    <constraint type="layout">Desktop: 70/30 split; Mobile: stacked layout</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/interviews/:id/with-context</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/interviews/:id/with-context → InterviewWithContext</signature>
+      <path>backend/internal/routes/interview.go (to add)</path>
+    </interface>
+    <interface>
+      <name>InterviewWithContext</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface InterviewWithContext {
+  current_interview: InterviewWithDetails;
+  previous_rounds: PreviousRoundSummary[];
+  application: { company_name: string; job_title: string; };
+}
+      </signature>
+      <path>frontend/src/services/interview-service.ts (to add)</path>
+    </interface>
+    <interface>
+      <name>PreviousRoundSummary</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface PreviousRoundSummary {
+  id: string;
+  round_number: number;
+  interview_type: string;
+  scheduled_date: string;
+  interviewers: { name: string; role?: string }[];
+  questions_preview: string;
+  feedback_preview: string;
+}
+      </signature>
+      <path>frontend/src/services/interview-service.ts (to add)</path>
+    </interface>
+    <interface>
+      <name>GetInterviewWithContextByID</name>
+      <kind>Go repository method</kind>
+      <signature>func (r *InterviewRepository) GetInterviewWithContextByID(interviewID, userID uuid.UUID) (*InterviewWithContext, error)</signature>
+      <path>backend/internal/repository/interview.go (to add)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Manual testing for frontend. Backend follows existing test patterns in handlers_test.go. No specific test framework required for this story per project convention.</standards>
+    <locations>
+      <location>backend/internal/handlers/*_test.go</location>
+      <location>Manual testing via browser</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-1">Create application with 3 rounds, navigate to Round 3, verify panel shows Rounds 1 and 2</idea>
+      <idea ac="AC-2">Verify each round shows: round number, type badge, date, interviewer names in collapsed state</idea>
+      <idea ac="AC-3">Expand a round, verify questions/feedback preview visible, click "View Full Details" navigates correctly</idea>
+      <idea ac="AC-4">Create rounds with different dates, verify timeline shows correct "X days after Round Y"</idea>
+      <idea ac="AC-5">Navigate to Round 1 page, verify no previous rounds panel or "No previous rounds" message</idea>
+      <idea ac="AC-6">Monitor network tab, verify single /with-context call, no additional calls on expand/collapse</idea>
+    </ideas>
+  </tests>
+</story-context>

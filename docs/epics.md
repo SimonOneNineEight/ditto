@@ -11,6 +11,10 @@
 
 This document provides the complete epic and story breakdown for ditto, decomposing the requirements from the [PRD](./PRD.md) into implementable stories.
 
+### Design Reference
+
+**[ditto-design.pen](../ditto-design.pen)** - Complete UI/UX design file with 80 reusable components and 22 screen designs. Use this as the visual reference when implementing stories.
+
 ### Epic Structure Overview
 
 **6 Epics** organized for incremental value delivery:

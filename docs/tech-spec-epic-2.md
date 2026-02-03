@@ -9,6 +9,8 @@ Status: Draft
 
 ## Overview
 
+**Design Reference:** [ditto-design.pen](../ditto-design.pen) - Contains Interview Detail, Interviews list, and all related component designs.
+
 Epic 2 delivers the core differentiator of ditto: comprehensive interview lifecycle management. While competitors track *when* interviews happen, ditto tracks *what* happens in them and *how* to prepare for the next round. This epic enables users to capture interview details (interviewers, questions, answers, feedback), maintain rich text preparation notes with auto-save, and seamlessly access context from previous rounds when preparing for subsequent interviews.
 
 The "magic moment" is when preparing for Round 2: users open ditto and instantly see Round 1 notes - questions asked, how they answered, interviewer feedback, company research - all in context, ready to inform the next conversation. This eliminates the "Excel + Notion" fragmentation that plagues existing job search workflows.

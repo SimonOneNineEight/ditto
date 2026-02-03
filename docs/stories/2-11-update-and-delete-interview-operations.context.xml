@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <story-id>2-11</story-id>
+    <story-title>Update and Delete Interview Operations</story-title>
+    <generated>2026-02-02</generated>
+    <epic>Epic 2: Deep Interview Management</epic>
+  </metadata>
+
+  <documentation>
+    <doc name="Epic 2 Tech Spec" path="docs/tech-spec-epic-2.md">
+      <summary>
+        Epic 2 delivers comprehensive interview lifecycle management. Key patterns:
+        - Soft delete pattern: Set `deleted_at` timestamp, don't hard delete
+        - Cascade soft delete: When interview is deleted, related interviewers, questions, notes get `deleted_at` set
+        - Use optimistic UI for edit operations
+        - Show toast notifications for success/error feedback
+      </summary>
+      <api-contracts>
+        <endpoint method="PUT" path="/api/interviews/:id">
+          <description>Update interview fields (already implemented)</description>
+          <request>
+            {
+              "scheduled_date": "2026-02-02",
+              "scheduled_time": "14:00",
+              "duration_minutes": 60,
+              "interview_type": "technical",
+              "outcome": "Received offer!"
+            }
+          </request>
+          <response status="200">Updated interview object</response>
+        </endpoint>
+        <endpoint method="DELETE" path="/api/interviews/:id">
+          <description>Soft delete interview (TO BE ADDED)</description>
+          <response status="204">No Content on success</response>
+          <response status="404">Not found or unauthorized</response>
+          <note>Soft deletes interview and cascades to interviewers, questions, notes</note>
+        </endpoint>
+      </api-contracts>
+    </doc>
+
+    <doc name="Design System Reference" path="ditto-design.pen">
+      <summary>
+        Design file contains Interview Detail pages and delete confirmation modal.
+        Key screens: "Interview Detail - Delete" (id: PZssQ) shows the delete flow.
+      </summary>
+      <design-components>
+        <component name="Modal/Default" id="skEV6">
+          <description>Standard confirmation modal with header, body text, and footer buttons</description>
+          <structure>
+            - modalHeader: Title + close X icon
+            - modalBody: Warning text
+            - modalFooter: Cancel button (ghost) + Confirm button (destructive)
+          </structure>
+          <styling>
+            - cornerRadius: 8
+            - fill: $--card
+            - stroke: $--border, thickness: 1
+            - width: 400px
+          </styling>
+        </component>
+        <screen name="Interview Detail - Delete" id="PZssQ">
+          <description>Shows delete confirmation modal over interview detail page</description>
+          <modal-customization>
+            - Title: "Delete Interview"
+            - Body: "Are you sure you want to delete this interview? This action cannot be undone and all associated notes, questions, and files will be permanently removed."
+          </modal-customization>
+          <overlay>fill: #00000080 (50% black overlay)</overlay>
+        </screen>
+        <header-actions>
+          <description>Interview detail header has Edit and Delete icon buttons</description>
+          <buttons>
+            - editIconBtn: Pencil icon, padding: 8, cornerRadius: 4
+            - deleteIconBtn: Trash icon, padding: 8, cornerRadius: 4
+          </buttons>
+        </header-actions>
+      </design-components>
+    </doc>
+  </documentation>
+
+  <existing-code>
+    <file path="backend/internal/routes/interview.go">
+      <summary>Interview routes registration. Currently has POST, GET, PUT but NO DELETE route.</summary>
+      <code-snippet>
+interviews := apiGroup.Group("/interviews")
+interviews.Use(middleware.AuthMiddleware())
+{
+    interviews.POST("", interviewHandler.CreateInterview)
+    interviews.GET("", interviewHandler.ListInterviews)
+    interviews.GET("/:id", interviewHandler.GetInterviewByID)
+    interviews.GET("/:id/details", interviewHandler.GetInterviewWithDetails)
+    interviews.GET("/:id/with-context", interviewHandler.GetInterviewWithContext)
+    interviews.PUT("/:id", interviewHandler.UpdateInterview)
+    // TODO: Add DELETE /:id route
+}
+      </code-snippet>
+      <action>Add: interviews.DELETE("/:id", interviewHandler.DeleteInterview)</action>
+    </file>
+
+    <file path="backend/internal/handlers/interview.go">
+      <summary>Interview handlers. Has UpdateInterview (line 177), needs DeleteInterview handler.</summary>
+      <existing-handler name="UpdateInterview" line="177">
+        <description>Handles PUT /api/interviews/:id with partial updates</description>
+        <pattern>
+          1. Get userID from context
+          2. Parse interviewID from URL param
+          3. Bind JSON request
+          4. Build updates map
+          5. Call repo.UpdateInterview
+          6. Return updated interview
+        </pattern>
+      </existing-handler>
+      <action>Add DeleteInterview handler following same pattern, calling repo.SoftDeleteInterview</action>
+    </file>
+
+    <file path="backend/internal/repository/interview.go">
+      <summary>Interview repository. SoftDeleteInterview already exists at line 137.</summary>
+      <existing-method name="SoftDeleteInterview" line="137">
+        <code-snippet>
+func (r *InterviewRepository) SoftDeleteInterview(interviewID, userID uuid.UUID) error {
+    query := `
+        UPDATE interviews
+        SET deleted_at = $1, updated_at = $1
+        WHERE id = $2 AND user_id = $3 AND deleted_at IS NULL
+    `
+
+    result, err := r.db.Exec(query, time.Now(), interviewID, userID)
+    if err != nil {
+        return errors.ConvertError(err)
+    }
+
+    rowAffected, err := result.RowsAffected()
+    if err != nil {
+        return errors.ConvertError(err)
+    }
+
+    if rowAffected == 0 {
+        return errors.New(errors.ErrorNotFound, "interview not found or owned by other user")
+    }
+
+    return nil
+}
+        </code-snippet>
+        <note>
+          This method only soft-deletes the interview itself.
+          Cascade to interviewers, questions, notes needs to be verified/added.
+          Database has ON DELETE CASCADE but that's for hard deletes.
+          For soft delete cascade, may need explicit updates or triggers.
+        </note>
+      </existing-method>
+    </file>
+
+    <file path="frontend/src/app/(app)/interviews/[id]/page.tsx">
+      <summary>Interview detail page. Already has Edit modal, needs Delete button and confirmation dialog.</summary>
+      <existing-ui>
+        - PageHeader with Back, Edit, Add Round buttons
+        - Edit modal using Dialog component from shadcn/ui
+        - Uses react-hook-form with zod validation
+        - Uses toast from sonner for notifications
+      </existing-ui>
+      <header-actions-code>
+&lt;div className="flex items-center gap-2"&gt;
+    &lt;Button variant="ghost" size="sm" onClick={() =&gt; router.back()}&gt;
+        &lt;ArrowLeft className="h-4 w-4 mr-2" /&gt;
+        Back
+    &lt;/Button&gt;
+    &lt;Button variant="ghost" size="sm" onClick={handleEditOpen}&gt;
+        &lt;Pencil className="h-4 w-4 mr-2" /&gt;
+        Edit
+    &lt;/Button&gt;
+    &lt;Button variant="default" size="sm" onClick={() =&gt; setIsAddRoundOpen(true)}&gt;
+        &lt;Plus className="h-4 w-4 mr-2" /&gt;
+        Add Round
+    &lt;/Button&gt;
+&lt;/div&gt;
+      </header-actions-code>
+      <action>
+        Add Delete button (variant="ghost" or "destructive") and confirmation dialog.
+        On delete confirmation: call deleteInterview service, redirect to /interviews, show success toast.
+      </action>
+    </file>
+
+    <file path="frontend/src/services/interview-service.ts">
+      <summary>Interview service with API calls. Has updateInterview, needs deleteInterview.</summary>
+      <existing-function name="updateInterview" line="206">
+        <code-snippet>
+export const updateInterview = async (
+    id: string,
+    data: UpdateInterviewRequest
+): Promise&lt;Interview&gt; =&gt; {
+    const response = await api.put(`/api/interviews/${id}`, data);
+    return response.data.data.interview;
+};
+        </code-snippet>
+      </existing-function>
+      <action>
+        Add deleteInterview function:
+        export const deleteInterview = async (id: string): Promise&lt;void&gt; =&gt; {
+            await api.delete(`/api/interviews/${id}`);
+        };
+      </action>
+    </file>
+  </existing-code>
+
+  <ui-components>
+    <component name="AlertDialog" source="shadcn/ui">
+      <description>Use AlertDialog for delete confirmation (more appropriate than Dialog for destructive actions)</description>
+      <usage>
+        &lt;AlertDialog&gt;
+          &lt;AlertDialogTrigger asChild&gt;
+            &lt;Button variant="ghost" size="sm"&gt;Delete&lt;/Button&gt;
+          &lt;/AlertDialogTrigger&gt;
+          &lt;AlertDialogContent&gt;
+            &lt;AlertDialogHeader&gt;
+              &lt;AlertDialogTitle&gt;Delete Interview&lt;/AlertDialogTitle&gt;
+              &lt;AlertDialogDescription&gt;
+                Are you sure you want to delete this interview? This action cannot be undone
+                and all associated notes, questions, and files will be permanently removed.
+              &lt;/AlertDialogDescription&gt;
+            &lt;/AlertDialogHeader&gt;
+            &lt;AlertDialogFooter&gt;
+              &lt;AlertDialogCancel&gt;Cancel&lt;/AlertDialogCancel&gt;
+              &lt;AlertDialogAction onClick={handleDelete}&gt;Delete&lt;/AlertDialogAction&gt;
+            &lt;/AlertDialogFooter&gt;
+          &lt;/AlertDialogContent&gt;
+        &lt;/AlertDialog&gt;
+      </usage>
+    </component>
+    <component name="toast" source="sonner">
+      <description>Already used in project for success/error notifications</description>
+      <usage>
+        toast.success('Interview deleted');
+        toast.error('Failed to delete interview');
+      </usage>
+    </component>
+  </ui-components>
+
+  <patterns-from-previous-stories>
+    <pattern name="Soft Delete Check" source="Story 2-10">
+      <description>Critical: Always check `a.deleted_at IS NULL` when querying application-related data</description>
+      <application>Ensure cascade soft-delete properly marks all related entities</application>
+    </pattern>
+    <pattern name="Toast Notifications" source="Story 2-10">
+      <description>Use sonner for success/error feedback</description>
+    </pattern>
+    <pattern name="Router Navigation" source="Story 2-10">
+      <description>Use router.push('/interviews') for redirect after deletion</description>
+    </pattern>
+  </patterns-from-previous-stories>
+
+  <implementation-notes>
+    <note priority="high">
+      Backend DELETE route is the only missing backend piece. SoftDeleteInterview repo method exists.
+      Need to verify cascade soft-delete works for interviewers, questions, notes.
+    </note>
+    <note priority="high">
+      Frontend already has Edit modal pattern - Delete uses similar AlertDialog pattern.
+      Main difference: AlertDialog is better for destructive confirmations.
+    </note>
+    <note priority="medium">
+      Per design spec (ditto-design.pen), delete button should be icon-only in header actions area.
+      Use Trash2 icon from lucide-react.
+    </note>
+    <note priority="medium">
+      Edit functionality uses inline modal for fields. Story mentions "inline editing" but
+      existing implementation uses modal dialog - continue with modal pattern for consistency.
+    </note>
+  </implementation-notes>
+
+  <cascade-delete-verification>
+    <entities>
+      <entity table="interviewers" fk="interview_id" />
+      <entity table="interview_questions" fk="interview_id" />
+      <entity table="interview_notes" fk="interview_id" />
+    </entities>
+    <note>
+      Database schema uses ON DELETE CASCADE for hard deletes, but soft delete requires
+      explicit updates to set deleted_at on related entities. Check if SoftDeleteInterview
+      handles this or if separate cascade logic is needed.
+    </note>
+  </cascade-delete-verification>
+</story-context>

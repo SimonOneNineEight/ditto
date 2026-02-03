@@ -8,16 +8,7 @@ import { CollapsibleSection } from './collapsible-section';
 import { AddInterviewerForm } from './add-interviewer-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 
 import {
     Interviewer,
@@ -229,32 +220,15 @@ export const InterviewersSection = ({
                 onSuccess={handleAddSuccess}
             />
 
-            <AlertDialog
+            <DeleteConfirmDialog
                 open={!!deleteTarget}
                 onOpenChange={(open) => !open && setDeleteTarget(null)}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Interviewer</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete {deleteTarget?.name}? This
-                            action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeleting}>
-                            Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            {isDeleting ? 'Deleting...' : 'Delete'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                onConfirm={handleDelete}
+                title="Delete Interviewer"
+                description={`Are you sure you want to delete ${deleteTarget?.name}? This action cannot be undone.`}
+                isDeleting={isDeleting}
+                destructive
+            />
         </>
     );
 };

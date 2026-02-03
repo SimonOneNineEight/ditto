@@ -383,6 +383,16 @@ Respect reduced motion preferences:
 
 ## Design References
 
+### Primary Design Asset
+
+**[ditto-design.pen](../ditto-design.pen)** - The complete Pencil design file containing:
+- **Design System**: 80 reusable components
+- **22 Screen Designs**: All application screens with component compositions
+- **Component Library**: Buttons, inputs, cards, badges, modals, tables, and more
+- **State Variants**: Default, hover, focus, active, disabled states
+
+Use this file as the source of truth for visual implementation details.
+
 ### Inspiration Sources
 
 1. **Notion** - Document-editing feel, minimal chrome, hover-reveal actions

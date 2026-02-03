@@ -10,16 +10,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 import { Trash2, FileText, Loader2 } from 'lucide-react';
 import { type UserFile, formatFileSize, deleteFile } from '@/services/storage-service';
 import { toast } from 'sonner';
@@ -126,33 +117,15 @@ export function UserFilesList({ files, isLoading, onFileDeleted }: UserFilesList
                 </TableBody>
             </Table>
 
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete File</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete &quot;{fileToDelete?.file_name}&quot;? This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleConfirmDelete}
-                            disabled={isDeleting}
-                            className="bg-destructive hover:bg-destructive/90"
-                        >
-                            {isDeleting ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Deleting...
-                                </>
-                            ) : (
-                                'Delete'
-                            )}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <DeleteConfirmDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                onConfirm={handleConfirmDelete}
+                title="Delete File"
+                description={`Are you sure you want to delete "${fileToDelete?.file_name}"? This action cannot be undone.`}
+                isDeleting={isDeleting}
+                destructive
+            />
         </>
     );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Pencil, Calendar, Clock, Timer } from 'lucide-react';
+import { ArrowLeft, Pencil, Calendar, Clock, Timer, Plus, Trash2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { useForm, Controller } from 'react-hook-form';
@@ -34,15 +34,21 @@ import {
     QuestionsSection,
     NoteSection,
     CollapsibleSection,
+    InterviewRoundsPanel,
+    SelfAssessmentSection,
+    getSelfAssessmentSummary,
 } from '@/components/interview-detail';
 import {
-    getInterviewWithDetails,
+    getInterviewWithContext,
     updateInterview,
-    InterviewWithDetails,
+    deleteInterview,
+    InterviewWithContext,
     INTERVIEW_TYPES,
     getInterviewTypeLabel,
 } from '@/services/interview-service';
+import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 import { DocumentsSection } from '@/components/file-upload';
+import { InterviewFormModal } from '@/components/interview-form/interview-form-modal';
 
 const editFormSchema = z.object({
     interview_type: z.enum([
@@ -76,10 +82,13 @@ const InterviewDetailPage = () => {
     const router = useRouter();
     const interviewId = params.id as string;
 
-    const [data, setData] = useState<InterviewWithDetails | null>(null);
+    const [data, setData] = useState<InterviewWithContext | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isAddRoundOpen, setIsAddRoundOpen] = useState(false);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const {
         register,
@@ -96,7 +105,7 @@ const InterviewDetailPage = () => {
         try {
             setLoading(true);
             setError(null);
-            const result = await getInterviewWithDetails(interviewId);
+            const result = await getInterviewWithContext(interviewId);
             setData(result);
         } catch (err) {
             console.error('Failed to fetch interview:', err);
@@ -116,12 +125,12 @@ const InterviewDetailPage = () => {
 
     const handleEditOpen = () => {
         if (!data) return;
+        const interview = data.current_interview.interview;
         reset({
-            interview_type: data.interview
-                .interview_type as EditFormData['interview_type'],
-            scheduled_date: data.interview.scheduled_date.split('T')[0],
-            scheduled_time: data.interview.scheduled_time || '',
-            duration_minutes: data.interview.duration_minutes || undefined,
+            interview_type: interview.interview_type as EditFormData['interview_type'],
+            scheduled_date: interview.scheduled_date.split('T')[0],
+            scheduled_time: interview.scheduled_time || '',
+            duration_minutes: interview.duration_minutes || undefined,
         });
         setIsEditOpen(true);
     };
@@ -140,6 +149,21 @@ const InterviewDetailPage = () => {
         } catch (err) {
             console.error('Failed to update interview:', err);
             toast.error('Failed to update interview');
+        }
+    };
+
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await deleteInterview(interviewId);
+            toast.success('Interview deleted');
+            router.push('/interviews');
+        } catch (err) {
+            console.error('Failed to delete interview:', err);
+            toast.error('Failed to delete interview');
+        } finally {
+            setIsDeleting(false);
+            setIsDeleteOpen(false);
         }
     };
 
@@ -198,7 +222,8 @@ const InterviewDetailPage = () => {
         );
     }
 
-    const { interview, application, interviewers, questions, notes } = data;
+    const { interview, application, interviewers, questions, notes } = data.current_interview;
+    const { all_rounds } = data;
 
     return (
         <>
@@ -211,6 +236,14 @@ const InterviewDetailPage = () => {
                         <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => router.back()}
+                        >
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            Back
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={handleEditOpen}
                         >
                             <Pencil className="h-4 w-4 mr-2" />
@@ -219,10 +252,18 @@ const InterviewDetailPage = () => {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => router.back()}
+                            onClick={() => setIsDeleteOpen(true)}
                         >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                        </Button>
+                        <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => setIsAddRoundOpen(true)}
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Round
                         </Button>
                     </div>
                 }
@@ -250,31 +291,67 @@ const InterviewDetailPage = () => {
                 </Badge>
             </div>
 
-            <div className="space-y-4">
-                <InterviewersSection
-                    interviewers={interviewers}
-                    interviewId={interviewId}
-                    onUpdate={fetchInterview}
-                />
-
-                <QuestionsSection
-                    questions={questions}
-                    interviewId={interviewId}
-                    onUpdate={fetchInterview}
-                />
-
-                <NoteSection
-                    notes={notes}
-                    interviewId={interviewId}
-                    onUpdate={fetchInterview}
-                />
-                <CollapsibleSection title="Documents" defaultOpen={false}>
-                    <DocumentsSection
-                        applicationId={data.interview.application_id}
+            <div className={all_rounds.length > 1 ? "flex flex-col lg:flex-row gap-6" : ""}>
+                <div className={all_rounds.length > 1 ? "lg:w-[70%] space-y-4" : "space-y-4"}>
+                    <InterviewersSection
+                        interviewers={interviewers}
                         interviewId={interviewId}
+                        onUpdate={fetchInterview}
                     />
-                </CollapsibleSection>
+
+                    <QuestionsSection
+                        questions={questions}
+                        interviewId={interviewId}
+                        onUpdate={fetchInterview}
+                    />
+
+                    <NoteSection
+                        notes={notes}
+                        interviewId={interviewId}
+                        onUpdate={fetchInterview}
+                    />
+
+                    <CollapsibleSection
+                        title={
+                            getSelfAssessmentSummary(interview)
+                                ? `Self-Assessment (${getSelfAssessmentSummary(interview)})`
+                                : 'Self-Assessment'
+                        }
+                        defaultOpen={false}
+                    >
+                        <SelfAssessmentSection
+                            interview={interview}
+                            onUpdate={fetchInterview}
+                        />
+                    </CollapsibleSection>
+
+                    <CollapsibleSection title="Documents" defaultOpen={false}>
+                        <DocumentsSection
+                            applicationId={interview.application_id}
+                            interviewId={interviewId}
+                        />
+                    </CollapsibleSection>
+                </div>
+
+                {all_rounds.length > 1 && (
+                    <div className="lg:w-[30%]">
+                        <InterviewRoundsPanel
+                            rounds={all_rounds}
+                            currentRoundId={interview.id}
+                        />
+                    </div>
+                )}
             </div>
+
+            <InterviewFormModal
+                applicationId={interview.application_id}
+                open={isAddRoundOpen}
+                onOpenChange={setIsAddRoundOpen}
+                currentInterviewCount={all_rounds.length}
+                onSuccess={(newInterview) => {
+                    router.push(`/interviews/${newInterview.id}`);
+                }}
+            />
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent>
@@ -368,6 +445,15 @@ const InterviewDetailPage = () => {
                     </form>
                 </DialogContent>
             </Dialog>
+
+            <DeleteConfirmDialog
+                open={isDeleteOpen}
+                onOpenChange={setIsDeleteOpen}
+                onConfirm={handleDelete}
+                title="Delete Interview"
+                description="Are you sure you want to delete this interview? This action cannot be undone and all associated notes, questions, and interviewers will be permanently removed."
+                isDeleting={isDeleting}
+            />
         </>
     );
 };

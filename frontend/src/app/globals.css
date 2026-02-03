@@ -23,6 +23,7 @@
 
     --color-accent: hsl(var(--accent));
     --color-accent-foreground: hsl(var(--accent-foreground));
+    --color-accent-muted: hsl(var(--accent-muted));
 
     --color-warning: hsl(var(--warning));
     --color-warning-foreground: hsl(var(--warning-foreground));
@@ -202,6 +203,7 @@
         --muted-foreground: 192 7% 40%;
         --accent: 48 91% 54%;
         --accent-foreground: 0 0% 0%;
+        --accent-muted: 45 48% 20%;
         --warning: 38 92% 50%;
         --warning-foreground: 48 96% 89%;
         --info: 213 94% 68%;
@@ -233,6 +235,7 @@
         --muted-foreground: 192 6% 49%;
         --accent: 48 91% 54%;
         --accent-foreground: 0 0% 0%;
+        --accent-muted: 45 48% 20%;
         --warning: 48 96% 89%;
         --warning-foreground: 38 92% 50%;
         --info: 213 31% 91%;
