@@ -1,6 +1,6 @@
 # Story 0.1: Design System Update
 
-Status: backlog
+Status: in-progress
 
 ## Story
 
@@ -71,77 +71,77 @@ This is a focused design sprint between Epic 2 and Epic 3 to update the applicat
 
 ### Design Token Updates
 
-- [ ] **Task 1**: Update Color Tokens (AC: #1)
-  - [ ] 1.1: Extract color values from design file
-  - [ ] 1.2: Update CSS variables in `globals.css` or Tailwind config
-  - [ ] 1.3: Update shadcn theme colors if needed
-  - [ ] 1.4: Verify dark theme is applied globally
+- [x] **Task 1**: Update Color Tokens (AC: #1)
+  - [x] 1.1: Extract color values from design file
+  - [x] 1.2: Update CSS variables in `globals.css` or Tailwind config
+  - [x] 1.3: Update shadcn theme colors if needed
+  - [x] 1.4: Verify dark theme is applied globally
 
-- [ ] **Task 2**: Update Typography Tokens (AC: #2)
-  - [ ] 2.1: Extract font sizes, weights, line heights from design file
-  - [ ] 2.2: Update Tailwind typography config
-  - [ ] 2.3: Verify heading styles across pages
+- [x] **Task 2**: Update Typography Tokens (AC: #2)
+  - [x] 2.1: Extract font sizes, weights, line heights from design file
+  - [x] 2.2: Update Tailwind typography config
+  - [x] 2.3: Verify heading styles across pages
 
 ### Component Updates
 
-- [ ] **Task 3**: Update Button Components (AC: #3)
-  - [ ] 3.1: Update Primary, Secondary, Ghost, Destructive variants
-  - [ ] 3.2: Verify hover/focus states
+- [x] **Task 3**: Update Button Components (AC: #3)
+  - [x] 3.1: Update Primary, Secondary, Ghost, Destructive variants
+  - [x] 3.2: Verify hover/focus states
 
-- [ ] **Task 4**: Update Input Components (AC: #3, #6)
-  - [ ] 4.1: Update Input, Select, Textarea, DateInput styling
-  - [ ] 4.2: Update Checkbox, Radio, Toggle styling
-  - [ ] 4.3: Update Dropzone styling
+- [x] **Task 4**: Update Input Components (AC: #3, #6)
+  - [x] 4.1: Update Input, Select, Textarea, DateInput styling
+  - [x] 4.2: Update Checkbox, Radio, Toggle styling
+  - [x] 4.3: Update Dropzone styling
 
-- [ ] **Task 5**: Update Badge Components (AC: #3)
-  - [ ] 5.1: Update all badge variants to match design
-  - [ ] 5.2: Ensure consistent usage across pages
+- [x] **Task 5**: Update Badge Components (AC: #3)
+  - [x] 5.1: Update all badge variants to match design
+  - [x] 5.2: Ensure consistent usage across pages
 
-- [ ] **Task 6**: Update Card Components (AC: #3)
-  - [ ] 6.1: Update Card/Basic, Card/Bordered styling
-  - [ ] 6.2: Update Card/Stat variants for dashboard
+- [x] **Task 6**: Update Card Components (AC: #3)
+  - [x] 6.1: Update Card/Basic, Card/Bordered styling
+  - [x] 6.2: Update Card/Stat variants for dashboard
 
-- [ ] **Task 7**: Update Navigation Components (AC: #4)
-  - [ ] 7.1: Update Sidebar styling
-  - [ ] 7.2: Update NavItem Default/Active/Hover states
-  - [ ] 7.3: Update SidebarUser component
+- [x] **Task 7**: Update Navigation Components (AC: #4)
+  - [x] 7.1: Update Sidebar styling
+  - [x] 7.2: Update NavItem Default/Active/Hover states
+  - [x] 7.3: Update SidebarUser component
 
-- [ ] **Task 8**: Update Table Components (AC: #5)
-  - [ ] 8.1: Update Table/Header, Table/Row, Table/RowHover styling
-  - [ ] 8.2: Update Table/Pagination styling
+- [x] **Task 8**: Update Table Components (AC: #5)
+  - [x] 8.1: Update Table/Header, Table/Row, Table/RowHover styling
+  - [x] 8.2: Update Table/Pagination styling
 
-- [ ] **Task 9**: Update Feedback Components (AC: #7)
-  - [ ] 9.1: Update Toast/Default, Toast/Success, Toast/Error
-  - [ ] 9.2: Update Alert variants
-  - [ ] 9.3: Update Modal/Dialog styling
-  - [ ] 9.4: Update EmptyState component
+- [x] **Task 9**: Update Feedback Components (AC: #7)
+  - [x] 9.1: Update Toast/Default, Toast/Success, Toast/Error
+  - [x] 9.2: Update Alert variants
+  - [x] 9.3: Update Modal/Dialog styling
+  - [x] 9.4: Update EmptyState component
 
 ### Page-Level Updates
 
-- [ ] **Task 10**: Update Dashboard Page (AC: #8)
+- [ ] **Task 10**: Update Dashboard Page (AC: #8) - SKIPPED (placeholder page)
   - [ ] 10.1: Implement stat cards layout
   - [ ] 10.2: Implement Upcoming Interviews widget
   - [ ] 10.3: Implement Upcoming Deadlines widget (prep for Epic 3)
   - [ ] 10.4: Implement Recent Applications section
 
-- [ ] **Task 11**: Update Applications Pages (AC: #8)
-  - [ ] 11.1: Update Applications list page styling
-  - [ ] 11.2: Update Application Detail page styling
-  - [ ] 11.3: Update New Application form styling
-  - [ ] 11.4: Update empty state
+- [x] **Task 11**: Update Applications Pages (AC: #8)
+  - [x] 11.1: Update Applications list page styling
+  - [x] 11.2: Update Application Detail page styling
+  - [x] 11.3: Update New Application form styling
+  - [x] 11.4: Update empty state
 
-- [ ] **Task 12**: Update Interviews Pages (AC: #8)
-  - [ ] 12.1: Update Interviews list page styling
-  - [ ] 12.2: Update Interview Detail page styling
-  - [ ] 12.3: Update modal dialogs styling
-  - [ ] 12.4: Update empty state
+- [x] **Task 12**: Update Interviews Pages (AC: #8)
+  - [x] 12.1: Update Interviews list page styling
+  - [x] 12.2: Update Interview Detail page styling
+  - [x] 12.3: Update modal dialogs styling
+  - [x] 12.4: Update empty state
 
-- [ ] **Task 13**: Update Files Page (AC: #8)
-  - [ ] 13.1: Update Files list styling
-  - [ ] 13.2: Update storage quota widget styling
-  - [ ] 13.3: Update empty and near-limit states
+- [x] **Task 13**: Update Files Page (AC: #8)
+  - [x] 13.1: Update Files list styling
+  - [x] 13.2: Update storage quota widget styling
+  - [x] 13.3: Update empty and near-limit states
 
-- [ ] **Task 14**: Update Settings Page (AC: #8)
+- [ ] **Task 14**: Update Settings Page (AC: #8) - SKIPPED (placeholder page)
   - [ ] 14.1: Update Settings page styling
   - [ ] 14.2: Update user dropdown styling
 

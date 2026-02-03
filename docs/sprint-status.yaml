@@ -68,7 +68,7 @@ development_status:
 
   # Design System Update Sprint (between Epic 2 and Epic 3)
   # Decision from Epic 2 retrospective: update UI to match ditto-design.pen before Epic 3
-  0-1-design-system-update: drafted
+  0-1-design-system-update: in-progress
 
   # Epic 3: Technical Assessment Tracking
   epic-3: backlog
