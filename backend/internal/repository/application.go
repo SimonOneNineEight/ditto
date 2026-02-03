@@ -529,7 +529,7 @@ func (r *ApplicationRepository) buildFilterQuery(filters *ApplicationFilters, ba
 
 	if filters.CompanyName != "" && filters.CompanyID == nil {
 		query += fmt.Sprintf(" AND c.name ILIKE $%d", argIndex)
-		args = append(args, filters.CompanyName)
+		args = append(args, "%"+filters.CompanyName+"%")
 		argIndex++
 	}
 
