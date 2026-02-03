@@ -31,6 +31,8 @@ export interface ApplicationWithDetails {
     offer_received: boolean;
     attempt_number: number;
     notes?: string;
+    resume_file_id?: string;
+    cover_letter_file_id?: string;
     created_at: string;
     updated_at: string;
     job?: Job;

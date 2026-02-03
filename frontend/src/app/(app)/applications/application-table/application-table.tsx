@@ -7,7 +7,7 @@ import {
     useReactTable,
 } from '@tanstack/react-table';
 
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import {
     Table,
@@ -48,28 +48,13 @@ export function ApplicationTable({
 
     const router = useRouter();
     const totalPages = Math.ceil(total / limit);
-    const showing = data.length;
+
+    const startItem = (page - 1) * limit + 1;
+    const endItem = Math.min(page * limit, total);
 
     return (
-        <div className="rounded-md">
-            <div className="flex justify-between items-center mb-2 px-2">
-                <span className="text-sm text-muted-foreground">
-                    {hasActiveFilters
-                        ? `Showing ${showing} of ${total} applications`
-                        : `${total} application${total !== 1 ? 's' : ''}`
-                    }
-                </span>
-                <Button
-                    size="sm"
-                    hasIcon
-                    iconPosition="left"
-                    icon={<Plus size={16} />}
-                    onClick={() => router.push('/applications/new')}
-                >
-                    New Application
-                </Button>
-            </div>
-            <Table className="mb-2 w-full">
+        <div className="overflow-hidden rounded-lg">
+            <Table className="w-full">
                 <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>
@@ -102,7 +87,7 @@ export function ApplicationTable({
                         table.getRowModel().rows.map((row) => (
                             <TableRow
                                 key={row.id}
-                                className="cursor-pointer"
+                                className="cursor-pointer hover:bg-muted"
                                 onClick={() =>
                                     router.push(`/applications/${row.original.id}`)
                                 }
@@ -143,30 +128,44 @@ export function ApplicationTable({
                 </TableBody>
             </Table>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-end gap-2 px-2">
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => onPageChange(page - 1)}
-                        disabled={page <= 1}
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                        Page {page} of {totalPages}
-                    </span>
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => onPageChange(page + 1)}
-                        disabled={page >= totalPages}
-                    >
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
-                </div>
-            )}
+            <div className="flex items-center justify-between px-5 py-3 border-t border-border">
+                <span className="text-[13px] text-muted-foreground">
+                    Showing {startItem}-{endItem} of {total}
+                </span>
+                {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => onPageChange(page - 1)}
+                            disabled={page <= 1}
+                            className="h-8 w-8"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => i + 1).map((pageNum) => (
+                            <Button
+                                key={pageNum}
+                                variant={pageNum === page ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => onPageChange(pageNum)}
+                                className={`h-8 min-w-8 px-2.5 text-[13px] ${pageNum !== page ? 'bg-transparent hover:bg-transparent text-muted-foreground hover:text-foreground' : ''}`}
+                            >
+                                {pageNum}
+                            </Button>
+                        ))}
+                        <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => onPageChange(page + 1)}
+                            disabled={page >= totalPages}
+                            className="h-8 w-8"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

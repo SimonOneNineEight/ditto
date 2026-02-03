@@ -1,11 +1,14 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Suspense, useEffect, useState, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { ApplicationTable } from './application-table';
 import { createColumns } from './application-table/columns';
 import { ApplicationFilters } from './application-filters';
 import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import {
     getApplications,
     getApplicationStatuses,
@@ -20,7 +23,7 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 
-const ApplicationPage = () => {
+const ApplicationPageContent = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -174,7 +177,15 @@ const ApplicationPage = () => {
         <>
             <PageHeader
                 title="Applications"
-                subtitle="Track and manage your job applications"
+                subtitle="Manage and track all your job applications"
+                actions={
+                    <Link href="/applications/new">
+                        <Button size="sm">
+                            <Plus className="h-4 w-4 mr-1" />
+                            Application
+                        </Button>
+                    </Link>
+                }
             />
             <ApplicationFilters
                 statuses={statuses}
@@ -210,5 +221,15 @@ const ApplicationPage = () => {
         </>
     );
 };
+
+const ApplicationPage = () => (
+    <Suspense fallback={
+        <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+    }>
+        <ApplicationPageContent />
+    </Suspense>
+);
 
 export default ApplicationPage;

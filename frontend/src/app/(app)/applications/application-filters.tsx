@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
+import { format, parse } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,6 +13,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
     type ApplicationStatus,
     type ApplicationFilters as Filters,
@@ -34,12 +36,10 @@ export function ApplicationFilters({
 }: ApplicationFiltersProps) {
     const [companyInput, setCompanyInput] = useState(currentFilters.company_name || '');
 
-    // Sync company input with URL params on external changes
     useEffect(() => {
         setCompanyInput(currentFilters.company_name || '');
     }, [currentFilters.company_name]);
 
-    // Debounced company name filter
     useEffect(() => {
         const timeout = setTimeout(() => {
             const trimmed = companyInput.trim();
@@ -60,17 +60,17 @@ export function ApplicationFilters({
         });
     }, [currentFilters, onFilterChange]);
 
-    const handleDateFromChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleDateFromChange = useCallback((date: Date | undefined) => {
         onFilterChange({
             ...currentFilters,
-            date_from: e.target.value || undefined,
+            date_from: date ? format(date, 'yyyy-MM-dd') : undefined,
         });
     }, [currentFilters, onFilterChange]);
 
-    const handleDateToChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleDateToChange = useCallback((date: Date | undefined) => {
         onFilterChange({
             ...currentFilters,
-            date_to: e.target.value || undefined,
+            date_to: date ? format(date, 'yyyy-MM-dd') : undefined,
         });
     }, [currentFilters, onFilterChange]);
 
@@ -81,21 +81,35 @@ export function ApplicationFilters({
         onFilterChange(updated);
     }, [currentFilters, onFilterChange]);
 
-    // Get status name by ID
     const getStatusName = (id: string) => {
         return statuses.find(s => s.id === id)?.name || id;
     };
 
+    const parseDateString = (dateStr: string | undefined): Date | undefined => {
+        if (!dateStr) return undefined;
+        return parse(dateStr, 'yyyy-MM-dd', new Date());
+    };
+
     return (
-        <div className="mb-4 space-y-3">
-            {/* Filter Controls */}
+        <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2.5 w-[200px] border-b border-border py-1">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="text"
+                        placeholder="Search company..."
+                        value={companyInput}
+                        onChange={(e) => setCompanyInput(e.target.value)}
+                        className="border-0 p-0 h-auto"
+                    />
+                </div>
+
                 <Select
                     value={currentFilters.status_id || 'all'}
                     onValueChange={handleStatusChange}
                 >
-                    <SelectTrigger className="w-[160px] h-9 text-sm">
-                        <SelectValue placeholder="Status" />
+                    <SelectTrigger className="w-[160px] h-auto text-sm border-0 border-b border-border rounded-none bg-transparent px-0 py-1 focus:ring-0">
+                        <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Statuses</SelectItem>
@@ -107,27 +121,16 @@ export function ApplicationFilters({
                     </SelectContent>
                 </Select>
 
-                <Input
-                    placeholder="Search company..."
-                    value={companyInput}
-                    onChange={(e) => setCompanyInput(e.target.value)}
-                    className="w-[180px] h-9 text-sm"
-                />
-
                 <div className="flex items-center gap-2">
-                    <Input
-                        type="date"
-                        value={currentFilters.date_from || ''}
+                    <DatePicker
+                        value={parseDateString(currentFilters.date_from)}
                         onChange={handleDateFromChange}
-                        className="w-[140px] h-9 text-sm"
                         placeholder="From"
                     />
-                    <span className="text-muted-foreground text-xs">to</span>
-                    <Input
-                        type="date"
-                        value={currentFilters.date_to || ''}
+                    <span className="text-muted-foreground text-sm">to</span>
+                    <DatePicker
+                        value={parseDateString(currentFilters.date_to)}
                         onChange={handleDateToChange}
-                        className="w-[140px] h-9 text-sm"
                         placeholder="To"
                     />
                 </div>
@@ -137,14 +140,13 @@ export function ApplicationFilters({
                         variant="ghost"
                         size="sm"
                         onClick={onClear}
-                        className="h-9 text-xs"
+                        className="h-auto py-1 text-sm"
                     >
                         Clear Filters
                     </Button>
                 )}
             </div>
 
-            {/* Active Filter Chips */}
             {hasActiveFilters && (
                 <div className="flex flex-wrap items-center gap-2">
                     {currentFilters.status_id && (

@@ -45,7 +45,7 @@ interface SortableHeaderProps {
 const SortableHeader = ({ label, columnId, sortState, onSort, className }: SortableHeaderProps) => {
     const sortColumn = sortColumnMap[columnId];
     if (!sortColumn || !onSort) {
-        return <span className={className}>{label}</span>;
+        return <span className={`text-xs font-semibold text-muted-foreground ${className || ''}`}>{label}</span>;
     }
 
     const isActive = sortState?.column === sortColumn;
@@ -56,16 +56,16 @@ const SortableHeader = ({ label, columnId, sortState, onSort, className }: Sorta
         <Button
             variant="ghost"
             size="sm"
-            className={`-ml-3 h-8 ${className || ''}`}
+            className={`-ml-3 h-8 px-2 text-xs font-semibold text-muted-foreground hover:text-foreground ${className || ''}`}
             onClick={(e) => {
                 e.stopPropagation();
                 onSort(sortColumn);
             }}
         >
             <span>{label}</span>
-            {isAsc && <ArrowUp className="ml-1 h-4 w-4" />}
-            {isDesc && <ArrowDown className="ml-1 h-4 w-4" />}
-            {!isActive && <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />}
+            {isAsc && <ArrowUp className="ml-1 h-3 w-3" />}
+            {isDesc && <ArrowDown className="ml-1 h-3 w-3" />}
+            {!isActive && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
         </Button>
     );
 };
@@ -128,7 +128,17 @@ export const createColumns = (
         cell: ({ row }) => {
             const statusName = row.original.status?.name;
             if (!statusName) return '—';
-            return <Badge>{statusName}</Badge>;
+            // Map status names to badge variants
+            const variantMap: Record<string, 'applied' | 'screening' | 'interviewing' | 'offered' | 'rejected' | 'withdrawn' | 'default'> = {
+                'Applied': 'applied',
+                'Screening': 'screening',
+                'Interviewing': 'interviewing',
+                'Offered': 'offered',
+                'Rejected': 'rejected',
+                'Withdrawn': 'withdrawn',
+            };
+            const variant = variantMap[statusName] || 'default';
+            return <Badge variant={variant}>{statusName}</Badge>;
         },
     },
     {
@@ -147,8 +157,8 @@ export const createColumns = (
         meta: { className: 'hidden lg:table-cell' },
         cell: ({ row }) => {
             const location = row.original.job?.location;
-            if (!location) return '—';
-            return <Badge variant="outline">{location}</Badge>;
+            if (!location) return <span className="text-muted-foreground">—</span>;
+            return <span className="text-[13px] text-muted-foreground">{location}</span>;
         },
     },
     {
@@ -167,25 +177,25 @@ export const createColumns = (
         meta: { className: 'hidden md:table-cell' },
         cell: ({ row }) => {
             const date = row.original.applied_at;
-            if (!date) return '—';
-            return format(new Date(date), 'MMM d, yyyy');
+            if (!date) return <span className="text-muted-foreground">—</span>;
+            return <span className="text-[13px] text-muted-foreground">{format(new Date(date), 'MMM d, yyyy')}</span>;
         },
     },
     {
         id: 'jobType',
-        header: () => <span className="hidden lg:inline">Type</span>,
+        header: () => <span className="hidden lg:inline text-xs font-semibold text-muted-foreground">Type</span>,
         minSize: 80,
         maxSize: 120,
         meta: { className: 'hidden lg:table-cell' },
         cell: ({ row }) => {
             const jobType = row.original.job?.job_type;
-            if (!jobType) return '—';
-            return <Badge variant="outline">{jobType}</Badge>;
+            if (!jobType) return <span className="text-muted-foreground">—</span>;
+            return <span className="text-[13px] text-muted-foreground">{jobType}</span>;
         },
     },
     {
         id: 'actions',
-        header: 'Actions',
+        header: () => <span className="text-xs font-semibold text-muted-foreground">Actions</span>,
         minSize: 100,
         maxSize: 120,
         cell: ({ row }) => {
