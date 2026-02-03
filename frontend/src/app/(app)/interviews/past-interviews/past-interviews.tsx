@@ -8,8 +8,6 @@ import React from 'react';
 import { PastInterviewRow } from './interview-row';
 import { columns } from './interview-row-column';
 
-type Props = {};
-
 const interviews = [
     {
         company: 'Google',
@@ -45,11 +43,12 @@ const interviews = [
     },
 ];
 
-const PastInterviews = (props: Props) => {
+const PastInterviews = () => {
     return (
         <div className="w-full min-w-0">
             {interviews.map((position) => (
                 <Accordion
+                    key={`${position.company}-${position.position}`}
                     type="multiple"
                     defaultValue={interviews.map(
                         (pos) => `${pos.company}-${pos.position}`
@@ -70,7 +69,7 @@ const PastInterviews = (props: Props) => {
                                         key="date"
                                         type="multiple"
                                         defaultValue={interviews.map(
-                                            (_) =>
+                                            () =>
                                                 `${position.company}-${position.position}-${date}`
                                         )}
                                     >

@@ -29,7 +29,7 @@ const registerSchema = z
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-const page = () => {
+const RegisterPage = () => {
     const router = useRouter();
     const {
         register,
@@ -58,7 +58,7 @@ const page = () => {
             } else {
                 router.push('/');
             }
-        } catch (error) {
+        } catch {
             setError('Registration failed. Please try again.');
         }
     };
@@ -173,4 +173,4 @@ const page = () => {
     );
 };
 
-export default page;
+export default RegisterPage;

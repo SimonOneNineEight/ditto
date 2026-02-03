@@ -10,7 +10,8 @@ import {
     type StorageStats,
     type UserFile,
 } from '@/services/storage-service';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Upload } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function FilesPage() {
     const [stats, setStats] = useState<StorageStats | null>(null);
@@ -54,7 +55,13 @@ export default function FilesPage() {
         <>
             <PageHeader
                 title="Files"
-                subtitle="Manage your uploaded documents"
+                subtitle="Manage your resumes, cover letters, and other documents"
+                actions={
+                    <Button size="sm">
+                        <Upload className="h-4 w-4 mr-1" />
+                        Upload
+                    </Button>
+                }
             />
 
             <section className="min-w-0">

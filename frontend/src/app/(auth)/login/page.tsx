@@ -10,7 +10,6 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
 import MarketBanner from '../components/market-banner';
 import { Separator } from '@/components/ui/separator';
-import { SiGithub } from '@icons-pack/react-simple-icons';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import OAuthButtons from '../components/oauth-buttons';
@@ -22,7 +21,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-const page = () => {
+const LoginPage = () => {
     const router = useRouter();
     const {
         register,
@@ -116,7 +115,7 @@ const page = () => {
                                 href="/register"
                                 className="text-sm link-primary"
                             >
-                                Don't have an account? Register here
+                                Don&apos;t have an account? Register here
                             </Link>
                         </CardFooter>
                     </CardContent>
@@ -126,4 +125,4 @@ const page = () => {
     );
 };
 
-export default page;
+export default LoginPage;

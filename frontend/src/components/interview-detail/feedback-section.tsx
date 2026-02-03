@@ -8,8 +8,6 @@ import { Badge } from '@/components/ui/badge';
 
 interface FeedbackSectionProps {
     notes: InterviewNote[];
-    interviewId: string;
-    onUpdate: () => void;
 }
 
 const NOTE_TYPE_CONFIG: Record<
@@ -43,10 +41,7 @@ const NOTE_TYPE_CONFIG: Record<
     },
 };
 
-export const FeedbackSection = ({
-    notes,
-    onUpdate,
-}: FeedbackSectionProps) => {
+export const FeedbackSection = ({ notes }: FeedbackSectionProps) => {
     const isEmpty = notes.length === 0;
 
     const handleAddNote = () => {

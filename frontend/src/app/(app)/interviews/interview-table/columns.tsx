@@ -11,7 +11,6 @@ import {
     startOfDay,
 } from 'date-fns';
 import { Pencil, Trash2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import {
     InterviewListItem,

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable, TableMeta, RowData } from "@tanstack/react-table"
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable, RowData } from "@tanstack/react-table"
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 import { jobService } from "@/services/job-service"
@@ -11,11 +11,12 @@ import { ScrapeButton } from '.'
 
 
 interface JobTableProps {
-    columns: ColumnDef<JobTableRow, any>[],
+    columns: ColumnDef<JobTableRow, unknown>[],
     data: JobTableRow[]
 }
 
 declare module "@tanstack/react-table" {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface TableMeta<TData extends RowData> {
         handleStatusChange?: (id: string, newStatus: string) => Promise<void>
     }
@@ -23,19 +24,15 @@ declare module "@tanstack/react-table" {
 
 
 const JobTable = ({ columns, data }: JobTableProps) => {
-    const [isLoading, setIsLoading] = useState(false);
     const [jobs, setJobs] = useState<JobTableRow[]>(data || []);
 
     const handleStatusChange = async (id: string, newStatus: string) => {
-        setIsLoading(true);
         try {
             await jobService.handleStatusChange(id, newStatus);
             const newData = await jobService.getAllJobs();
             setJobs(convertJobResponseToTableRow(newData));
         } catch (error) {
             console.error('Status change failed: ', error);
-        } finally {
-            setIsLoading(false);
         }
     }
 

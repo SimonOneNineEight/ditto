@@ -4,12 +4,6 @@ import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import { Pencil, Trash, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 // Simple meta interface for Tailwind classes
 export interface ColumnMeta {
@@ -26,7 +20,7 @@ export type InterviewRow = {
     interviewerUrl: string;
 };
 
-export const columns: (ColumnDef<InterviewRow, any> & { meta?: ColumnMeta })[] =
+export const columns: (ColumnDef<InterviewRow, unknown> & { meta?: ColumnMeta })[] =
     [
         {
             accessorKey: 'interviewDate',
@@ -89,7 +83,7 @@ export const columns: (ColumnDef<InterviewRow, any> & { meta?: ColumnMeta })[] =
         {
             id: 'action',
             header: 'Actions',
-            cell: ({ row }) => {
+            cell: () => {
                 return (
                     <div className="flex items-center gap-2">
                         <FileText size={16} />

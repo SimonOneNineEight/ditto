@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Suspense, useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, Plus } from 'lucide-react';
+import { Calendar, Loader2, Plus } from 'lucide-react';
 import { startOfDay, parseISO } from 'date-fns';
 
 import { InterviewTable } from './interview-table/interview-table';
@@ -60,7 +60,7 @@ function filterMainTableInterviews(interviews: InterviewListItem[]): InterviewLi
     return interviews.filter((interview) => !needsFeedbackIds.has(interview.id));
 }
 
-const InterviewPage = () => {
+const InterviewPageContent = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [allInterviews, setAllInterviews] = useState<InterviewListItem[]>([]);
@@ -196,5 +196,15 @@ const InterviewPage = () => {
         </>
     );
 };
+
+const InterviewPage = () => (
+    <Suspense fallback={
+        <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+    }>
+        <InterviewPageContent />
+    </Suspense>
+);
 
 export default InterviewPage;

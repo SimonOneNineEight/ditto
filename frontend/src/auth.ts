@@ -64,7 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         accessTokenExpires: Date.now() + ACCESS_TOKEN_TTL,
                         backendUserId: response.user.id,
                     };
-                } catch (error) {
+                } catch {
                     return null;
                 }
             },

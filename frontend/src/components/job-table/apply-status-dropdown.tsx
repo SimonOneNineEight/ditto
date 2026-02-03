@@ -18,7 +18,7 @@ const dropdownItems = [
 
 type Status = typeof dropdownItems[number]['id']
 
-const statusLabelMap = {
+const statusLabelMap: Record<Status, string> = {
     not_applied: "Not Applied",
     applied: "Applied",
     offered: "Offered",
