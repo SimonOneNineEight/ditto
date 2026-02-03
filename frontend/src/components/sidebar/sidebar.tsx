@@ -19,8 +19,6 @@ import { NavUser } from './nav-user';
 import { X } from 'lucide-react';
 import { Button } from '../ui/button';
 
-type Props = {};
-
 const suezOne = Suez_One({
     weight: '400',
     subsets: ['latin'],

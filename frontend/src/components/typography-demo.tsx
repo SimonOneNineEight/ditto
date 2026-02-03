@@ -111,12 +111,12 @@ export function TypographyDemo() {
                 <h3 className="text-headline font-semibold mb-4">Text Elements</h3>
                 <div className="space-y-4 border rounded-lg p-6 bg-muted/20">
                     <p>
-                        This is a paragraph with normal text. It includes <strong>strong text</strong>, <em>emphasized text</em>, 
-                        and <a href="#" className="link-primary">a primary link</a>. Here's some <code>inline code</code> as well.
+                        This is a paragraph with normal text. It includes <strong>strong text</strong>, <em>emphasized text</em>,
+                        and <a href="#" className="link-primary">a primary link</a>. Here&apos;s some <code>inline code</code> as well.
                     </p>
-                    
+
                     <blockquote>
-                        "This is a blockquote that demonstrates how quoted text appears in the design system."
+                        &quot;This is a blockquote that demonstrates how quoted text appears in the design system.&quot;
                     </blockquote>
 
                     <ul>
