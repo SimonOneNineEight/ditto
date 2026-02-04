@@ -126,12 +126,14 @@ export function ApplicationFilters({
                         value={parseDateString(currentFilters.date_from)}
                         onChange={handleDateFromChange}
                         placeholder="From"
+                        className="w-[140px]"
                     />
                     <span className="text-muted-foreground text-sm">to</span>
                     <DatePicker
                         value={parseDateString(currentFilters.date_to)}
                         onChange={handleDateToChange}
                         placeholder="To"
+                        className="w-[140px]"
                     />
                 </div>
 

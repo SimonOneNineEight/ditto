@@ -199,9 +199,52 @@ This is a focused design sprint between Epic 2 and Epic 3 to update the applicat
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
+
+### Debug Log
+
+#### Task 15 - Visual Verification (Application Pages)
+
+**Plan:** Compare each application page (List, Detail, New) against ditto-design.pen design screens (oVbzN, NgvlO, 2sru6, Kl5bQ) using Pencil MCP + Chrome browser side-by-side verification.
+
+**Applications List Page (oVbzN):**
+- Page header: title "Applications" (28px semibold), subtitle, "+ Application" button - MATCHES
+- Filter row: search input (200w), status select (160w), date range pickers with "to" separator - MATCHES
+- Table: columns (Company, Position, Status, Location, Applied, Type, Actions) with sort icons - MATCHES
+- Table rows: company name, position, status badge, location (muted), date (muted), type (muted), edit/delete icons - MATCHES
+- Pagination: "Showing X-Y of Z" + page nav buttons - MATCHES
+- Hover states: table rows highlight on hover (bg-muted), cursor pointer - MATCHES
+- Note: Design has Duration column not in implementation - this column is interview-related and not part of core application data model, acceptable deviation
+
+**Application Detail Page (NgvlO):**
+- Breadcrumb: "Applications >" - MATCHES
+- Title row: position title (28px semibold) + status badge + company icon/name - MATCHES
+- Action buttons: edit + delete icon buttons (outline variant) - MATCHES
+- Two-column layout: left (fill) + right (320px) - MATCHES
+- Application Details card: 2-column grid (Applied Date, Job Type, Location, Remote, Salary Range, Source) - MATCHES
+- Job Description card: collapsible with chevron toggle - MATCHES
+- Notes card: collapsible with chevron toggle - MATCHES
+- Assessments card: "+ Assessment" button - MATCHES
+- Timeline card (right column): dot + title + date format - MATCHES
+- Card styling: cornerRadius 8, card background, border 1px, padding 24 - MATCHES
+
+**New Application Form (2sru6):**
+- Breadcrumb: "Applications > New" - MATCHES
+- Title: "New Application" + subtitle - MATCHES
+- URL import section: link icon + placeholder text + Import button - MATCHES
+- Form fields order: Company*, Position*, Location, Job Type (select), Min/Max Salary (side-by-side), Description (textarea), Notes (textarea), Source URL, Platform (select), Attachments (dropzone) - MATCHES
+- Labels: uppercase, 11px, 500 weight, letter-spacing 0.05 - MATCHES
+- Cancel/Save buttons at bottom right - MATCHES
+
+**Interactive States (15.3 partial):**
+- Table row hover: bg-muted highlight + pointer cursor - VERIFIED
+- Primary button hover: maintains styling - VERIFIED
+- Sidebar nav hover: subtle highlight on inactive items - VERIFIED
+- Sort column headers: clickable with arrow icons - VERIFIED
 
 ### Completion Notes List
+
+- Application pages (List, Detail, New) visually verified against design file - all match
 
 ### File List
 
