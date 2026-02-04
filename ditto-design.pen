@@ -14358,6 +14358,115 @@
                 },
                 {
                   "type": "frame",
+                  "id": "CvZuu",
+                  "name": "salaryRow",
+                  "width": "fill_container",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "K7H7N",
+                      "name": "minSalaryField",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "iBYxT",
+                          "name": "minLabel",
+                          "fill": "$--muted-foreground",
+                          "content": "MIN SALARY",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "500",
+                          "letterSpacing": 0.05
+                        },
+                        {
+                          "type": "frame",
+                          "id": "eu3MD",
+                          "name": "minSalaryInput",
+                          "width": "fill_container",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": {
+                              "bottom": 1
+                            },
+                            "fill": "$--border"
+                          },
+                          "padding": [
+                            4,
+                            0
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "caoN5",
+                              "name": "minText",
+                              "fill": "$--muted-foreground",
+                              "content": "$0",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Ng0su",
+                      "name": "maxSalaryField",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "cg9de",
+                          "name": "maxLabel",
+                          "fill": "$--muted-foreground",
+                          "content": "MAX SALARY",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "500",
+                          "letterSpacing": 0.05
+                        },
+                        {
+                          "type": "frame",
+                          "id": "M8qJw",
+                          "name": "maxSalaryInput",
+                          "width": "fill_container",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": {
+                              "bottom": 1
+                            },
+                            "fill": "$--border"
+                          },
+                          "padding": [
+                            4,
+                            0
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "R3FpB",
+                              "name": "maxText",
+                              "fill": "$--muted-foreground",
+                              "content": "$0",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
                   "id": "6iKLt",
                   "name": "descriptionField",
                   "width": "fill_container",
