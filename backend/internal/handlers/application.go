@@ -229,26 +229,65 @@ func (h *ApplicationHandler) UpdateApplication(c *gin.Context) {
 		return
 	}
 
-	var updates map[string]any
-	if err := c.ShouldBindJSON(&updates); err != nil {
+	var req QuickCreateApplicationReq
+	if err := c.ShouldBindJSON(&req); err != nil {
 		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid request body"))
 		return
 	}
 
-	// Remove fields that shouldn't be updated directly
-	delete(updates, "id")
-	delete(updates, "user_id")
-	delete(updates, "created_at")
-	delete(updates, "updated_at")
-	delete(updates, "deleted_at")
-
-	updatedApplication, err := h.applicationRepo.UpdateApplication(applicationID, userID, updates)
+	// Get existing application to find its job_id
+	existingApp, err := h.applicationRepo.GetApplicationByID(applicationID, userID)
 	if err != nil {
 		HandleError(c, err)
 		return
 	}
 
-	response.Success(c, updatedApplication)
+	// Update or create company
+	company, err := h.companyRepo.GetOrCreateCompany(req.CompanyName, nil)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	// Update the job
+	jobUpdates := map[string]any{
+		"company_id":      company.ID,
+		"title":           req.Title,
+		"job_description": req.Description,
+		"location":        req.Location,
+		"job_type":        req.JobType,
+	}
+	if req.SourceURL != "" {
+		jobUpdates["source_url"] = req.SourceURL
+	}
+	if req.Platform != "" {
+		jobUpdates["platform"] = req.Platform
+	}
+
+	_, err = h.jobRepo.UpdateJob(existingApp.JobID, userID, jobUpdates)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	// Update application-level fields (notes)
+	appUpdates := map[string]any{}
+	if req.Notes != "" {
+		appUpdates["notes"] = req.Notes
+	}
+
+	if len(appUpdates) > 0 {
+		_, err = h.applicationRepo.UpdateApplication(applicationID, userID, appUpdates)
+		if err != nil {
+			HandleError(c, err)
+			return
+		}
+	}
+
+	// Return updated application with details
+	response.Success(c, gin.H{
+		"id": applicationID,
+	})
 }
 
 // PATCH /api/applications/:id/status

@@ -192,7 +192,8 @@ func (r *ApplicationRepository) GetApplicationsWithDetails(userID uuid.UUID, fil
 	baseQuery := `
         SELECT a.id, a.user_id, a.job_id, a.application_status_id, a.applied_at, a.offer_received, a.attempt_number, a.notes, a.created_at, a.updated_at,
             j.id as "job.id", j.company_id as "job.company_id", j.title as "job.title", j.job_description as "job.job_description", j.location as "job.location",
-            j.job_type as "job.job_type", j.min_salary as "job.min_salary", j.max_salary as "job.max_salary",
+            j.job_type as "job.job_type", j.source_url as "job.source_url", j.platform as "job.platform",
+            j.min_salary as "job.min_salary", j.max_salary as "job.max_salary",
             j.currency as "job.currency", j.is_expired as "job.is_expired", j.created_at as "job.created_at", j.updated_at as "job.updated_at",
             c.id as "company.id", c.name as "company.name", c.description as "company.description", c.website as "company.website",
             c.logo_url as "company.logo_url", c.created_at as "company.created_at", c.updated_at as "company.updated_at",
@@ -225,7 +226,7 @@ func (r *ApplicationRepository) GetApplicationsWithDetails(userID uuid.UUID, fil
 		err := rows.Scan(
 			&application.ID, &application.UserID, &application.JobID, &application.ApplicationStatusID, &application.AppliedAt, &application.OfferReceived, &application.AttemptNumber, &application.Notes, &application.CreatedAt, &application.UpdatedAt,
 			&job.ID, &job.CompanyID, &job.Title, &job.JobDescription,
-			&job.Location, &job.JobType, &job.MinSalary, &job.MaxSalary, &job.Currency,
+			&job.Location, &job.JobType, &job.SourceURL, &job.Platform, &job.MinSalary, &job.MaxSalary, &job.Currency,
 			&job.IsExpired, &job.CreatedAt, &job.UpdatedAt,
 			&company.ID, &company.Name, &company.Description, &company.Website,
 			&company.LogoURL, &company.CreatedAt, &company.UpdatedAt,
@@ -302,7 +303,8 @@ func (r *ApplicationRepository) GetRecentApplications(userID uuid.UUID, limit in
 	query := `
         SELECT a.id, a.user_id, a.job_id, a.application_status_id, a.applied_at, a.offer_received, a.attempt_number, a.notes, a.created_at, a.updated_at,
             j.id as "job.id", j.company_id as "job.company_id", j.title as "job.title", j.job_description as "job.job_description", j.location as "job.location",
-            j.job_type as "job.job_type", j.min_salary as "job.min_salary", j.max_salary as "job.max_salary",
+            j.job_type as "job.job_type", j.source_url as "job.source_url", j.platform as "job.platform",
+            j.min_salary as "job.min_salary", j.max_salary as "job.max_salary",
             j.currency as "job.currency", j.is_expired as "job.is_expired", j.created_at as "job.created_at", j.updated_at as "job.updated_at",
             c.id as "company.id", c.name as "company.name", c.description as "company.description", c.website as "company.website",
             c.logo_url as "company.logo_url", c.created_at as "company.created_at", c.updated_at as "company.updated_at",
@@ -337,7 +339,7 @@ func (r *ApplicationRepository) GetRecentApplications(userID uuid.UUID, limit in
 		err := rows.Scan(
 			&application.ID, &application.UserID, &application.JobID, &application.ApplicationStatusID, &application.AppliedAt, &application.OfferReceived, &application.AttemptNumber, &application.Notes, &application.CreatedAt, &application.UpdatedAt,
 			&job.ID, &job.CompanyID, &job.Title, &job.JobDescription,
-			&job.Location, &job.JobType, &job.MinSalary, &job.MaxSalary, &job.Currency,
+			&job.Location, &job.JobType, &job.SourceURL, &job.Platform, &job.MinSalary, &job.MaxSalary, &job.Currency,
 			&job.IsExpired, &job.CreatedAt, &job.UpdatedAt,
 			&company.ID, &company.Name, &company.Description, &company.Website,
 			&company.LogoURL, &company.CreatedAt, &company.UpdatedAt,

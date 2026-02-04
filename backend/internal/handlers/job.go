@@ -185,19 +185,7 @@ func (h *JobHandler) UpdateJob(c *gin.Context) {
 		return
 	}
 
-	_, err = h.companyRepo.GetCompanyByID(*req.CompanyID)
-	if err != nil {
-		if errors.IsNotFoundError(err) {
-			HandleError(c, errors.New(errors.ErrorNotFound, "company not found"))
-			return
-		}
-
-		HandleError(c, err)
-		return
-	}
-
 	updates := map[string]any{
-		"company_id":      req.CompanyID,
 		"title":           req.Title,
 		"job_description": req.JobDescription,
 		"location":        req.Location,
@@ -205,6 +193,19 @@ func (h *JobHandler) UpdateJob(c *gin.Context) {
 		"min_salary":      req.MinSalary,
 		"max_salary":      req.MaxSalary,
 		"currency":        req.Currency,
+	}
+
+	if req.CompanyID != nil {
+		_, err = h.companyRepo.GetCompanyByID(*req.CompanyID)
+		if err != nil {
+			if errors.IsNotFoundError(err) {
+				HandleError(c, errors.New(errors.ErrorNotFound, "company not found"))
+				return
+			}
+			HandleError(c, err)
+			return
+		}
+		updates["company_id"] = req.CompanyID
 	}
 
 	updatedJob, err := h.jobRepo.UpdateJob(jobID, userID, updates)
