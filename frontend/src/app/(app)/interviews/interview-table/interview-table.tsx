@@ -35,9 +35,9 @@ export function InterviewTable({ columns, data }: DataTableProps) {
     const router = useRouter();
 
     return (
-        <div className="w-full rounded-md">
+        <div className="w-full overflow-hidden rounded-lg">
             <div className="overflow-x-auto w-full">
-                <Table className="table-fixed min-w-[768px] w-full mb-2">
+                <Table className="table-fixed min-w-[768px] w-full">
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
@@ -79,7 +79,7 @@ export function InterviewTable({ columns, data }: DataTableProps) {
                                         )
                                     }
                                     className={cn(
-                                        'cursor-pointer',
+                                        'cursor-pointer hover:bg-muted',
                                         getRowBorderClass(
                                             row.original.scheduled_date,
                                             row.original.outcome

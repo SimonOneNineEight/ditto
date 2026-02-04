@@ -199,7 +199,7 @@ export const columns: (ColumnDef<InterviewListItem, unknown> & {
     },
     {
         id: 'action',
-        header: 'Action',
+        header: 'Actions',
         cell: () => {
             return (
                 <div className="flex items-center gap-2">

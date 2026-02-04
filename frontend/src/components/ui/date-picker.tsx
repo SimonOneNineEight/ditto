@@ -29,7 +29,7 @@ function DatePicker({ value, onChange, placeholder = "Select date...", className
           <button
             type="button"
             className={cn(
-              "flex items-center justify-between w-[140px] border-b border-border px-0 py-1 font-normal text-sm bg-transparent",
+              "flex items-center justify-between border-b border-border px-0 py-1 font-normal text-sm bg-transparent",
               !value && "text-muted-foreground",
               className
             )}

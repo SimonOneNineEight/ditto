@@ -157,11 +157,13 @@ const InterviewPageContent = () => {
             />
 
             {!hasInterviews ? (
-                <div className="flex flex-col items-center justify-center py-16 border rounded-lg bg-muted/20">
-                    <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No upcoming interviews</h3>
-                    <p className="text-muted-foreground mb-4">
-                        Schedule your first interview to get started
+                <div className="flex flex-col items-center justify-center border border-border rounded-lg p-10 gap-4">
+                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted">
+                        <Calendar className="h-7 w-7 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-base font-semibold">No interviews scheduled</h3>
+                    <p className="text-sm text-muted-foreground text-center max-w-[280px]">
+                        Schedule your first interview to start tracking your progress.
                     </p>
                     <Link href="/applications">
                         <Button variant="default">
@@ -171,7 +173,7 @@ const InterviewPageContent = () => {
                     </Link>
                 </div>
             ) : (
-                <div className="space-y-8">
+                <div className="space-y-6">
                     <NeedsFeedbackSection interviews={allInterviews} />
 
                     <section className="space-y-4">

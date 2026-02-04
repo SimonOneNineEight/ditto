@@ -24,6 +24,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { TimePicker } from '@/components/ui/time-picker';
 
 import { createInterview, Interview } from '@/services/interview-service';
 
@@ -36,6 +38,15 @@ const INTERVIEW_TYPES = [
     { value: 'other', label: 'Other' },
 ] as const;
 
+const DURATION_OPTIONS = [
+    { value: '15', label: '15 minutes' },
+    { value: '30', label: '30 minutes' },
+    { value: '45', label: '45 minutes' },
+    { value: '60', label: '60 minutes' },
+    { value: '90', label: '90 minutes' },
+    { value: '120', label: '120 minutes' },
+];
+
 const formSchema = z.object({
     interview_type: z.enum(
         ['phone_screen', 'technical', 'behavioral', 'panel', 'onsite', 'other'],
@@ -43,12 +54,9 @@ const formSchema = z.object({
             required_error: 'Please select an interview type',
         }
     ),
-    scheduled_date: z.string().min(1, 'Date is required'),
+    scheduled_date: z.date({ required_error: 'Date is required' }),
     scheduled_time: z.string().optional(),
-    duration_minutes: z
-        .union([z.number().positive(), z.nan()])
-        .optional()
-        .transform((val) => (Number.isNaN(val) ? undefined : val)),
+    duration_minutes: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -69,7 +77,6 @@ export const InterviewFormModal = ({
     currentInterviewCount = 0,
 }: InterviewFormModalProps) => {
     const {
-        register,
         control,
         handleSubmit,
         reset,
@@ -78,8 +85,8 @@ export const InterviewFormModal = ({
         resolver: zodResolver(formSchema),
         mode: 'onChange',
         defaultValues: {
-            scheduled_date: format(new Date(), 'yyyy-MM-dd'),
-            duration_minutes: 30,
+            scheduled_date: new Date(),
+            duration_minutes: '60',
         },
     });
 
@@ -90,9 +97,11 @@ export const InterviewFormModal = ({
             const interview = await createInterview({
                 application_id: applicationId,
                 interview_type: data.interview_type,
-                scheduled_date: data.scheduled_date,
+                scheduled_date: format(data.scheduled_date, 'yyyy-MM-dd'),
                 scheduled_time: data.scheduled_time || undefined,
-                duration_minutes: data.duration_minutes || undefined,
+                duration_minutes: data.duration_minutes
+                    ? parseInt(data.duration_minutes, 10)
+                    : undefined,
             });
 
             toast.success('Interview created successfully');
@@ -108,13 +117,18 @@ export const InterviewFormModal = ({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>
-                        Add Interview - Round {nextRoundNumber}
-                    </DialogTitle>
+                    <DialogTitle>Add Interview</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label>Interview Type *</Label>
+                    <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-muted-foreground">Round (auto)</Label>
+                        <div className="flex items-center rounded-md bg-muted px-3.5 py-3 text-sm font-medium text-muted-foreground">
+                            Round {nextRoundNumber}
+                        </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-muted-foreground">Interview Type</Label>
                         <Controller
                             name="interview_type"
                             control={control}
@@ -147,38 +161,69 @@ export const InterviewFormModal = ({
                         )}
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>Scheduled Date *</Label>
-                        <Input
-                            type="date"
-                            disabled={isSubmitting}
-                            {...register('scheduled_date')}
-                        />
-                        {errors.scheduled_date && (
-                            <p className="text-sm text-destructive">
-                                {errors.scheduled_date.message}
-                            </p>
-                        )}
+                    <div className="flex gap-3">
+                        <div className="flex-1 space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">Date</Label>
+                            <Controller
+                                name="scheduled_date"
+                                control={control}
+                                render={({ field }) => (
+                                    <DatePicker
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        className="w-full"
+                                    />
+                                )}
+                            />
+                            {errors.scheduled_date && (
+                                <p className="text-sm text-destructive">
+                                    {errors.scheduled_date.message}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="flex-1 space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">Time</Label>
+                            <Controller
+                                name="scheduled_time"
+                                control={control}
+                                render={({ field }) => (
+                                    <TimePicker
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        disabled={isSubmitting}
+                                    />
+                                )}
+                            />
+                        </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>Scheduled Time</Label>
-                        <Input
-                            type="time"
-                            disabled={isSubmitting}
-                            {...register('scheduled_time')}
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Duration (minutes)</Label>
-                        <Input
-                            type="number"
-                            placeholder="30"
-                            disabled={isSubmitting}
-                            {...register('duration_minutes', {
-                                valueAsNumber: true,
-                            })}
+                    <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-muted-foreground">Duration</Label>
+                        <Controller
+                            name="duration_minutes"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value ?? ''}
+                                    disabled={isSubmitting}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select duration" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {DURATION_OPTIONS.map((opt) => (
+                                            <SelectItem
+                                                key={opt.value}
+                                                value={opt.value}
+                                            >
+                                                {opt.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
                         />
                     </div>
 
@@ -195,7 +240,7 @@ export const InterviewFormModal = ({
                             type="submit"
                             disabled={isSubmitting || !isValid}
                         >
-                            {isSubmitting ? 'Creating...' : 'Create Interview'}
+                            {isSubmitting ? 'Adding...' : 'Add Interview'}
                         </Button>
                     </DialogFooter>
                 </form>
