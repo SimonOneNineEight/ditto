@@ -5,7 +5,8 @@ const AddApplicationPage = () => {
     return (
         <div className="w-full max-w-[720px] mx-auto">
             <PageHeader
-                title="Add Application"
+                title="New Application"
+                subtitle="Add a new job application to track"
                 breadcrumbs={[{ label: 'Applications', href: '/applications' }]}
             />
             <ApplicationForm mode="create" />

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -33,6 +34,15 @@ const JOB_TYPES = [
     { value: 'internship', label: 'Internship' },
 ] as const;
 
+const PLATFORMS = [
+    { value: 'linkedin', label: 'LinkedIn' },
+    { value: 'indeed', label: 'Indeed' },
+    { value: 'glassdoor', label: 'Glassdoor' },
+    { value: 'company-website', label: 'Company Website' },
+    { value: 'referral', label: 'Referral' },
+    { value: 'other', label: 'Other' },
+] as const;
+
 const companySchema = z.object({
     id: z.string().optional(),
     name: z.string().min(1, 'Company is required'),
@@ -48,6 +58,8 @@ const formSchema = z.object({
     jobType: z
         .enum(['full-time', 'part-time', 'contract', 'internship'])
         .optional(),
+    minSalary: z.string().optional(),
+    maxSalary: z.string().optional(),
     description: z.string().optional(),
     sourceUrl: z.string().url().optional().or(z.literal('')),
     platform: z.string().optional(),
@@ -66,6 +78,8 @@ interface ApplicationFormProps {
         position?: string;
         location?: string;
         jobType?: 'full-time' | 'part-time' | 'contract' | 'internship';
+        minSalary?: string;
+        maxSalary?: string;
         description?: string;
         sourceUrl?: string;
         platform?: string;
@@ -97,9 +111,11 @@ const ApplicationForm = ({
             position: initialData?.position || '',
             location: initialData?.location || '',
             jobType: initialData?.jobType || undefined,
+            minSalary: initialData?.minSalary || '',
+            maxSalary: initialData?.maxSalary || '',
             description: initialData?.description || '',
             sourceUrl: initialData?.sourceUrl || '',
-            platform: initialData?.platform || '',
+            platform: initialData?.platform || undefined,
             notes: initialData?.notes || '',
         },
     });
@@ -166,6 +182,8 @@ const ApplicationForm = ({
                     source_url: data.sourceUrl || undefined,
                     platform: data.platform || undefined,
                     notes: data.notes || undefined,
+                    min_salary: data.minSalary ? parseFloat(data.minSalary) : undefined,
+                    max_salary: data.maxSalary ? parseFloat(data.maxSalary) : undefined,
                 });
             } else {
                 const response = await api.post(
@@ -179,6 +197,8 @@ const ApplicationForm = ({
                         source_url: data.sourceUrl || undefined,
                         platform: data.platform || undefined,
                         notes: data.notes || undefined,
+                        min_salary: data.minSalary ? parseFloat(data.minSalary) : undefined,
+                        max_salary: data.maxSalary ? parseFloat(data.maxSalary) : undefined,
                     }
                 );
                 resultApplicationId = response.data?.data?.id;
@@ -237,105 +257,144 @@ const ApplicationForm = ({
         <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
             <UrlImport onImport={handleImport} />
 
-            <div className="space-y-3">
+            <Controller
+                name="company"
+                control={control}
+                render={({ field }) => (
+                    <CompanyAutocomplete
+                        value={field.value}
+                        onChange={field.onChange}
+                        highlight={highlightedFields.has('company')}
+                        error={errors.company?.name?.message}
+                    />
+                )}
+            />
+
+            <FormField
+                label="Position"
+                required
+                placeholder="Job title"
+                highlight={highlightedFields.has('position')}
+                error={errors.position?.message}
+                {...register('position')}
+            />
+
+            <FormField
+                label="Location"
+                placeholder="e.g. San Francisco, CA or Remote"
+                highlight={highlightedFields.has('location')}
+                {...register('location')}
+            />
+
+            <FormFieldWrapper className={highlightedFields.has('jobType') ? 'field-highlight' : ''}>
+                <FormLabel className="mb-1">Job Type</FormLabel>
                 <Controller
-                    name="company"
+                    name="jobType"
                     control={control}
                     render={({ field }) => (
-                        <CompanyAutocomplete
+                        <Select
+                            onValueChange={field.onChange}
                             value={field.value}
-                            onChange={field.onChange}
-                            highlight={highlightedFields.has('company')}
-                            error={errors.company?.name?.message}
-                        />
+                        >
+                            <SelectTrigger className="border-0 px-0 h-auto py-1 shadow-none focus:ring-0">
+                                <SelectValue placeholder="Select job type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {JOB_TYPES.map((type) => (
+                                    <SelectItem
+                                        key={type.value}
+                                        value={type.value}
+                                    >
+                                        {type.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     )}
                 />
+            </FormFieldWrapper>
 
-                <FormField
-                    label="Position"
-                    required
-                    placeholder="Job title"
-                    highlight={highlightedFields.has('position')}
-                    error={errors.position?.message}
-                    {...register('position')}
-                />
-            </div>
-
-            <div className="space-y-3">
-                <FormField
-                    label="Location"
-                    placeholder="e.g. San Francisco, CA or Remote"
-                    highlight={highlightedFields.has('location')}
-                    {...register('location')}
-                />
-
-                <FormFieldWrapper className={highlightedFields.has('jobType') ? 'field-highlight' : ''}>
-                    <FormLabel className="mb-1">Job Type</FormLabel>
-                    <Controller
-                        name="jobType"
-                        control={control}
-                        render={({ field }) => (
-                            <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                            >
-                                <SelectTrigger className="border-0 px-0 h-auto py-1 shadow-none focus:ring-0">
-                                    <SelectValue placeholder="Select job type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {JOB_TYPES.map((type) => (
-                                        <SelectItem
-                                            key={type.value}
-                                            value={type.value}
-                                        >
-                                            {type.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
+            <div className="flex gap-4">
+                <FormFieldWrapper className="flex-1">
+                    <FormLabel>Min Salary</FormLabel>
+                    <Input
+                        placeholder="$0"
+                        type="number"
+                        className="border-0 px-0 h-auto py-1 shadow-none focus-visible:ring-0"
+                        {...register('minSalary')}
+                    />
+                </FormFieldWrapper>
+                <FormFieldWrapper className="flex-1">
+                    <FormLabel>Max Salary</FormLabel>
+                    <Input
+                        placeholder="$0"
+                        type="number"
+                        className="border-0 px-0 h-auto py-1 shadow-none focus-visible:ring-0"
+                        {...register('maxSalary')}
                     />
                 </FormFieldWrapper>
             </div>
 
-            <div className="space-y-3">
-                <FormField
-                    label="Description"
-                    multiline
-                    rows={6}
-                    placeholder="What does this role involve?"
-                    highlight={highlightedFields.has('description')}
-                    {...register('description')}
-                />
-                <FormField
-                    label="Notes"
-                    multiline
-                    placeholder="Your notes about this application"
-                    {...register('notes')}
-                />
-            </div>
-
-            <div className="space-y-3">
-                <FormField
-                    label="Source URL"
-                    placeholder="https://..."
-                    highlight={highlightedFields.has('sourceUrl')}
-                    {...register('sourceUrl')}
-                />
-                <FormField
-                    label="Platform"
-                    placeholder="e.g. LinkedIn, Indeed, Company Website"
-                    highlight={highlightedFields.has('platform')}
-                    {...register('platform')}
-                />
-            </div>
-
-            <FileUpload
-                onFileSelect={setPendingFile}
-                label="Attach Resume or Cover Letter (Optional)"
+            <FormField
+                label="Description"
+                multiline
+                rows={5}
+                className="min-h-[120px]"
+                placeholder="Paste or enter the job description..."
+                highlight={highlightedFields.has('description')}
+                {...register('description')}
             />
 
-            <div className="flex justify-between items-center mt-12 pt-6">
+            <FormField
+                label="Notes"
+                multiline
+                rows={4}
+                className="min-h-[100px]"
+                placeholder="Add any personal notes about this application..."
+                {...register('notes')}
+            />
+
+            <FormField
+                label="Source URL"
+                placeholder="https://"
+                highlight={highlightedFields.has('sourceUrl')}
+                {...register('sourceUrl')}
+            />
+
+            <FormFieldWrapper className={highlightedFields.has('platform') ? 'field-highlight' : ''}>
+                <FormLabel className="mb-1">Platform</FormLabel>
+                <Controller
+                    name="platform"
+                    control={control}
+                    render={({ field }) => (
+                        <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                        >
+                            <SelectTrigger className="border-0 px-0 h-auto py-1 shadow-none focus:ring-0">
+                                <SelectValue placeholder="Select platform (e.g., LinkedIn, Indeed)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {PLATFORMS.map((p) => (
+                                    <SelectItem
+                                        key={p.value}
+                                        value={p.value}
+                                    >
+                                        {p.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
+            </FormFieldWrapper>
+
+            <FormFieldWrapper>
+                <FormLabel>Attachments</FormLabel>
+                <FileUpload onFileSelect={setPendingFile} />
+            </FormFieldWrapper>
+
+            <div className="flex justify-end items-center gap-3 mt-12 pt-6">
                 <Button type="button" variant="ghost" onClick={handleCancel}>
                     Cancel
                 </Button>
@@ -346,7 +405,7 @@ const ApplicationForm = ({
                             : 'Saving...'
                         : mode === 'edit'
                           ? 'Update'
-                          : 'Save'}
+                          : 'Save Application'}
                 </Button>
             </div>
         </form>

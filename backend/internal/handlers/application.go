@@ -31,7 +31,9 @@ type QuickCreateApplicationReq struct {
 	JobType     string `json:"job_type" binding:"omitempty,oneof=full-time part-time contract internship"`
 	SourceURL   string `json:"source_url" binding:"omitempty,url,max=2048"`
 	Platform    string `json:"platform" binding:"omitempty,max=50"`
-	Notes       string `json:"notes" binding:"max=10000"`
+	Notes       string   `json:"notes" binding:"max=10000"`
+	MinSalary   *float64 `json:"min_salary,omitempty"`
+	MaxSalary   *float64 `json:"max_salary,omitempty"`
 }
 
 func NewApplicationHandler(appState *utils.AppState) *ApplicationHandler {
@@ -182,6 +184,12 @@ func (h *ApplicationHandler) QuickCreateApplication(c *gin.Context) {
 	if req.Platform != "" {
 		job.Platform = &req.Platform
 	}
+	if req.MinSalary != nil {
+		job.MinSalary = req.MinSalary
+	}
+	if req.MaxSalary != nil {
+		job.MaxSalary = req.MaxSalary
+	}
 
 	createdJob, err := h.jobRepo.CreateJob(userID, job)
 	if err != nil {
@@ -262,6 +270,12 @@ func (h *ApplicationHandler) UpdateApplication(c *gin.Context) {
 	}
 	if req.Platform != "" {
 		jobUpdates["platform"] = req.Platform
+	}
+	if req.MinSalary != nil {
+		jobUpdates["min_salary"] = *req.MinSalary
+	}
+	if req.MaxSalary != nil {
+		jobUpdates["max_salary"] = *req.MaxSalary
 	}
 
 	_, err = h.jobRepo.UpdateJob(existingApp.JobID, userID, jobUpdates)
