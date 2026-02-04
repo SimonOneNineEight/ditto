@@ -37,7 +37,7 @@ export function FileUpload({
     onUploadComplete,
     onFileSelect,
     disabled = false,
-    label = 'Upload File',
+    label,
     className = '',
     interviewId = '',
 }: FileUploadProps) {
@@ -282,9 +282,9 @@ export function FileUpload({
                     <div className="flex flex-col items-center gap-2 text-center">
                         <Upload className="h-8 w-8 text-muted-foreground/60" />
                         <div>
-                            <p className="text-sm font-medium">{label}</p>
+                            {label && <p className="text-sm font-medium">{label}</p>}
                             <p className="text-xs text-muted-foreground mt-1">
-                                Drag & drop or click to select
+                                Drop files here or click to upload
                             </p>
                             <p className="text-xs text-muted-foreground/60 mt-0.5">
                                 PDF, DOCX, TXT up to 5MB
