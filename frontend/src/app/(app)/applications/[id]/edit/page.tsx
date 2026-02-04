@@ -61,14 +61,15 @@ const EditApplicationPage = () => {
             : { name: '' },
         position: application.job?.title || '',
         location: application.job?.location || '',
-        jobType: application.job?.job_type as
+        jobType: application.job?.job_type?.toLowerCase() as
             | 'full-time'
             | 'part-time'
             | 'contract'
             | 'internship'
             | undefined,
-        description: application.job?.description || '',
+        description: application.job?.job_description || '',
         sourceUrl: application.job?.source_url || '',
+        platform: application.job?.platform || '',
         notes: application.notes || '',
     };
 

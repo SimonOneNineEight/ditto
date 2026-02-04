@@ -16,10 +16,14 @@ export interface Company {
 export interface Job {
     id: string;
     title: string;
-    description?: string;
+    job_description?: string;
     location?: string;
     job_type?: string;
     source_url?: string;
+    min_salary?: number;
+    max_salary?: number;
+    currency?: string;
+    platform?: string;
 }
 
 export interface ApplicationWithDetails {

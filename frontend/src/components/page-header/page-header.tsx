@@ -17,36 +17,44 @@ export interface BreadcrumbItem {
 
 export interface PageHeaderProps {
     title: string;
-    subtitle?: string;
+    titleExtra?: React.ReactNode;
+    subtitle?: React.ReactNode;
     breadcrumbs?: BreadcrumbItem[];
     actions?: React.ReactNode;
 }
 
-const PageHeader = ({ title, subtitle, breadcrumbs, actions }: PageHeaderProps) => {
+const PageHeader = ({ title, titleExtra, subtitle, breadcrumbs, actions }: PageHeaderProps) => {
     return (
-        <div className="flex flex-col gap-2 mb-6">
+        <div className="flex flex-col gap-6 mb-6">
             {breadcrumbs && breadcrumbs.length > 0 && (
                 <Breadcrumb>
                     <BreadcrumbList>
-                        {breadcrumbs.map((crumb, index) => (
+                        {breadcrumbs.map((crumb) => (
                             <React.Fragment key={crumb.href}>
                                 <BreadcrumbItem>
                                     <BreadcrumbLink asChild>
                                         <Link href={crumb.href}>{crumb.label}</Link>
                                     </BreadcrumbLink>
                                 </BreadcrumbItem>
-                                {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
+                                <BreadcrumbSeparator />
                             </React.Fragment>
                         ))}
                     </BreadcrumbList>
                 </Breadcrumb>
             )}
             <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-1">
-                    <h1 className="text-[28px] font-semibold tracking-[-0.02em] leading-tight">{title}</h1>
-                    {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-[28px] font-semibold tracking-[-0.02em] leading-tight">{title}</h1>
+                        {titleExtra}
+                    </div>
+                    {subtitle && (
+                        typeof subtitle === 'string'
+                            ? <p className="text-sm text-muted-foreground">{subtitle}</p>
+                            : subtitle
+                    )}
                 </div>
-                {actions && <div className="flex items-center gap-2">{actions}</div>}
+                {actions && <div className="flex items-center gap-3">{actions}</div>}
             </div>
         </div>
     );
