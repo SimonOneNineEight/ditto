@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { StorageQuotaWidget } from '@/components/storage-quota/storage-quota-widget';
 import { UserFilesList } from '@/components/storage-quota/user-files-list';
+import { FileUpload } from '@/components/file-upload/file-upload';
 import {
     getStorageStats,
     getUserFiles,
@@ -64,20 +65,28 @@ export default function FilesPage() {
                 }
             />
 
-            <section className="min-w-0">
+            <section className="min-w-0 space-y-6">
                 {isLoadingStats ? (
                     <div className="flex items-center py-6">
                         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                     </div>
                 ) : stats ? (
-                    <StorageQuotaWidget stats={stats} className="mb-6" />
+                    <StorageQuotaWidget stats={stats} />
                 ) : null}
 
-                <UserFilesList
-                    files={files}
-                    isLoading={isLoadingFiles}
-                    onFileDeleted={handleFileDeleted}
+                <FileUpload
+                    onFileSelect={() => {}}
+                    className="w-full"
                 />
+
+                <div>
+                    <h2 className="text-lg font-semibold mb-4">Your Files</h2>
+                    <UserFilesList
+                        files={files}
+                        isLoading={isLoadingFiles}
+                        onFileDeleted={handleFileDeleted}
+                    />
+                </div>
             </section>
         </>
     );

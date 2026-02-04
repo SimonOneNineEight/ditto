@@ -2,7 +2,7 @@
 
 import { Progress } from '@/components/ui/progress';
 import { type StorageStats, bytesToMB } from '@/services/storage-service';
-import { AlertTriangle, AlertCircle } from 'lucide-react';
+import { HardDrive, AlertTriangle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StorageQuotaWidgetProps {
@@ -22,27 +22,25 @@ export function StorageQuotaWidget({ stats, className }: StorageQuotaWidgetProps
     };
 
     return (
-        <div className={cn('space-y-2', className)}>
-            <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Storage:</span>
-                    <span>{usedMB} MB / {totalMB} MB</span>
-                    <span className="text-muted-foreground">({stats.file_count} {stats.file_count === 1 ? 'file' : 'files'})</span>
+        <div className={cn('rounded-lg border bg-card p-4 flex flex-col gap-3', className)}>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <HardDrive className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Storage</span>
+                    {stats.warning && !stats.limit_reached && (
+                        <div className="flex items-center gap-1 text-sm text-secondary">
+                            <AlertTriangle className="h-4 w-4" />
+                        </div>
+                    )}
+                    {stats.limit_reached && (
+                        <div className="flex items-center gap-1 text-sm text-destructive">
+                            <AlertCircle className="h-4 w-4" />
+                        </div>
+                    )}
                 </div>
-
-                {stats.warning && !stats.limit_reached && (
-                    <div className="flex items-center gap-1 text-sm text-secondary">
-                        <AlertTriangle className="h-4 w-4" />
-                        <span>Almost full</span>
-                    </div>
-                )}
-
-                {stats.limit_reached && (
-                    <div className="flex items-center gap-1 text-sm text-destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <span>Limit reached</span>
-                    </div>
-                )}
+                <span className="text-xs text-muted-foreground">
+                    {usedMB} MB / {totalMB} MB
+                </span>
             </div>
 
             <Progress

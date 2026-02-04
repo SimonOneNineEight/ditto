@@ -1,20 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
-import { Trash2, FileText, Loader2 } from 'lucide-react';
+import { X, FileText, Loader2 } from 'lucide-react';
 import { type UserFile, formatFileSize, deleteFile } from '@/services/storage-service';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 
 interface UserFilesListProps {
     files: UserFile[];
@@ -68,54 +59,32 @@ export function UserFilesList({ files, isLoading, onFileDeleted }: UserFilesList
 
     return (
         <>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>File Name</TableHead>
-                        <TableHead className="w-24">Size</TableHead>
-                        <TableHead className="hidden md:table-cell">Application</TableHead>
-                        <TableHead className="hidden sm:table-cell w-28">Uploaded</TableHead>
-                        <TableHead className="w-12"></TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {files.map((file) => (
-                        <TableRow key={file.id}>
-                            <TableCell className="font-medium">
-                                <div className="flex items-center gap-2">
-                                    <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <span className="truncate max-w-[200px]">{file.file_name}</span>
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-muted-foreground">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {files.map((file) => (
+                    <div
+                        key={file.id}
+                        className="rounded-lg border bg-card py-3 px-4 flex items-center gap-3"
+                    >
+                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                            <FileText className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                            <span className="text-sm font-medium truncate leading-tight">
+                                {file.file_name}
+                            </span>
+                            <span className="text-xs text-muted-foreground leading-tight">
                                 {formatFileSize(file.file_size)}
-                            </TableCell>
-                            <TableCell className="hidden md:table-cell text-muted-foreground">
-                                {file.application_company && file.application_title ? (
-                                    <span className="truncate max-w-[200px] block">
-                                        {file.application_company} - {file.application_title}
-                                    </span>
-                                ) : (
-                                    <span className="text-muted-foreground/50">-</span>
-                                )}
-                            </TableCell>
-                            <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                {format(new Date(file.uploaded_at), 'MMM d, yyyy')}
-                            </TableCell>
-                            <TableCell>
-                                <Button
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    onClick={(e) => handleDeleteClick(file, e)}
-                                    className="text-muted-foreground hover:text-destructive"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                            </span>
+                        </div>
+                        <button
+                            onClick={(e) => handleDeleteClick(file, e)}
+                            className="w-8 h-8 rounded-md flex items-center justify-center shrink-0 text-muted-foreground hover:text-destructive hover:bg-muted transition-colors"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                ))}
+            </div>
 
             <DeleteConfirmDialog
                 open={deleteDialogOpen}

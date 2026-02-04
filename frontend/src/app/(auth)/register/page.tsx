@@ -7,13 +7,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import MarketBanner from '../components/market-banner';
 import { authService } from '@/services/auth-service';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import OAuthButtons from '../components/oauth-buttons';
-import { Separator } from '@/components/ui/separator';
 
 const registerSchema = z
     .object({
@@ -41,10 +39,8 @@ const RegisterPage = () => {
 
     const onSubmit = async (data: RegisterFormData) => {
         try {
-            // First register with your backend
             await authService.register(data.name, data.email, data.password);
 
-            // Then sign in with NextAuth
             const result = await signIn('credentials', {
                 email: data.email,
                 password: data.password,
@@ -64,112 +60,119 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="w-full h-[80lvh] flex gap-8 row-start-2 items-center">
-            <MarketBanner>
-                <>
-                    <h2 className="text-center">Join Ditto</h2>
-                    <h3 className="text-center">
-                        {'Start Manage Your'}
-                        <div className="text-accent bold">Job Applications</div>
-                        {'With Only One Website'}
-                    </h3>
-                </>
-            </MarketBanner>
-            <Card className="w-84 bg-background border-0 mr-8">
-                <OAuthButtons />
-                <Separator className="my-4" />
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    <CardContent className="p-2">
-                        <div className="grid w-full items-center gap-2">
-                            <div className=" w-full">
-                                <label className="block text-body-large font-bold">
-                                    Name
-                                </label>
-                                <input
-                                    {...register('name')}
-                                    className="w-full mt-1 px-2 py-1 outline-none border-b-2 border-b-gray-300 focus:border-primary"
-                                />
-                                {errors.name ? (
-                                    <div className={'text-error text-sm'}>
-                                        {errors.name.message}
-                                    </div>
-                                ) : (
-                                    <div className={'h-5'}></div>
-                                )}
-                            </div>
+        <>
+            <MarketBanner variant="register" />
+            <div className="flex-1 flex items-center justify-center py-[60px] px-8 lg:px-[120px]">
+                <div className="w-full max-w-[400px] flex flex-col gap-6">
+                    <div>
+                        <h1 className="text-[28px] font-semibold">
+                            Create account
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            Fill in your details to get started
+                        </p>
+                    </div>
 
-                            <div className=" w-full">
-                                <label className="block text-body-large font-bold">
-                                    Email
-                                </label>
-                                <input
-                                    type="email"
-                                    {...register('email')}
-                                    className="w-full mt-1 px-2 py-1 outline-none border-b-2 border-b-gray-300 focus:border-primary"
-                                />
-                                {errors.email ? (
-                                    <div className={'text-error text-sm'}>
-                                        {errors.email.message}
-                                    </div>
-                                ) : (
-                                    <div className={'h-5'}></div>
-                                )}
-                            </div>
-                            <div className=" w-full">
-                                <label className="block text-body-large font-bold">
-                                    Password
-                                </label>
-                                <input
-                                    type="password"
-                                    {...register('password')}
-                                    className="w-full mt-1 px-2 py-1 outline-none border-b-2 border-b-gray-300 focus:border-primary"
-                                />
-                                {errors.password ? (
-                                    <div className={'text-error text-sm'}>
-                                        {errors.password.message}
-                                    </div>
-                                ) : (
-                                    <div className={'h-5'}></div>
-                                )}
-                            </div>
-                            <div className="w-full mb-4">
-                                <label className="block text-body-large font-bold">
-                                    Confirm Password
-                                </label>
-                                <input
-                                    type="password"
-                                    {...register('confirmPassword')}
-                                    className="w-full mt-1 px-2 py-1 outline-none border-b-2 border-b-gray-300 focus:border-primary"
-                                />
-                                {errors.confirmPassword ? (
-                                    <div className={'text-error text-sm'}>
-                                        {errors.confirmPassword.message}
-                                    </div>
-                                ) : (
-                                    <div className={'h-5'}></div>
-                                )}
-                            </div>
-                        </div>
-                        <CardFooter className="flex-col gap-4 p-0 pb-4">
-                            {error && (
-                                <div className="text-error text-sm text-center">
-                                    {error}
-                                </div>
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="flex flex-col gap-5"
+                    >
+                        <div>
+                            <label className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
+                                Name
+                            </label>
+                            <input
+                                {...register('name')}
+                                className="w-full px-2 py-1.5 outline-none border-b-2 border-b-border bg-transparent focus:border-primary transition-colors"
+                            />
+                            {errors.name && (
+                                <p className="text-destructive text-sm mt-1">
+                                    {errors.name.message}
+                                </p>
                             )}
-                            <Button type="submit" size="full">
-                                Register
-                            </Button>
-                            <Link
-                                href="/login"
-                                className="text-sm link-primary"
-                            >
-                                Already have an account? Login here
-                            </Link>
-                        </CardFooter>
-                    </CardContent>
-                </form>
-            </Card>
-        </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                {...register('email')}
+                                className="w-full px-2 py-1.5 outline-none border-b-2 border-b-border bg-transparent focus:border-primary transition-colors"
+                            />
+                            {errors.email && (
+                                <p className="text-destructive text-sm mt-1">
+                                    {errors.email.message}
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                {...register('password')}
+                                className="w-full px-2 py-1.5 outline-none border-b-2 border-b-border bg-transparent focus:border-primary transition-colors"
+                            />
+                            {errors.password && (
+                                <p className="text-destructive text-sm mt-1">
+                                    {errors.password.message}
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
+                                Confirm Password
+                            </label>
+                            <input
+                                type="password"
+                                {...register('confirmPassword')}
+                                className="w-full px-2 py-1.5 outline-none border-b-2 border-b-border bg-transparent focus:border-primary transition-colors"
+                            />
+                            {errors.confirmPassword && (
+                                <p className="text-destructive text-sm mt-1">
+                                    {errors.confirmPassword.message}
+                                </p>
+                            )}
+                        </div>
+
+                        {error && (
+                            <p className="text-destructive text-sm text-center">
+                                {error}
+                            </p>
+                        )}
+
+                        <Button type="submit" size="full">
+                            Create Account
+                        </Button>
+                    </form>
+
+                    <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px bg-border" />
+                        <span className="text-sm text-muted-foreground">
+                            or
+                        </span>
+                        <div className="flex-1 h-px bg-border" />
+                    </div>
+
+                    <OAuthButtons />
+
+                    <p className="text-sm text-center text-muted-foreground">
+                        Already have an account?{' '}
+                        <Link
+                            href="/login"
+                            className="text-primary hover:underline"
+                        >
+                            Sign in
+                        </Link>
+                    </p>
+                </div>
+            </div>
+        </>
     );
 };
 
