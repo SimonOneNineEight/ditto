@@ -1,0 +1,343 @@
+<story-context id="3-2-create-assessment-api-and-basic-crud" v="1.0">
+  <metadata>
+    <epicId>epic-3</epicId>
+    <storyId>3-2-create-assessment-api-and-basic-crud</storyId>
+    <title>Create Assessment API and Basic CRUD</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-04</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-2-create-assessment-api-and-basic-crud.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>create and manage technical assessments for my applications</iWant>
+    <soThat>I can track take-home projects and coding challenges through API endpoints</soThat>
+    <tasks>
+      <task id="1" name="Create assessment handler">
+        <subtask id="1.1">Create backend/internal/handlers/assessment.go</subtask>
+        <subtask id="1.2">Define AssessmentHandler struct with assessmentRepo, applicationRepo, submissionRepo fields</subtask>
+        <subtask id="1.3">Create NewAssessmentHandler(appState *utils.AppState) constructor</subtask>
+        <subtask id="1.4">Define request structs with Gin binding tags: CreateAssessmentRequest, UpdateAssessmentRequest, UpdateStatusRequest</subtask>
+        <subtask id="1.5">Implement CreateAssessment handler — validate date format, verify user owns application, map to model, call repo, return assessment</subtask>
+        <subtask id="1.6">Implement GetAssessment handler — parse UUID param, call repo with user_id, return assessment</subtask>
+        <subtask id="1.7">Implement ListAssessments handler — require application_id query param, call repo, return list</subtask>
+        <subtask id="1.8">Implement UpdateAssessment handler — parse UUID param, build allowlisted updates map, call repo, return updated assessment</subtask>
+        <subtask id="1.9">Implement DeleteAssessment handler — parse UUID param, call SoftDelete, return 204</subtask>
+        <subtask id="1.10">Implement UpdateStatus handler — parse UUID param, validate status, call repo Update with status field only, return updated assessment</subtask>
+      </task>
+      <task id="2" name="Create assessment routes">
+        <subtask id="2.1">Create backend/internal/routes/assessment.go</subtask>
+        <subtask id="2.2">Implement RegisterAssessmentRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState)</subtask>
+        <subtask id="2.3">Register routes with auth middleware: POST, GET list, GET :id, PUT :id, PATCH :id/status, DELETE :id</subtask>
+        <subtask id="2.4">Wire up in backend/cmd/server/main.go — add routes.RegisterAssessmentRoutes(apiGroup, appState)</subtask>
+      </task>
+      <task id="3" name="Verify compilation and basic endpoint functionality">
+        <subtask id="3.1">Run go build ./... to verify compilation</subtask>
+        <subtask id="3.2">Run existing assessment repository tests to verify no regressions</subtask>
+        <subtask id="3.3">Manual endpoint verification via curl or API client</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="AC-1" name="Create Assessment Endpoint">
+      POST /api/assessments with {application_id, assessment_type, title, due_date, instructions?, requirements?}.
+      Creates assessment with status not_started. Returns 200 with {success: true, data: {assessment: {...}}}.
+      assessment_type validated against: take_home_project, live_coding, system_design, data_structures, case_study, other.
+      title required (max 255 chars). due_date required, validated as YYYY-MM-DD format.
+      User must own the referenced application (verified via application lookup with user_id).
+    </ac>
+    <ac id="AC-2" name="Get Single Assessment Endpoint">
+      GET /api/assessments/:id returns assessment with all fields.
+      Must belong to authenticated user (user_id scoping). Returns 404 if not found or belongs to another user.
+    </ac>
+    <ac id="AC-3" name="List Assessments by Application Endpoint">
+      GET /api/assessments?application_id=X returns all non-deleted assessments sorted by due_date ascending.
+      application_id query parameter is required. Results scoped to authenticated user. Returns empty array if none exist.
+    </ac>
+    <ac id="AC-4" name="Update Assessment Endpoint">
+      PUT /api/assessments/:id with partial field updates. Only provided fields are updated (dynamic partial update).
+      updated_at automatically set. Returns updated assessment. Returns 404 if not found or wrong user.
+      Updatable fields restricted to allowlist: title, assessment_type, due_date, status, instructions, requirements.
+    </ac>
+    <ac id="AC-5" name="Delete Assessment Endpoint">
+      DELETE /api/assessments/:id soft-deletes assessment (deleted_at set).
+      All linked submissions cascade soft-deleted. Returns 204 No Content. Returns 404 if not found or wrong user.
+    </ac>
+    <ac id="AC-6" name="Status Update Endpoint">
+      PATCH /api/assessments/:id/status with {status}. Updates status.
+      Validated against: not_started, in_progress, submitted, reviewed. Returns updated assessment.
+    </ac>
+    <ac id="AC-7" name="Route Registration and Integration">
+      All assessment routes registered under /api/assessments with auth middleware.
+      Handler wired up in main.go via routes.RegisterAssessmentRoutes.
+    </ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-3.md" relevance="primary">
+        Authoritative tech spec for Epic 3. Contains SQL schema definitions, Go model structs,
+        TypeScript types, API endpoint contracts, and acceptance criteria (AC-3.2a through AC-3.2c).
+        Key sections: APIs and Interfaces, Data Models and Contracts, Acceptance Criteria Authoritative.
+      </doc>
+      <doc path="docs/epics.md" relevance="primary" lines="715-751">
+        Epic breakdown with Story 3.2 definition, acceptance criteria, and technical notes.
+      </doc>
+      <doc path="docs/architecture.md" relevance="reference">
+        Architecture doc with implementation patterns, naming conventions, consistency rules,
+        handler/component patterns. Key sections: Implementation Patterns, API Contracts.
+      </doc>
+      <doc path="docs/stories/3-1-assessment-database-schema-and-api-foundation.md" relevance="reference">
+        Previous story (done). Contains completion notes, senior developer review with 3 advisory
+        notes directly applicable to this story (field allowlist, ownership checks, date formatting).
+      </doc>
+    </docs>
+
+    <code>
+      <!-- EXISTING: Repository layer (created in Story 3.1, reuse as-is) -->
+      <file path="backend/internal/repository/assessment.go" action="reuse" relevance="primary">
+        AssessmentRepository with 5 methods:
+        - NewAssessmentRepository(database *database.Database) *AssessmentRepository
+        - CreateAssessment(assessment *models.Assessment) (*models.Assessment, error)
+        - GetAssessmentByID(id, userID uuid.UUID) (*models.Assessment, error)
+        - ListByApplicationID(applicationID, userID uuid.UUID) ([]*models.Assessment, error)
+        - UpdateAssessment(id, userID uuid.UUID, updates map[string]any) (*models.Assessment, error)
+        - SoftDeleteAssessment(id, userID uuid.UUID) error
+        IMPORTANT: UpdateAssessment builds dynamic SQL SET clauses from map keys. Handler MUST
+        use an allowlist to prevent arbitrary column injection.
+      </file>
+
+      <file path="backend/internal/repository/assessment_submission.go" action="reuse" relevance="secondary">
+        AssessmentSubmissionRepository with 3 methods:
+        - NewAssessmentSubmissionRepository(database *database.Database) *AssessmentSubmissionRepository
+        - CreateSubmission(submission *models.AssessmentSubmission) (*models.AssessmentSubmission, error)
+        - ListByAssessmentID(assessmentID uuid.UUID) ([]*models.AssessmentSubmission, error)
+        - SoftDeleteSubmission(id uuid.UUID) error
+        Note: SoftDeleteAssessment in assessment repo already cascade-deletes submissions.
+        This repo is referenced in handler struct but not directly called in this story's endpoints.
+      </file>
+
+      <file path="backend/internal/models/assessment.go" action="reuse" relevance="primary">
+        Assessment and AssessmentSubmission structs with json/db tags.
+        Type constants (6 AssessmentType, 4 AssessmentStatus, 3 SubmissionType).
+        DueDate stored as string; PostgreSQL DATE returns "2026-05-01T00:00:00Z" format.
+        DeletedAt has json:"-" tag (excluded from responses).
+      </file>
+
+      <!-- PATTERN REFERENCES: Follow these patterns for new handler and routes -->
+      <file path="backend/internal/handlers/interview.go" action="pattern-reference" relevance="primary">
+        Primary pattern reference for handler structure:
+        - Request structs with Gin binding tags (binding:"required,oneof=...")
+        - InterviewHandler struct with repo fields
+        - NewInterviewHandler(appState *utils.AppState) constructor
+        - User ID extraction: c.MustGet("user_id").(uuid.UUID)
+        - UUID param parsing: uuid.Parse(c.Param("id"))
+        - Application ownership check via applicationRepo.GetApplicationByID(req.ApplicationID, userID)
+        - Date validation: time.Parse("2006-01-02", req.ScheduledDate)
+        - Dynamic updates map: make(map[string]any), conditionally add fields
+        - Error handling: HandleError(c, errors.New(errors.ErrorBadRequest, "message"))
+        - Success response: response.Success(c, gin.H{"interview": ...})
+        - Delete response: response.NoContent(c)
+      </file>
+
+      <file path="backend/internal/routes/interview.go" action="pattern-reference" relevance="primary">
+        Pattern reference for route registration:
+        - func RegisterInterviewRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState)
+        - Create handler instance: handlers.NewInterviewHandler(appState)
+        - Create route group: apiGroup.Group("/interviews")
+        - Apply auth middleware: interviews.Use(middleware.AuthMiddleware())
+        - Register routes: interviews.POST("", ...), interviews.GET("/:id", ...), etc.
+      </file>
+
+      <file path="backend/cmd/server/main.go" action="modify" relevance="primary">
+        Add routes.RegisterAssessmentRoutes(apiGroup, appState) to the apiGroup block (after line 58).
+        Follow existing pattern of RegisterXRoutes calls at lines 49-58.
+      </file>
+
+      <file path="backend/internal/handlers/helpers.go" action="reuse" relevance="secondary">
+        HandleError(c *gin.Context, err error) — converts error via errors.ConvertError, sends response.Error.
+        HandleErrorWithMessage(c *gin.Context, err error, message string) — wraps unexpected errors with message.
+      </file>
+
+      <file path="backend/internal/utils/state.go" action="reuse" relevance="secondary">
+        AppState struct with DB *database.Database field.
+        Constructor NewAppState() creates DB connection and runs migrations.
+      </file>
+
+      <file path="backend/pkg/response/response.go" action="reuse" relevance="secondary">
+        Response helpers:
+        - Success(c, data) — JSON 200 with {success: true, data: ...}
+        - NoContent(c) — HTTP 204 with no body
+        - Error(c, appErr) — JSON with {success: false, error: {error, code, details}}
+      </file>
+
+      <file path="backend/pkg/errors/errors.go" action="reuse" relevance="secondary">
+        Error codes: ErrorBadRequest, ErrorNotFound, ErrorInternalServer, etc.
+        Constructors: New(code, message, details...), Wrap(code, message, cause, details...).
+        HTTPStatus() mapping for each error code.
+      </file>
+
+      <file path="backend/pkg/errors/convert.go" action="reuse" relevance="secondary">
+        ConvertError converts sql.ErrNoRows to NOT_FOUND, pq errors to appropriate codes.
+      </file>
+
+      <!-- NEW FILES: To be created -->
+      <file path="backend/internal/handlers/assessment.go" action="create" relevance="primary">
+        New file. Assessment CRUD handler with 6 methods:
+        CreateAssessment, GetAssessment, ListAssessments, UpdateAssessment, DeleteAssessment, UpdateStatus.
+        AssessmentHandler struct with assessmentRepo, applicationRepo fields.
+        Request structs: CreateAssessmentRequest, UpdateAssessmentRequest, UpdateStatusRequest.
+      </file>
+
+      <file path="backend/internal/routes/assessment.go" action="create" relevance="primary">
+        New file. RegisterAssessmentRoutes function with 6 route registrations under /api/assessments.
+      </file>
+    </code>
+
+    <dependencies>
+      <dependency type="go-module" name="github.com/gin-gonic/gin" usage="HTTP framework, request binding, routing" />
+      <dependency type="go-module" name="github.com/google/uuid" usage="UUID parsing for path params and user_id extraction" />
+      <dependency type="go-module" name="github.com/jmoiron/sqlx" usage="Database queries (used by repository layer)" />
+      <dependency type="internal" name="ditto-backend/internal/models" usage="Assessment model struct and type constants" />
+      <dependency type="internal" name="ditto-backend/internal/repository" usage="AssessmentRepository, ApplicationRepository, AssessmentSubmissionRepository" />
+      <dependency type="internal" name="ditto-backend/internal/utils" usage="AppState struct for dependency injection" />
+      <dependency type="internal" name="ditto-backend/internal/middleware" usage="AuthMiddleware() for route protection" />
+      <dependency type="internal" name="ditto-backend/pkg/errors" usage="Error codes, AppError constructors" />
+      <dependency type="internal" name="ditto-backend/pkg/response" usage="Success(), NoContent(), Error() response helpers" />
+      <dependency type="internal" name="ditto-backend/internal/handlers" usage="HandleError() helper function" />
+      <dependency type="story" name="3-1-assessment-database-schema-and-api-foundation" status="done">
+        Provides: Assessment/AssessmentSubmission models, AssessmentRepository (5 methods),
+        AssessmentSubmissionRepository (3 methods), database migration (tables, indexes, trigger),
+        test infrastructure (20 passing tests).
+      </dependency>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="security" priority="critical">
+      Update field allowlist: Only accept title, assessment_type, due_date, status, instructions,
+      requirements in UpdateAssessment handler. The repository's UpdateAssessment method builds
+      dynamic SQL SET clauses from map keys — arbitrary keys would allow SQL column injection.
+      Source: Story 3.1 Senior Developer Review advisory note.
+    </constraint>
+    <constraint type="auth" priority="critical">
+      All endpoints must extract user_id via c.MustGet("user_id").(uuid.UUID) and pass it to
+      repository methods for ownership scoping. Application ownership must be verified on create.
+    </constraint>
+    <constraint type="validation" priority="high">
+      assessment_type must be validated against: take_home_project, live_coding, system_design,
+      data_structures, case_study, other. Use Gin binding tag: binding:"required,oneof=take_home_project live_coding system_design data_structures case_study other"
+    </constraint>
+    <constraint type="validation" priority="high">
+      status must be validated against: not_started, in_progress, submitted, reviewed.
+      Use Gin binding tag: binding:"required,oneof=not_started in_progress submitted reviewed"
+    </constraint>
+    <constraint type="format" priority="medium">
+      due_date received as YYYY-MM-DD string. Validate with time.Parse("2006-01-02", dateStr).
+      PostgreSQL DATE column returns "2026-05-01T00:00:00Z" when scanned via sqlx.
+      Consider formatting DueDate to YYYY-MM-DD in API responses before returning.
+    </constraint>
+    <constraint type="pattern" priority="high">
+      Follow existing handler patterns exactly: NewXHandler constructor, request struct binding tags,
+      HandleError for errors, response.Success/NoContent for responses, uuid.Parse for path params.
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface type="http-api" name="Assessment CRUD Endpoints">
+      <endpoint method="POST" path="/api/assessments" handler="CreateAssessment">
+        Request: {application_id: UUID, assessment_type: string, title: string, due_date: string, instructions?: string, requirements?: string}
+        Response 200: {success: true, data: {assessment: Assessment}}
+        Response 400: Invalid request body, invalid date format, invalid assessment_type
+        Response 404: Application not found or owned by different user
+      </endpoint>
+      <endpoint method="GET" path="/api/assessments" handler="ListAssessments">
+        Query: application_id (required)
+        Response 200: {success: true, data: {assessments: Assessment[]}}
+        Response 400: Missing application_id
+      </endpoint>
+      <endpoint method="GET" path="/api/assessments/:id" handler="GetAssessment">
+        Response 200: {success: true, data: {assessment: Assessment}}
+        Response 400: Invalid UUID
+        Response 404: Not found or wrong user
+      </endpoint>
+      <endpoint method="PUT" path="/api/assessments/:id" handler="UpdateAssessment">
+        Request: {title?, assessment_type?, due_date?, status?, instructions?, requirements?} (all optional)
+        Response 200: {success: true, data: {assessment: Assessment}}
+        Response 400: Invalid UUID, invalid assessment_type/status
+        Response 404: Not found or wrong user
+      </endpoint>
+      <endpoint method="PATCH" path="/api/assessments/:id/status" handler="UpdateStatus">
+        Request: {status: string}
+        Response 200: {success: true, data: {assessment: Assessment}}
+        Response 400: Invalid UUID, invalid status
+        Response 404: Not found or wrong user
+      </endpoint>
+      <endpoint method="DELETE" path="/api/assessments/:id" handler="DeleteAssessment">
+        Response 204: No Content (cascade soft-deletes submissions)
+        Response 400: Invalid UUID
+        Response 404: Not found or wrong user
+      </endpoint>
+    </interface>
+
+    <interface type="go-struct" name="Request Structs">
+      <struct name="CreateAssessmentRequest">
+        ApplicationID   uuid.UUID `json:"application_id" binding:"required"`
+        AssessmentType  string    `json:"assessment_type" binding:"required,oneof=take_home_project live_coding system_design data_structures case_study other"`
+        Title           string    `json:"title" binding:"required,max=255"`
+        DueDate         string    `json:"due_date" binding:"required"`
+        Instructions    *string   `json:"instructions"`
+        Requirements    *string   `json:"requirements"`
+      </struct>
+      <struct name="UpdateAssessmentRequest">
+        Title           *string `json:"title" binding:"omitempty,max=255"`
+        AssessmentType  *string `json:"assessment_type" binding:"omitempty,oneof=take_home_project live_coding system_design data_structures case_study other"`
+        DueDate         *string `json:"due_date"`
+        Status          *string `json:"status" binding:"omitempty,oneof=not_started in_progress submitted reviewed"`
+        Instructions    *string `json:"instructions"`
+        Requirements    *string `json:"requirements"`
+      </struct>
+      <struct name="UpdateStatusRequest">
+        Status string `json:"status" binding:"required,oneof=not_started in_progress submitted reviewed"`
+      </struct>
+    </interface>
+
+    <interface type="go-struct" name="AssessmentHandler">
+      <struct name="AssessmentHandler">
+        assessmentRepo  *repository.AssessmentRepository
+        applicationRepo *repository.ApplicationRepository
+      </struct>
+      <constructor>
+        func NewAssessmentHandler(appState *utils.AppState) *AssessmentHandler
+      </constructor>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      - Go test files use _test.go suffix in same package
+      - Repository tests use testutil.NewTestDatabase(t) for DB setup
+      - testutil.RunMigrations(t) creates all tables including assessments and assessment_submissions
+      - testutil.Truncate(t) cleans up in Close(t) via defer
+      - Use github.com/stretchr/testify/assert and require packages
+      - Tests run against real PostgreSQL test database (ditto_test)
+      - Test environment configured via TEST_DB_* environment variables
+      - Subtests use t.Run("TestName", func(t *testing.T) {...}) pattern
+    </standards>
+    <locations>
+      <location path="backend/internal/repository/assessment_test.go" type="unit" status="existing">
+        20 existing repository tests covering CRUD, ownership, cascade delete, sort ordering.
+        All tests pass. No handler tests exist yet (handlers not yet created).
+      </location>
+    </locations>
+    <ideas>
+      - This story's testing scope is compilation verification and manual endpoint testing (Task 3)
+      - Run `go build ./...` to verify handler, routes, and main.go compile together
+      - Run existing assessment_test.go to confirm no regressions
+      - Manual curl tests for each endpoint as described in Task 3.3
+      - No automated handler/integration tests required by this story
+    </ideas>
+  </tests>
+</story-context>

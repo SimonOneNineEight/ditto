@@ -1,0 +1,211 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>8</storyId>
+    <title>Assessment List View in Application Detail</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-8-assessment-list-view-in-application-detail.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>see all assessments for an application in a dedicated section on the application detail page</iWant>
+    <soThat>I can quickly track multiple coding challenges or assignments for the same job</soThat>
+    <tasks>
+      <task id="1" ac="1,2,3,6">Create AssessmentList component for application detail
+        <subtask id="1.1">Create assessment-list.tsx component</subtask>
+        <subtask id="1.2">Display assessments as cards with type badge, title, due date, countdown, status badge</subtask>
+        <subtask id="1.3">Sort assessments by due_date ascending (earliest first)</subtask>
+        <subtask id="1.4">Implement empty state with "No assessments yet" message and Add Assessment CTA</subtask>
+      </task>
+      <task id="2" ac="1,7">Add AssessmentList to application detail page
+        <subtask id="2.1">Import and render AssessmentList in applications/[id]/page.tsx</subtask>
+        <subtask id="2.2">Add section header with "Assessments" title and "Add Assessment" button</subtask>
+        <subtask id="2.3">Fetch assessments using listAssessments(applicationId)</subtask>
+      </task>
+      <task id="3" ac="4">Make assessment cards clickable for navigation
+        <subtask id="3.1">Wrap each assessment card in Link to assessment detail page</subtask>
+        <subtask id="3.2">Route to /applications/[id]/assessments/[assessmentId]</subtask>
+      </task>
+      <task id="4" ac="5">Implement quick status update dropdown
+        <subtask id="4.1">Add status dropdown to each assessment card</subtask>
+        <subtask id="4.2">Call updateAssessmentStatus() on change</subtask>
+        <subtask id="4.3">Optimistically update UI, handle errors with toast</subtask>
+      </task>
+      <task id="5" ac="1-7">Testing and validation
+        <subtask id="5.1">Test assessments render correctly</subtask>
+        <subtask id="5.2">Test sorting by due date</subtask>
+        <subtask id="5.3">Test quick status update</subtask>
+        <subtask id="5.4">Test navigation to assessment detail</subtask>
+        <subtask id="5.5">Test empty state</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Application detail page shows an "Assessments" section displaying all assessments for this application</criterion>
+    <criterion id="2">Each assessment card displays: type badge, title, due date, countdown timer, and status badge</criterion>
+    <criterion id="3">Assessments are sorted by due date (earliest first)</criterion>
+    <criterion id="4">Clicking an assessment card navigates to its detail page</criterion>
+    <criterion id="5">Quick status update via dropdown without leaving the application page</criterion>
+    <criterion id="6">Empty state shows "No assessments yet" message with prominent "Add Assessment" CTA</criterion>
+    <criterion id="7">"Add Assessment" button is prominently displayed in the section header</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Epic 3 Technical Specification</title>
+        <section>Detailed Design - assessment-list.tsx</section>
+        <snippet>AssessmentList component renders assessment cards within application detail page. Quick status updates without navigation. Reuses existing S3 file infrastructure.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Ditto Architecture Document</title>
+        <section>React Component Pattern</section>
+        <snippet>Standard component structure: imports, types/schemas, props interface, component with state/hooks/handlers/render. Follow existing shadcn/ui patterns.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Definitions</title>
+        <section>Story 3.8</section>
+        <snippet>Assessment list view with type badges, countdown timers, status badges, quick status updates, and navigation to detail pages.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3-4-assessment-status-management-and-workflow.md</path>
+        <title>Story 3.4 - Assessment Status Management</title>
+        <section>Implementation Details</section>
+        <snippet>AssessmentStatusSelect component created at assessment-status-select.tsx. updateAssessmentStatus API function for PATCH requests.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3-7-assessment-deadline-integration-with-timeline.md</path>
+        <title>Story 3.7 - Assessment Deadline Integration</title>
+        <section>Dev Agent Record</section>
+        <snippet>Urgency styling patterns: isOverdue (red), isDueSoon within 3 days (orange). Timeline buildTimeline() function integrates assessments.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>frontend/src/components/assessment-list/assessment-list.tsx</path>
+        <kind>component</kind>
+        <symbol>AssessmentList, getCountdownInfo</symbol>
+        <lines>1-143</lines>
+        <reason>EXISTING component already implements most AC requirements. Has card display, countdown, empty state, navigation. MISSING: quick status update dropdown (AC 5).</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(app)/applications/[id]/page.tsx</path>
+        <kind>page</kind>
+        <symbol>ApplicationPage</symbol>
+        <lines>1-477</lines>
+        <reason>Application detail page ALREADY integrates AssessmentList at lines 381-399. Has section header, Add Assessment button, AssessmentFormModal. MISSING: quick status update integration.</reason>
+      </file>
+      <file>
+        <path>frontend/src/services/assessment-service.ts</path>
+        <kind>service</kind>
+        <symbol>listAssessments, updateAssessmentStatus, Assessment, AssessmentStatus, STATUS_COLORS, TYPE_COLORS</symbol>
+        <lines>1-197</lines>
+        <reason>Complete API service with all needed functions including updateAssessmentStatus (lines 163-171) and color constants.</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/assessment-status-select/assessment-status-select.tsx</path>
+        <kind>component</kind>
+        <symbol>AssessmentStatusSelect</symbol>
+        <lines>1-63</lines>
+        <reason>Reusable status dropdown component. Can be adapted for inline card usage with stopPropagation to prevent navigation.</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/assessment-form/assessment-form-modal.tsx</path>
+        <kind>component</kind>
+        <symbol>AssessmentFormModal</symbol>
+        <lines>1-237</lines>
+        <reason>Modal for creating assessments. Already integrated in application detail page.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(app)/applications/[id]/assessments/[assessmentId]/page.tsx</path>
+        <kind>page</kind>
+        <symbol>AssessmentDetailPage</symbol>
+        <reason>Assessment detail page - navigation target for card clicks.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <frontend>
+        <package name="react" version="^18" />
+        <package name="next" version="14.2.15" />
+        <package name="date-fns" version="^4.1.0" />
+        <package name="lucide-react" version="^0.452.0" />
+        <package name="sonner" version="^2.0.7" />
+        <package name="@radix-ui/react-select" version="^2.2.6" />
+        <package name="tailwindcss" version="^4.1.10" />
+      </frontend>
+      <backend>
+        <package name="gin" version="v1.10.1" />
+        <package name="sqlx" version="v1.4.0" />
+        <package name="uuid" version="v1.6.0" />
+      </backend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Follow existing React component patterns: imports, types, props interface, component with state/hooks/handlers/render</constraint>
+    <constraint type="pattern">Use shadcn/ui components (Card, Button, Badge, Select) for consistent UI</constraint>
+    <constraint type="pattern">Use sonner toast for user feedback on errors</constraint>
+    <constraint type="pattern">Status colors: gray (not_started), blue (in_progress), green (submitted), purple (reviewed)</constraint>
+    <constraint type="pattern">Countdown colors: green (>3 days), yellow/orange (1-3 days), red (<1 day/overdue)</constraint>
+    <constraint type="scope">Frontend-only story - no new backend endpoints needed</constraint>
+    <constraint type="scope">Quick status update must use event.stopPropagation() to prevent card navigation</constraint>
+    <constraint type="architecture">Optimistic UI updates with error rollback on status changes</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>listAssessments</name>
+      <kind>API function</kind>
+      <signature>listAssessments(applicationId: string): Promise&lt;Assessment[]&gt;</signature>
+      <path>frontend/src/services/assessment-service.ts:141-148</path>
+    </interface>
+    <interface>
+      <name>updateAssessmentStatus</name>
+      <kind>API function</kind>
+      <signature>updateAssessmentStatus(id: string, status: AssessmentStatus): Promise&lt;Assessment&gt;</signature>
+      <path>frontend/src/services/assessment-service.ts:163-171</path>
+    </interface>
+    <interface>
+      <name>AssessmentStatusSelect</name>
+      <kind>React component</kind>
+      <signature>AssessmentStatusSelect({ value, onChange, onSubmittedSelect?, disabled? })</signature>
+      <path>frontend/src/components/assessment-status-select/assessment-status-select.tsx</path>
+    </interface>
+    <interface>
+      <name>getCountdownInfo</name>
+      <kind>Utility function</kind>
+      <signature>getCountdownInfo(dueDateStr: string): { text: string, colorClass: string }</signature>
+      <path>frontend/src/components/assessment-list/assessment-list.tsx:24-64</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Backend tests use Go's testing package with testify assertions. Tests are colocated in *_test.go files alongside source. Frontend has no existing test infrastructure - manual testing via browser is the current approach. Focus on visual verification and user interaction testing.</standards>
+    <locations>
+      <location>backend/internal/repository/*_test.go</location>
+      <location>backend/internal/handlers/*_test.go</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2">Verify assessment cards render with all required elements (type badge, title, due date, countdown, status badge)</idea>
+      <idea ac="3">Verify assessments are sorted by due_date ascending - earliest dates first</idea>
+      <idea ac="4">Verify clicking card navigates to /applications/[id]/assessments/[assessmentId]</idea>
+      <idea ac="5">Verify status dropdown updates assessment without page reload; verify optimistic update; verify error toast on failure</idea>
+      <idea ac="6">Verify empty state displays when no assessments; verify Add Assessment button is visible and functional</idea>
+      <idea ac="7">Verify Add Assessment button in section header opens AssessmentFormModal</idea>
+    </ideas>
+  </tests>
+
+  <implementationNotes>
+    <note priority="critical">Most functionality ALREADY EXISTS. The AssessmentList component and application page integration are complete. Only missing piece is AC 5: quick status update dropdown.</note>
+    <note priority="high">Add inline status dropdown to AssessmentList cards that calls updateAssessmentStatus. Must use stopPropagation to prevent card click navigation.</note>
+    <note priority="medium">Consider using a smaller/compact variant of the status select for card use. Current AssessmentStatusSelect is 180px wide.</note>
+    <note priority="low">Assessments are not currently sorted - add .sort((a, b) => new Date(a.due_date) - new Date(b.due_date)) before rendering.</note>
+  </implementationNotes>
+</story-context>

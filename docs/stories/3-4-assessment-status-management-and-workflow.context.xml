@@ -1,0 +1,164 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>4</storyId>
+    <title>Assessment Status Management and Workflow</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-04</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-4-assessment-status-management-and-workflow.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>update assessment status as I work through it</iWant>
+    <soThat>I can track my progress from start to submission</soThat>
+    <tasks>
+      <task n="1" acs="1,3">Create AssessmentStatusSelect component
+        <subtask n="1.1">Create frontend/src/components/assessment-status-select/assessment-status-select.tsx</subtask>
+        <subtask n="1.2">Use shadcn Select component with ASSESSMENT_STATUS_OPTIONS from assessment-service</subtask>
+        <subtask n="1.3">Style selected option with color-coded badge using STATUS_COLORS</subtask>
+        <subtask n="1.4">Add onChange callback prop for status changes</subtask>
+        <subtask n="1.5">Create barrel export frontend/src/components/assessment-status-select/index.ts</subtask>
+      </task>
+      <task n="2" acs="1,2,3,5">Integrate status select into assessment detail page
+        <subtask n="2.1">Import AssessmentStatusSelect into /applications/[id]/assessments/[assessmentId]/page.tsx</subtask>
+        <subtask n="2.2">Replace static status badge in Status Card with AssessmentStatusSelect</subtask>
+        <subtask n="2.3">Implement handleStatusChange function calling updateAssessmentStatus from assessment-service</subtask>
+        <subtask n="2.4">Add optimistic UI update: set local state immediately, revert on error</subtask>
+        <subtask n="2.5">Show toast notification on success/error</subtask>
+      </task>
+      <task n="3" acs="4">Handle Submitted status transition trigger
+        <subtask n="3.1">Add state for tracking when user selects submitted status</subtask>
+        <subtask n="3.2">Add onSubmittedSelect callback prop to AssessmentStatusSelect</subtask>
+        <subtask n="3.3">When submitted selected, call onSubmittedSelect to signal submission form needed</subtask>
+        <subtask n="3.4">Add placeholder state/modal trigger (actual submission form is Story 3.5)</subtask>
+        <subtask n="3.5">Add comment/TODO noting submission prompt will be implemented in Story 3.5</subtask>
+      </task>
+      <task n="4" acs="3">Update assessment list to reflect status changes
+        <subtask n="4.1">Verify AssessmentList already uses STATUS_COLORS for badge styling</subtask>
+        <subtask n="4.2">Ensure returning to application page refreshes assessment list with updated status</subtask>
+      </task>
+      <task n="5" acs="1-5">Testing and validation
+        <subtask n="5.1">Test all four status transitions manually</subtask>
+        <subtask n="5.2">Verify optimistic update behavior (UI updates before API response)</subtask>
+        <subtask n="5.3">Test error handling (network failure shows toast, reverts status)</subtask>
+        <subtask n="5.4">Verify badge colors match specification for each status</subtask>
+        <subtask n="5.5">Verify submitted status triggers callback (prep for Story 3.5)</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac n="1">Status dropdown on assessment detail page allows selection of: Not Started, In Progress, Submitted, Reviewed</ac>
+    <ac n="2">Status updates immediately via PATCH /api/assessments/:id/status endpoint (already implemented in backend)</ac>
+    <ac n="3">Status badge color changes dynamically: gray (not_started), blue (in_progress), green (submitted), purple (reviewed)</ac>
+    <ac n="4">When marking status as Submitted, user is prompted to add submission details (prepare UI trigger for Story 3.5)</ac>
+    <ac n="5">Optimistic UI updates - status change reflects immediately while API call completes in background</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-3.md" title="Epic 3 Technical Specification">
+        <section name="AC-3.4">Status dropdown on assessment detail allows transitions: Not Started to In Progress to Submitted to Reviewed. Status updates immediately via PATCH endpoint. Badge color changes: gray (not_started), blue (in_progress), green (submitted), purple (reviewed).</section>
+        <section name="Status Transition Flow">Assessment created with not_started status. User selects In Progress from status dropdown via PATCH. User completes work, selects Submitted, prompted to add submission details. After reviewer feedback, user sets Reviewed status.</section>
+        <section name="Traceability">AC-3.4 maps to assessment-status-select.tsx component and PATCH endpoint. Test: Click each status transition, verify badge color changes.</section>
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Document">
+        <section name="Frontend Component Pattern">Use shadcn/ui primitives. Components in frontend/src/components/ with barrel exports.</section>
+        <section name="Assessment Handler">assessment.go handler at backend/internal/handlers/ handles CRUD and status updates.</section>
+      </doc>
+      <doc path="docs/epics.md" title="Epic Definitions">
+        <section name="Story 3.4">Assessment Status Management and Workflow. Status dropdown: Not Started, In Progress, Submitted, Reviewed. Trigger submission form when marking Submitted. Optimistic UI updates.</section>
+      </doc>
+    </docs>
+    <code>
+      <file path="frontend/src/services/assessment-service.ts" kind="service" reason="Contains updateAssessmentStatus function, ASSESSMENT_STATUS_OPTIONS, STATUS_COLORS constants needed for this story">
+        <symbol name="updateAssessmentStatus" lines="131-139">API function to call PATCH /api/assessments/:id/status with status payload</symbol>
+        <symbol name="ASSESSMENT_STATUS_OPTIONS" lines="28-33">Array of status options with value/label pairs for dropdown</symbol>
+        <symbol name="STATUS_COLORS" lines="43-48">Record mapping status values to Tailwind CSS classes for badge colors</symbol>
+        <symbol name="AssessmentStatus" lines="11-15">TypeScript type union: not_started | in_progress | submitted | reviewed</symbol>
+      </file>
+      <file path="frontend/src/app/(app)/applications/[id]/assessments/[assessmentId]/page.tsx" kind="page" reason="Assessment detail page to be modified - status dropdown replaces static badge">
+        <symbol name="AssessmentDetailPage" lines="40-209">Main component - needs status select integration in Status Card section</symbol>
+        <symbol name="Status Card" lines="152-165">Current static status badge display - to be replaced with interactive dropdown</symbol>
+      </file>
+      <file path="frontend/src/components/assessment-list/assessment-list.tsx" kind="component" reason="Already uses STATUS_COLORS for badge styling - verify consistency">
+        <symbol name="STATUS_COLORS usage" lines="101-102">Existing color application pattern to follow</symbol>
+      </file>
+      <file path="frontend/src/components/ui/select.tsx" kind="ui-primitive" reason="shadcn Select primitives to use for status dropdown">
+        <symbol name="Select, SelectTrigger, SelectContent, SelectItem" lines="148-157">Exported components for building dropdown</symbol>
+      </file>
+      <file path="backend/internal/handlers/assessment.go" kind="handler" reason="Backend PATCH endpoint already implemented">
+        <symbol name="UpdateStatus" lines="250-279">Handler for PATCH /api/assessments/:id/status - validates status and updates</symbol>
+        <symbol name="UpdateStatusRequest" lines="34-36">Request struct with status field validation</symbol>
+      </file>
+      <file path="backend/internal/routes/assessment.go" kind="routes" reason="Route registration confirms endpoint exists">
+        <symbol name="PATCH /:id/status" lines="21">Route registered for status updates</symbol>
+      </file>
+    </code>
+    <dependencies>
+      <frontend ecosystem="node" manifest="frontend/package.json">
+        <package name="@radix-ui/react-select" version="^2.2.6" usage="Core select primitive for status dropdown"/>
+        <package name="react" version="^18" usage="React framework"/>
+        <package name="next" version="14.2.15" usage="Next.js framework"/>
+        <package name="sonner" version="^2.0.7" usage="Toast notifications for success/error feedback"/>
+        <package name="axios" version="^1.7.9" usage="HTTP client via lib/axios wrapper"/>
+        <package name="tailwind-merge" version="^2.5.3" usage="Utility for merging Tailwind classes"/>
+        <package name="clsx" version="^2.1.1" usage="Conditional class name utility"/>
+        <package name="class-variance-authority" version="^0.7.0" usage="Variant styling patterns"/>
+      </frontend>
+      <backend ecosystem="go" manifest="backend/go.mod">
+        <package name="github.com/gin-gonic/gin" version="v1.10.1" usage="HTTP framework - handler already implemented"/>
+        <package name="github.com/jmoiron/sqlx" version="v1.4.0" usage="SQL toolkit"/>
+        <package name="github.com/google/uuid" version="latest" usage="UUID generation and parsing"/>
+      </backend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Use shadcn/ui Select primitives for dropdown - do not create custom select implementation</constraint>
+    <constraint type="pattern">Follow optimistic update pattern: update local state immediately, call API, revert on error</constraint>
+    <constraint type="pattern">Use toast notifications (sonner) for user feedback on success/error</constraint>
+    <constraint type="pattern">Component files in frontend/src/components/{component-name}/ with barrel export index.ts</constraint>
+    <constraint type="api">Backend endpoint already exists - no backend changes required for this story</constraint>
+    <constraint type="styling">Use STATUS_COLORS from assessment-service.ts for badge styling consistency</constraint>
+    <constraint type="future">Submitted status triggers callback for Story 3.5 - add placeholder, do not implement full submission form</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="PATCH /api/assessments/:id/status" kind="REST endpoint" path="backend/internal/routes/assessment.go:21">
+      <signature>PATCH /api/assessments/:id/status { status: "not_started" | "in_progress" | "submitted" | "reviewed" }</signature>
+      <response>200 { data: { assessment: Assessment } } or 400/404 on error</response>
+    </interface>
+    <interface name="updateAssessmentStatus" kind="function" path="frontend/src/services/assessment-service.ts:131">
+      <signature>updateAssessmentStatus(id: string, status: AssessmentStatus): Promise&lt;Assessment&gt;</signature>
+    </interface>
+    <interface name="AssessmentStatusSelectProps" kind="component interface" path="NEW: frontend/src/components/assessment-status-select/assessment-status-select.tsx">
+      <signature>{ value: AssessmentStatus; onChange: (status: AssessmentStatus) =&gt; void; onSubmittedSelect?: () =&gt; void; disabled?: boolean; }</signature>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Frontend testing uses manual testing workflow. Backend uses Go testing with testutil package. Focus on integration testing for handlers. UI components tested manually via development server.</standards>
+    <locations>
+      <location>backend/internal/handlers/*_test.go</location>
+      <location>backend/internal/repository/*_test.go</location>
+      <location>Manual testing via pnpm dev on frontend</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test dropdown opens and shows all four status options</idea>
+      <idea ac="1">Test selecting each status option updates the displayed value</idea>
+      <idea ac="2">Test status change triggers API call to PATCH endpoint</idea>
+      <idea ac="2">Test API returns updated assessment with new status</idea>
+      <idea ac="3">Test not_started shows gray badge styling</idea>
+      <idea ac="3">Test in_progress shows blue badge styling</idea>
+      <idea ac="3">Test submitted shows green badge styling</idea>
+      <idea ac="3">Test reviewed shows purple badge styling</idea>
+      <idea ac="4">Test selecting submitted calls onSubmittedSelect callback</idea>
+      <idea ac="5">Test UI updates immediately before API response completes</idea>
+      <idea ac="5">Test UI reverts to previous status on API error</idea>
+      <idea ac="5">Test error toast shown on API failure</idea>
+    </ideas>
+  </tests>
+</story-context>

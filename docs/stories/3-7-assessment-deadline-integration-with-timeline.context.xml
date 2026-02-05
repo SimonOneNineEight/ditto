@@ -1,0 +1,256 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>7</storyId>
+    <title>Assessment Deadline Integration with Timeline</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-04</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-7-assessment-deadline-integration-with-timeline.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>to see upcoming assessment deadlines in my timeline view</iWant>
+    <soThat>I never miss a due date</soThat>
+    <tasks>
+      <task id="1" ac="1,7">Enhance backend timeline API to include assessments
+        <subtask id="1.1">Update backend/internal/handlers/timeline.go (or create if doesn't exist) to query both interviews and assessments</subtask>
+        <subtask id="1.2">Create unified response type that handles both entity types with a type field discriminator (interview | assessment)</subtask>
+        <subtask id="1.3">JOIN assessments with applications table to include company_name and job_title</subtask>
+        <subtask id="1.4">Add type query parameter to filter by all, interviews, assessments</subtask>
+        <subtask id="1.5">Sort combined results by date (scheduled_date for interviews, due_date for assessments) ASC</subtask>
+      </task>
+      <task id="2" ac="1,6,7">Create timeline service in frontend
+        <subtask id="2.1">Create or update frontend/src/services/timeline-service.ts with getTimeline(params: { type?: 'all' | 'interviews' | 'assessments' }) function</subtask>
+        <subtask id="2.2">Define TimelineItem TypeScript type with discriminated union for interview vs assessment items</subtask>
+        <subtask id="2.3">Add proper typing for API response including application context</subtask>
+      </task>
+      <task id="3" ac="1,2,3,4,5">Update Timeline page to display assessments
+        <subtask id="3.1">Update timeline page at frontend/src/app/(app)/timeline/page.tsx (or create if doesn't exist)</subtask>
+        <subtask id="3.2">Render assessment items with: type badge (orange background), title, company name, due date, countdown, status badge</subtask>
+        <subtask id="3.3">Use date-fns to calculate countdown ("5 days left", "Due tomorrow", "Overdue by 2 days")</subtask>
+        <subtask id="3.4">Style overdue assessments with red background/border and sort to top</subtask>
+        <subtask id="3.5">Style assessments due within 3 days with orange/yellow warning styling</subtask>
+        <subtask id="3.6">Make assessment items clickable, navigating to /applications/[applicationId]/assessments/[assessmentId]</subtask>
+      </task>
+      <task id="4" ac="6">Implement timeline type filter
+        <subtask id="4.1">Add filter dropdown/select at top of timeline page with options: "All", "Interviews Only", "Assessments Only"</subtask>
+        <subtask id="4.2">Store filter state in URL query parameter (?type=all|interviews|assessments) for persistence</subtask>
+        <subtask id="4.3">Pass filter parameter to timeline API call</subtask>
+        <subtask id="4.4">Update displayed items when filter changes</subtask>
+      </task>
+      <task id="5" ac="2">Visual differentiation between interviews and assessments
+        <subtask id="5.1">Use distinct icons: Calendar for interviews, ClipboardCheck or FileCode for assessments</subtask>
+        <subtask id="5.2">Use color coding: Blue accent for interviews, Orange accent for assessments</subtask>
+        <subtask id="5.3">Display assessment-specific fields: due_date (vs scheduled_date for interviews), assessment status badge</subtask>
+      </task>
+      <task id="6" ac="1-7">Testing and validation
+        <subtask id="6.1">Test timeline shows both interviews and assessments sorted by date</subtask>
+        <subtask id="6.2">Test assessment displays show all required info (company, type, title, due date, countdown, status)</subtask>
+        <subtask id="6.3">Test overdue assessments appear in red at top</subtask>
+        <subtask id="6.4">Test assessments due within 3 days show warning styling</subtask>
+        <subtask id="6.5">Test clicking assessment navigates to detail page</subtask>
+        <subtask id="6.6">Test filter dropdown correctly filters by type</subtask>
+        <subtask id="6.7">Test filter persists via URL query parameter</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">When I navigate to the Timeline view with assessments that have due dates, assessments appear listed alongside interviews, sorted chronologically by date (interviews by scheduled_date, assessments by due_date)</ac>
+    <ac id="2">Each assessment in the timeline shows: company name, assessment type badge, title, due date, countdown timer, and status badge</ac>
+    <ac id="3">Overdue assessments (due_date in the past) are highlighted with red styling and appear at the top of the timeline</ac>
+    <ac id="4">Assessments due within 3 days are highlighted with orange/yellow styling to indicate urgency</ac>
+    <ac id="5">Clicking an assessment in the timeline navigates to its detail page (/applications/[id]/assessments/[assessmentId])</ac>
+    <ac id="6">Timeline filter dropdown includes options: "All", "Interviews Only", "Assessments Only" - filtering shows only the selected type</ac>
+    <ac id="7">The GET /api/timeline endpoint is enhanced to include assessments with application context (company_name, job_title) via JOIN query, returning both interviews and assessments in a unified sorted list</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Technical Specification - Epic 3: Technical Assessment Tracking</title>
+        <section>AC-3.7 Timeline Integration</section>
+        <snippet>Timeline displays assessments alongside interviews sorted chronologically. Assessments show company, type, title, due date, countdown, status. Overdue items highlighted red. Filter by type (all/interviews/assessments).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics Overview</title>
+        <section>Story 3.7 Assessment Deadline Integration</section>
+        <snippet>Extends Epic 2's timeline view to include assessment deadlines. Unified chronological view of all upcoming activities. Filter controls to show interviews only, assessments only, or all.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Ditto Architecture Document</title>
+        <section>Timeline and Dashboard Endpoints</section>
+        <snippet>GET /api/timeline returns upcoming interviews + assessments merged and sorted. Endpoint supports filtering. Response includes application context (company_name, job_title) via JOIN.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-10-interview-list-and-timeline-view.md</path>
+        <title>Story 2.10 Interview List and Timeline View</title>
+        <section>Implementation Reference</section>
+        <snippet>Existing interview list with filter controls, date-based color coding (orange=today, blue=upcoming), status badges, and URL persistence for filters. Pattern to extend for assessments.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3-6-submission-tracking-file-uploads.md</path>
+        <title>Previous Story - Submission Tracking File Uploads</title>
+        <section>Dev Agent Record</section>
+        <snippet>AssessmentFileUpload component created. DELETE endpoint added for submissions. File details fetching pattern. SUBMISSION_TYPE_OPTIONS pattern for type filters. Response patterns: response.Created() for 201.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>backend/internal/handlers/interview.go</path>
+        <kind>handler</kind>
+        <symbol>ListInterviews</symbol>
+        <lines>259-319</lines>
+        <reason>Pattern for listing entities with filter param, pagination, and response format. Extend or use as reference for timeline handler.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/repository/interview.go</path>
+        <kind>repository</kind>
+        <symbol>GetInterviewsWithApplicationInfo</symbol>
+        <lines>245-335</lines>
+        <reason>JOIN pattern for interviews with applications/jobs/companies. Filter logic for all/upcoming/past. Pagination. Use similar approach for combined timeline query.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/repository/assessment.go</path>
+        <kind>repository</kind>
+        <symbol>ListByApplicationID</symbol>
+        <lines>71-88</lines>
+        <reason>Assessment query pattern with soft delete filtering and due_date ordering. Extend for user-wide listing with application JOIN.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/handlers/assessment.go</path>
+        <kind>handler</kind>
+        <symbol>ListAssessments, formatDueDates</symbol>
+        <lines>143-150, 69-73</lines>
+        <reason>Assessment list handler pattern and due date formatting helper. Reuse formatDueDates for timeline responses.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/routes/interview.go</path>
+        <kind>routes</kind>
+        <symbol>RegisterInterviewRoutes</symbol>
+        <lines>1-26</lines>
+        <reason>Route registration pattern. Create similar RegisterTimelineRoutes for /api/timeline endpoint.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/services/interview-service.ts</path>
+        <kind>service</kind>
+        <symbol>listInterviews, InterviewListItem, InterviewFilter</symbol>
+        <lines>220-269</lines>
+        <reason>Frontend service pattern for list endpoints with filter param and typed responses. Create similar timeline-service.ts.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/services/assessment-service.ts</path>
+        <kind>service</kind>
+        <symbol>Assessment, ASSESSMENT_STATUS_OPTIONS, STATUS_COLORS, TYPE_COLORS</symbol>
+        <lines>11-66</lines>
+        <reason>Assessment types, status options, and color mappings. Reuse for timeline assessment item styling.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/app/(app)/interviews/page.tsx</path>
+        <kind>page</kind>
+        <symbol>InterviewPageContent, handleFilterChange, applyClientFilter</symbol>
+        <lines>1-100</lines>
+        <reason>Interview list page with filter state in URL, filter bar component usage, date-fns for date comparison. Pattern for timeline page.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/components/interview-list/filter-bar.tsx</path>
+        <kind>component</kind>
+        <symbol>FilterBar</symbol>
+        <reason>Filter bar component with chip-style buttons. Extend or create similar for timeline type filter (All/Interviews/Assessments).</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/app/(app)/interviews/interview-table/columns.tsx</path>
+        <kind>component</kind>
+        <symbol>getRowBorderClass, getStatusBadge</symbol>
+        <lines>33-110</lines>
+        <reason>Date-based styling logic: orange for today, blue for upcoming, opacity for past. Status badge calculation. Adapt for timeline items.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <frontend>
+        <package name="date-fns" usage="Date comparison, formatting, countdown calculation (differenceInDays, format, parseISO, startOfDay, isToday, isPast)" />
+        <package name="lucide-react" usage="Icons: Calendar (interviews), ClipboardCheck or FileCode (assessments), Filter" />
+        <package name="@/components/ui/badge" usage="Status badges with color variants" />
+        <package name="@/components/ui/button" usage="Filter chip buttons" />
+        <package name="@/components/ui/select" usage="Alternative for filter dropdown" />
+        <package name="next/navigation" usage="useRouter, useSearchParams for URL filter persistence" />
+      </frontend>
+      <backend>
+        <package name="github.com/gin-gonic/gin" usage="HTTP handler framework, query params, JSON responses" />
+        <package name="github.com/jmoiron/sqlx" usage="SQL query execution with struct scanning" />
+        <package name="github.com/google/uuid" usage="UUID parsing and generation" />
+      </backend>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/timeline</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/timeline?type=all|interviews|assessments</signature>
+      <path>backend/internal/handlers/timeline.go (NEW)</path>
+      <notes>New endpoint returning unified list of interviews and assessments sorted by date. Each item includes type discriminator.</notes>
+    </interface>
+    <interface>
+      <name>TimelineItem (discriminated union)</name>
+      <kind>TypeScript type</kind>
+      <signature>
+type TimelineItem =
+  | { type: 'interview'; id: string; scheduled_date: string; scheduled_time?: string; interview_type: string; round_number: number; company_name: string; job_title: string; application_id: string; outcome?: string; }
+  | { type: 'assessment'; id: string; due_date: string; assessment_type: string; title: string; status: string; company_name: string; job_title: string; application_id: string; };
+      </signature>
+      <path>frontend/src/services/timeline-service.ts (NEW)</path>
+    </interface>
+    <interface>
+      <name>InterviewListItem</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface InterviewListItem extends Interview { company_name: string; job_title: string; }</signature>
+      <path>frontend/src/services/interview-service.ts:154-157</path>
+    </interface>
+    <interface>
+      <name>InterviewListFilter</name>
+      <kind>Go struct</kind>
+      <signature>type InterviewListFilter struct { Upcoming bool; Range string; Filter string; Page int; Limit int; }</signature>
+      <path>backend/internal/repository/interview.go:236-243</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint source="architecture.md">All API queries must filter by user_id from JWT to ensure data isolation</constraint>
+    <constraint source="architecture.md">Soft delete filtering: WHERE deleted_at IS NULL on all queries</constraint>
+    <constraint source="architecture.md">Date format: ISO 8601 strings in API (YYYY-MM-DD), UTC storage in database</constraint>
+    <constraint source="architecture.md">Pagination: offset-based with ?page=1&amp;per_page=20 pattern</constraint>
+    <constraint source="dev-notes">Interviews use scheduled_date, assessments use due_date - handle both in sort</constraint>
+    <constraint source="dev-notes">Interviews use blue accent, assessments use orange accent for visual distinction</constraint>
+    <constraint source="dev-notes">Assessment status badges: gray (not_started), blue (in_progress), green (submitted), purple (reviewed)</constraint>
+    <constraint source="story-2.10">Filter state persists in URL query params for browser back/forward support</constraint>
+    <constraint source="story-2.10">Use date-fns for all date calculations (not native Date methods)</constraint>
+    <constraint source="architecture.md">JOIN applications with jobs and companies for company_name and job_title</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Backend: Repository tests with test database (testutil.SetupTestDB), handler integration tests. Frontend: Manual testing per story pattern. Use existing test patterns from interview_test.go and assessment_test.go if present.
+    </standards>
+    <locations>
+      <location>backend/internal/handlers/*_test.go</location>
+      <location>backend/internal/repository/*_test.go</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test timeline API returns both interviews and assessments sorted by date (interviews: scheduled_date, assessments: due_date)</idea>
+      <idea ac="2">Test assessment items include all required fields: company_name, assessment_type, title, due_date, status</idea>
+      <idea ac="3">Test overdue assessments (due_date &lt; today) appear first in list</idea>
+      <idea ac="4">Test assessments with due_date within 3 days have urgency flag in response or calculated client-side</idea>
+      <idea ac="5">Test clicking assessment navigates to correct detail URL pattern</idea>
+      <idea ac="6">Test type filter param (all/interviews/assessments) returns correct subset</idea>
+      <idea ac="7">Test timeline endpoint JOINs correctly and includes application context</idea>
+    </ideas>
+  </tests>
+</story-context>

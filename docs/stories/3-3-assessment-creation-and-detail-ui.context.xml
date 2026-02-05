@@ -1,0 +1,318 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3</storyId>
+    <title>Assessment Creation and Detail UI</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-04</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-3-assessment-creation-and-detail-ui.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>a form to create assessments and a detail view to manage them</iWant>
+    <soThat>I can easily add and track technical challenges for my applications</soThat>
+    <tasks>
+      <task id="1" ac="2">Create assessment service — TypeScript types, display constants, API functions following interview-service.ts pattern</task>
+      <task id="2" ac="1">Create assessment form modal — Zod schema, react-hook-form + Controller, Dialog with Select/Input/DatePicker/Textarea, submit/error handling</task>
+      <task id="3" ac="3">Create assessment list component — Assessment cards with type badge, title, due date, countdown, status badge, empty state, navigation to detail</task>
+      <task id="4" ac="4,5,6">Create assessment detail page — Fetch and display assessment, countdown timer with color coding, delete with confirmation dialog</task>
+      <task id="5" ac="3">Integrate assessment list into application detail page — Import AssessmentList, fetch assessments, wire Add Assessment button to modal</task>
+      <task id="6" ac="1-6">Manual verification — Form modal, list display, detail page, countdown colors, delete flow, empty state, validation errors</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1" title="Assessment Form Modal">Clicking "Add Assessment" opens modal with fields: assessment type (dropdown), title (text, required, max 255), due date (date picker, required), instructions (textarea), requirements (textarea). Submitting validates and calls POST /api/assessments. Success shows toast and adds to list. Errors show field-level messages. Modal closes on success.</ac>
+    <ac id="2" title="Assessment Service Layer">assessment-service.ts provides TypeScript types (Assessment, AssessmentSubmission, AssessmentType, AssessmentStatus, SubmissionType) and API functions (createAssessment, getAssessment, listAssessments, updateAssessment, updateAssessmentStatus, deleteAssessment) using axios client with response.data.data extraction.</ac>
+    <ac id="3" title="Assessment List in Application Detail">Application detail page shows Assessments section with cards sorted by due_date ascending. Each card: type badge, title, due date, countdown, status badge. Empty state: "No assessments yet" with Add Assessment CTA. Click navigates to detail page.</ac>
+    <ac id="4" title="Assessment Detail Page">Detail page at /applications/[id]/assessments/[assessmentId] displays: type badge, title, due date with countdown, status badge (gray/blue/green/purple), instructions section, requirements section. Data loaded from GET /api/assessments/:id.</ac>
+    <ac id="5" title="Countdown Timer Display">Countdown shows human-readable time: green text (>3 days), yellow/amber (1-3 days), red (&lt;1 day or overdue). Overdue assessments prominently highlighted in red.</ac>
+    <ac id="6" title="Delete Assessment">Delete button on detail page triggers confirmation dialog. Confirming calls DELETE /api/assessments/:id. Success redirects to application detail with toast notification.</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Epic 3 Technical Specification: Technical Assessment Tracking</title>
+        <section>Frontend Components, APIs and Interfaces, Data Models and Contracts, Workflows and Sequencing, Acceptance Criteria</section>
+        <snippet>Defines assessment-form-modal.tsx, assessment-detail-page.tsx, assessment-list.tsx, assessment-service.ts components. TypeScript types for Assessment, AssessmentSubmission. API endpoints for CRUD operations. Countdown color coding: green >3d, yellow 1-3d, red &lt;1d. Status badge colors: gray/blue/green/purple.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 3.3: Assessment Creation and Detail UI (lines 754-785)</section>
+        <snippet>Original story definition with acceptance criteria for assessment form modal, detail page with countdown, and inline editing. Prerequisites: Story 3.2 (API endpoints). Technical notes: use shadcn/ui Dialog, DatePicker, Select, Textarea.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Ditto Architecture Document</title>
+        <section>Project Structure, Decision Summary</section>
+        <snippet>Frontend structure under frontend/src/app/(app)/applications/. Assessment components: assessment-form-modal.tsx, assessment-detail-page.tsx, assessment-list.tsx. Service layer pattern with axios client. shadcn/ui component library.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-frontend.md</path>
+        <title>Ditto Frontend Architecture</title>
+        <section>Technology Stack, Architecture Pattern</section>
+        <snippet>Next.js 14 App Router with client components. react-hook-form 7.54.2 + Zod 3.24.2 for forms. axios 1.7.9 for HTTP. shadcn/ui + Radix UI primitives. date-fns 4.1.0 for date operations. sonner for toasts. Tailwind CSS v4 styling.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3-2-create-assessment-api-and-basic-crud.md</path>
+        <title>Story 3.2: Create Assessment API and Basic CRUD</title>
+        <section>Dev Agent Record, Senior Developer Review</section>
+        <snippet>Backend API endpoints fully implemented and tested. DueDate formatted to YYYY-MM-DD in responses. Success wraps in {success: true, data: {assessment: {...}}}. List wraps in {assessments: [...]}. Delete returns 204. POST returns 200 (not 201). Field allowlist prevents arbitrary column updates.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3-1-assessment-database-schema-and-api-foundation.md</path>
+        <title>Story 3.1: Assessment Database Schema and API Foundation</title>
+        <section>Dev Agent Record</section>
+        <snippet>Assessment and AssessmentSubmission Go models created. 13 type constants (6 assessment types, 4 statuses, 3 submission types). Repository layer with CRUD, ownership scoping, cascade soft delete. 20 repository tests passing.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Pattern Reference: Interview Form Modal -->
+      <file>
+        <path>frontend/src/components/interview-form/interview-form-modal.tsx</path>
+        <kind>component</kind>
+        <symbol>InterviewFormModal, formSchema</symbol>
+        <lines>31-249</lines>
+        <reason>Direct pattern reference for AssessmentFormModal — Dialog + react-hook-form + zodResolver + Controller for Select/DatePicker + submit handler with toast + isSubmitting state</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/interview-form/index.ts</path>
+        <kind>barrel-export</kind>
+        <symbol>InterviewFormModal</symbol>
+        <reason>Barrel export pattern to follow for assessment-form/index.ts</reason>
+      </file>
+
+      <!-- Pattern Reference: Interview Service -->
+      <file>
+        <path>frontend/src/services/interview-service.ts</path>
+        <kind>service</kind>
+        <symbol>Interview, CreateInterviewRequest, createInterview, getInterviewById, listInterviews, updateInterview, deleteInterview</symbol>
+        <lines>3-380</lines>
+        <reason>Direct pattern reference for assessment-service.ts — type definitions, API functions with response.data.data extraction, constant maps for dropdowns</reason>
+      </file>
+
+      <!-- Integration Point: Application Detail Page -->
+      <file>
+        <path>frontend/src/app/(app)/applications/[id]/page.tsx</path>
+        <kind>page</kind>
+        <symbol>ApplicationDetailPage</symbol>
+        <lines>337-346</lines>
+        <reason>MODIFY — Contains placeholder Assessments card section. Replace with AssessmentList component, add AssessmentFormModal, fetch assessments via listAssessments(applicationId)</reason>
+      </file>
+
+      <!-- Pattern Reference: Interview Detail Page -->
+      <file>
+        <path>frontend/src/app/(app)/interviews/[id]/page.tsx</path>
+        <kind>page</kind>
+        <symbol>InterviewDetailPage</symbol>
+        <lines>230-456</lines>
+        <reason>Pattern reference for assessment detail page layout — PageHeader, metadata display, multi-section content, edit dialog, delete confirmation</reason>
+      </file>
+
+      <!-- Backend: Assessment Handler (API Contract) -->
+      <file>
+        <path>backend/internal/handlers/assessment.go</path>
+        <kind>handler</kind>
+        <symbol>CreateAssessmentRequest, UpdateAssessmentRequest, UpdateStatusRequest, AssessmentHandler</symbol>
+        <lines>16-283</lines>
+        <reason>API contract reference — request struct binding tags define exact validation rules. Response format: response.Success(c, gin.H{"assessment": assessment}). Date validation: "2006-01-02" format.</reason>
+      </file>
+
+      <!-- Backend: Assessment Model (Type Constants) -->
+      <file>
+        <path>backend/internal/models/assessment.go</path>
+        <kind>model</kind>
+        <symbol>Assessment, AssessmentSubmission, AssessmentType*, AssessmentStatus*, SubmissionType*</symbol>
+        <lines>1-59</lines>
+        <reason>Source of truth for type constants — 6 assessment types, 4 statuses, 3 submission types. TypeScript types must mirror these exactly.</reason>
+      </file>
+
+      <!-- Backend: Assessment Routes -->
+      <file>
+        <path>backend/internal/routes/assessment.go</path>
+        <kind>routes</kind>
+        <symbol>RegisterAssessmentRoutes</symbol>
+        <lines>11-24</lines>
+        <reason>Route definitions for API client — POST "", GET "", GET "/:id", PUT "/:id", PATCH "/:id/status", DELETE "/:id" under /api/assessments</reason>
+      </file>
+
+      <!-- UI Components -->
+      <file>
+        <path>frontend/src/components/ui/dialog.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription</symbol>
+        <reason>Modal container for AssessmentFormModal</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/ui/date-picker.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>DatePicker</symbol>
+        <reason>Date picker for due_date field — props: value (Date), onChange (Date | undefined), placeholder, className</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/ui/select.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Select, SelectTrigger, SelectContent, SelectItem, SelectValue</symbol>
+        <reason>Dropdown for assessment_type field</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/ui/badge.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Badge, badgeVariants</symbol>
+        <reason>Status and type badges on assessment cards and detail page. Has interview type variants — may need assessment-specific variants.</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/ui/card.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Card, CardHeader, CardContent, CardTitle</symbol>
+        <reason>Card container for assessment list items and detail page sections</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/ui/skeleton.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Skeleton</symbol>
+        <reason>Loading state placeholder while fetching assessment data</reason>
+      </file>
+      <file>
+        <path>frontend/src/components/ui/delete-confirm-dialog.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>DeleteConfirmDialog</symbol>
+        <reason>Confirmation dialog for assessment deletion — props: open, onOpenChange, onConfirm, title, description, isDeleting, destructive</reason>
+      </file>
+
+      <!-- Axios API Client -->
+      <file>
+        <path>frontend/src/lib/axios.ts</path>
+        <kind>utility</kind>
+        <symbol>api (default export)</symbol>
+        <lines>1-48</lines>
+        <reason>Pre-configured axios instance with JWT token interceptor and 401 auto-logout. Base URL from NEXT_PUBLIC_API_URL env var. Import as: import api from "@/lib/axios"</reason>
+      </file>
+
+      <!-- Application Service (for reference) -->
+      <file>
+        <path>frontend/src/services/application-service.ts</path>
+        <kind>service</kind>
+        <symbol>ApplicationWithDetails, getApplication</symbol>
+        <reason>Application detail types used in application page — provides applicationId context for assessment operations</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <frontend>
+        <package name="next" version="14.2.15">Next.js framework with App Router</package>
+        <package name="react" version="^18">React UI library</package>
+        <package name="react-hook-form" version="^7.54.2">Form state management with Controller pattern</package>
+        <package name="@hookform/resolvers" version="^4.1.2">Zod resolver bridge for react-hook-form</package>
+        <package name="zod" version="^3.24.2">Runtime schema validation for form inputs</package>
+        <package name="axios" version="^1.7.9">HTTP client with interceptors</package>
+        <package name="date-fns" version="^4.1.0">Date formatting, differenceInDays, isPast, formatDistance for countdown</package>
+        <package name="lucide-react" version="^0.452.0">Icons (Plus, Clock, Calendar, Trash2, ChevronLeft, AlertCircle)</package>
+        <package name="sonner" version="^2.0.7">Toast notifications (toast.success, toast.error)</package>
+        <package name="@radix-ui/react-dialog" version="^1.1.2">Dialog primitive for modal</package>
+        <package name="@radix-ui/react-select" version="^2.2.6">Select primitive for dropdowns</package>
+        <package name="class-variance-authority" version="0.7.0">Type-safe CSS class variants for badges</package>
+        <package name="tailwind-merge" version="2.5.3">Tailwind class merging</package>
+      </frontend>
+      <backend>
+        <package name="github.com/gin-gonic/gin" version="v1.10.1">HTTP framework (handler layer)</package>
+        <package name="github.com/google/uuid" version="v1.6.0">UUID type for IDs</package>
+        <package name="github.com/jmoiron/sqlx" version="v1.4.0">SQL toolkit (repository layer)</package>
+        <package name="github.com/lib/pq" version="v1.10.9">PostgreSQL driver</package>
+      </backend>
+      <stories>
+        <dependency story="3-1" status="done">Database schema, models, repositories — DO NOT recreate</dependency>
+        <dependency story="3-2" status="done">API handler endpoints, routes — DO NOT recreate</dependency>
+      </stories>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">All frontend components use "use client" directive — Next.js 14 App Router client components</constraint>
+    <constraint type="pattern">Forms use react-hook-form useForm() with zodResolver(schema) and Controller for non-native inputs (Select, DatePicker)</constraint>
+    <constraint type="pattern">API calls go through assessment-service.ts functions, not direct axios calls from components</constraint>
+    <constraint type="pattern">Response data extracted from response.data.data.assessment or response.data.data.assessments (nested structure)</constraint>
+    <constraint type="pattern">Toast notifications via sonner: toast.success("message") and toast.error("message")</constraint>
+    <constraint type="pattern">Modal state managed by parent component via open/onOpenChange props</constraint>
+    <constraint type="security">All API calls require JWT authentication — handled automatically by axios interceptor in @/lib/axios</constraint>
+    <constraint type="security">Backend validates user owns application before assessment operations — frontend does not need separate ownership checks</constraint>
+    <constraint type="data">DueDate comes from API as YYYY-MM-DD string (handler formats before returning). Frontend can use directly for display and parse with date-fns for countdown calculations.</constraint>
+    <constraint type="data">New assessments default to status "not_started" — frontend should NOT send status on create</constraint>
+    <constraint type="ui">Assessment type values: take_home_project, live_coding, system_design, data_structures, case_study, other — display with human-readable labels</constraint>
+    <constraint type="ui">Status badge colors: gray (not_started), blue (in_progress), green (submitted), purple (reviewed)</constraint>
+    <constraint type="ui">Countdown colors: green (>3 days), yellow/amber (1-3 days), red (&lt;1 day or overdue)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>POST /api/assessments</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/assessments — Body: {application_id: UUID, assessment_type: string, title: string, due_date: "YYYY-MM-DD", instructions?: string, requirements?: string} — Response 200: {success: true, data: {assessment: Assessment}}</signature>
+      <path>backend/internal/handlers/assessment.go:64-108</path>
+    </interface>
+    <interface>
+      <name>GET /api/assessments/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/assessments/:id — Response 200: {success: true, data: {assessment: Assessment}} — 404 if not found or wrong user</signature>
+      <path>backend/internal/handlers/assessment.go:110-130</path>
+    </interface>
+    <interface>
+      <name>GET /api/assessments?application_id=X</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/assessments?application_id=UUID (required) — Response 200: {success: true, data: {assessments: Assessment[]}} — sorted by due_date ASC, empty array if none</signature>
+      <path>backend/internal/handlers/assessment.go:132-162</path>
+    </interface>
+    <interface>
+      <name>PUT /api/assessments/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>PUT /api/assessments/:id — Body: {title?, assessment_type?, due_date?, status?, instructions?, requirements?} — Response 200: {success: true, data: {assessment: Assessment}} — allowlisted fields only</signature>
+      <path>backend/internal/handlers/assessment.go:164-230</path>
+    </interface>
+    <interface>
+      <name>PATCH /api/assessments/:id/status</name>
+      <kind>REST endpoint</kind>
+      <signature>PATCH /api/assessments/:id/status — Body: {status: "not_started"|"in_progress"|"submitted"|"reviewed"} — Response 200: {success: true, data: {assessment: Assessment}}</signature>
+      <path>backend/internal/handlers/assessment.go:250-283</path>
+    </interface>
+    <interface>
+      <name>DELETE /api/assessments/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>DELETE /api/assessments/:id — Response 204 No Content — Cascades soft-delete to submissions</signature>
+      <path>backend/internal/handlers/assessment.go:232-248</path>
+    </interface>
+    <interface>
+      <name>DeleteConfirmDialog</name>
+      <kind>React component</kind>
+      <signature>Props: {open: boolean, onOpenChange: (open: boolean) => void, onConfirm: () => void, title: string, description: string, isDeleting?: boolean, destructive?: boolean}</signature>
+      <path>frontend/src/components/ui/delete-confirm-dialog.tsx:14-22</path>
+    </interface>
+    <interface>
+      <name>DatePicker</name>
+      <kind>React component</kind>
+      <signature>Props: {value?: Date, onChange?: (date: Date | undefined) => void, placeholder?: string, className?: string}</signature>
+      <path>frontend/src/components/ui/date-picker.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Frontend testing for MVP follows manual verification pattern (consistent with Epic 2 interview components). No automated frontend tests yet — deferred to Epic 6 Story 6-9 (Testing Infrastructure). Backend repository tests exist (20/20 passing for assessment CRUD in backend/internal/repository/assessment_test.go). Manual testing covers: form modal validation, list rendering, detail page display, countdown color thresholds, delete flow, empty states, and error handling.</standards>
+    <locations>
+      <location>backend/internal/repository/assessment_test.go — 20 existing repository tests (DO NOT modify)</location>
+      <location>Manual testing via browser — assessment form, list, detail page, countdown, delete</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Open form modal, submit with missing title → verify field error. Fill all fields → submit → verify toast and list update.</idea>
+      <idea ac="2">Verify service functions return correctly typed data. Test createAssessment, listAssessments, getAssessment, deleteAssessment API calls.</idea>
+      <idea ac="3">View application with 0 assessments → verify empty state. Create 2+ assessments → verify cards display with correct info and sort order.</idea>
+      <idea ac="4">Navigate to detail page → verify all sections render: type badge, title, due date, countdown, status, instructions, requirements.</idea>
+      <idea ac="5">Create assessment due in 5 days → green countdown. Due in 2 days → yellow. Due yesterday → red "Overdue". Due today → red.</idea>
+      <idea ac="6">Click delete → confirm dialog appears. Click cancel → nothing happens. Click confirm → assessment deleted, redirect to application page, toast shown.</idea>
+    </ideas>
+  </tests>
+</story-context>
