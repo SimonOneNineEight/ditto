@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev -p 8080",
     "build": "next build",
+    "clean": "rm -rf .next",
+    "rebuild": "pnpm clean && pnpm build",
     "start": "next start",
     "lint": "next lint"
   },

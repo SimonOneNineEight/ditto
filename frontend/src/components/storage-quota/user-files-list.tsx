@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 import { X, FileText, Loader2 } from 'lucide-react';
 import { type UserFile, formatFileSize, deleteFile } from '@/services/storage-service';

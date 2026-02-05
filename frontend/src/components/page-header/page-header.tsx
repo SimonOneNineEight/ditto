@@ -12,7 +12,7 @@ import {
 
 export interface BreadcrumbItem {
     label: string;
-    href: string;
+    href?: string;
 }
 
 export interface PageHeaderProps {
@@ -29,14 +29,18 @@ const PageHeader = ({ title, titleExtra, subtitle, breadcrumbs, actions }: PageH
             {breadcrumbs && breadcrumbs.length > 0 && (
                 <Breadcrumb>
                     <BreadcrumbList>
-                        {breadcrumbs.map((crumb) => (
-                            <React.Fragment key={crumb.href}>
+                        {breadcrumbs.map((crumb, index) => (
+                            <React.Fragment key={crumb.href || crumb.label}>
                                 <BreadcrumbItem>
-                                    <BreadcrumbLink asChild>
-                                        <Link href={crumb.href}>{crumb.label}</Link>
-                                    </BreadcrumbLink>
+                                    {crumb.href ? (
+                                        <BreadcrumbLink asChild>
+                                            <Link href={crumb.href}>{crumb.label}</Link>
+                                        </BreadcrumbLink>
+                                    ) : (
+                                        <span className="text-muted-foreground">{crumb.label}</span>
+                                    )}
                                 </BreadcrumbItem>
-                                <BreadcrumbSeparator />
+                                {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
                             </React.Fragment>
                         ))}
                     </BreadcrumbList>

@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import MarketBanner from '../components/market-banner';
+import { AUTH_INPUT_CLASS } from '../components/auth-styles';
 import { authService } from '@/services/auth-service';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -78,12 +79,13 @@ const RegisterPage = () => {
                         className="flex flex-col gap-5"
                     >
                         <div>
-                            <label className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
+                            <label htmlFor="name" className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
                                 Name
                             </label>
                             <input
+                                id="name"
                                 {...register('name')}
-                                className="w-full px-2 py-1.5 outline-none border-b-2 border-b-border bg-transparent focus:border-primary transition-colors"
+                                className={AUTH_INPUT_CLASS}
                             />
                             {errors.name && (
                                 <p className="text-destructive text-sm mt-1">
@@ -93,13 +95,14 @@ const RegisterPage = () => {
                         </div>
 
                         <div>
-                            <label className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
+                            <label htmlFor="email" className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
                                 Email
                             </label>
                             <input
+                                id="email"
                                 type="email"
                                 {...register('email')}
-                                className="w-full px-2 py-1.5 outline-none border-b-2 border-b-border bg-transparent focus:border-primary transition-colors"
+                                className={AUTH_INPUT_CLASS}
                             />
                             {errors.email && (
                                 <p className="text-destructive text-sm mt-1">
@@ -109,13 +112,14 @@ const RegisterPage = () => {
                         </div>
 
                         <div>
-                            <label className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
+                            <label htmlFor="password" className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
                                 Password
                             </label>
                             <input
+                                id="password"
                                 type="password"
                                 {...register('password')}
-                                className="w-full px-2 py-1.5 outline-none border-b-2 border-b-border bg-transparent focus:border-primary transition-colors"
+                                className={AUTH_INPUT_CLASS}
                             />
                             {errors.password && (
                                 <p className="text-destructive text-sm mt-1">
@@ -125,13 +129,14 @@ const RegisterPage = () => {
                         </div>
 
                         <div>
-                            <label className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
+                            <label htmlFor="confirmPassword" className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
                                 Confirm Password
                             </label>
                             <input
+                                id="confirmPassword"
                                 type="password"
                                 {...register('confirmPassword')}
-                                className="w-full px-2 py-1.5 outline-none border-b-2 border-b-border bg-transparent focus:border-primary transition-colors"
+                                className={AUTH_INPUT_CLASS}
                             />
                             {errors.confirmPassword && (
                                 <p className="text-destructive text-sm mt-1">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { Upload, X, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +22,10 @@ export type UploadStatus =
     | 'success'
     | 'error';
 
+export interface FileUploadHandle {
+    trigger: () => void;
+}
+
 interface FileUploadProps {
     applicationId?: string;
     onUploadComplete?: (file: FileRecord) => void;
@@ -32,7 +36,7 @@ interface FileUploadProps {
     interviewId?: string;
 }
 
-export function FileUpload({
+export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(function FileUpload({
     applicationId,
     onUploadComplete,
     onFileSelect,
@@ -40,13 +44,21 @@ export function FileUpload({
     label,
     className = '',
     interviewId = '',
-}: FileUploadProps) {
+}, ref) {
     const [isDragging, setIsDragging] = useState(false);
     const [status, setStatus] = useState<UploadStatus>('idle');
     const [progress, setProgress] = useState(0);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    useImperativeHandle(ref, () => ({
+        trigger() {
+            if (!disabled && status === 'idle') {
+                inputRef.current?.click();
+            }
+        },
+    }), [disabled, status]);
 
     const resetState = useCallback(() => {
         setStatus('idle');
@@ -301,6 +313,6 @@ export function FileUpload({
             </div>
         </div>
     );
-}
+});
 
 export default FileUpload;

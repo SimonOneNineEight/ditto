@@ -1,12 +1,21 @@
 import api from './axios';
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+export const ASSESSMENT_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB for assessment submissions
+
 export const ALLOWED_FILE_TYPES = [
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'text/plain',
 ];
 export const ALLOWED_EXTENSIONS = ['.pdf', '.docx', '.txt'];
+
+export const ASSESSMENT_ALLOWED_FILE_TYPES = [
+    ...ALLOWED_FILE_TYPES,
+    'application/zip',
+    'application/x-zip-compressed',
+];
+export const ASSESSMENT_ALLOWED_EXTENSIONS = [...ALLOWED_EXTENSIONS, '.zip'];
 
 export interface PresignedUploadResponse {
     presigned_url: string;
@@ -64,12 +73,38 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
     return { valid: true };
 }
 
+export function validateAssessmentFile(file: File): {
+    valid: boolean;
+    error?: string;
+} {
+    if (file.size === 0) {
+        return { valid: false, error: 'Empty file' };
+    }
+
+    if (file.size > ASSESSMENT_MAX_FILE_SIZE) {
+        return { valid: false, error: 'File too large. Maximum size is 10MB.' };
+    }
+
+    if (!ASSESSMENT_ALLOWED_FILE_TYPES.includes(file.type)) {
+        const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+        if (!ASSESSMENT_ALLOWED_EXTENSIONS.includes(ext)) {
+            return {
+                valid: false,
+                error: 'Unsupported file type. Allowed: PDF, DOCX, TXT, ZIP',
+            };
+        }
+    }
+
+    return { valid: true };
+}
+
 export async function getPresignedUploadUrl(
     fileName: string,
     fileType: string,
     fileSize: number,
     applicationId: string,
-    interviewId?: string
+    interviewId?: string,
+    submissionContext?: 'assessment'
 ): Promise<PresignedUploadResponse> {
     const response = await api.post('/api/files/presigned-upload', {
         file_name: fileName,
@@ -77,6 +112,7 @@ export async function getPresignedUploadUrl(
         file_size: fileSize,
         application_id: applicationId,
         ...(interviewId && { interview_id: interviewId }),
+        ...(submissionContext && { submission_context: submissionContext }),
     });
     return response.data.data;
 }
@@ -124,7 +160,8 @@ export async function confirmUpload(
     fileType: string,
     fileSize: number,
     applicationId: string,
-    interviewId?: string
+    interviewId?: string,
+    submissionContext?: 'assessment'
 ): Promise<FileRecord> {
     const response = await api.post('/api/files/confirm-upload', {
         s3_key: s3Key,
@@ -133,6 +170,7 @@ export async function confirmUpload(
         file_size: fileSize,
         application_id: applicationId,
         ...(interviewId && { interview_id: interviewId }),
+        ...(submissionContext && { submission_context: submissionContext }),
     });
     return response.data.data;
 }

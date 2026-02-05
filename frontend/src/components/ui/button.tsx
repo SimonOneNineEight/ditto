@@ -133,7 +133,7 @@ type ButtonWithoutIconProps = {
     iconPosition?: 'none';
     hasIcon?: false;
     icon?: never;
-    children: React.ReactNode;
+    children?: React.ReactNode;
 };
 
 type ButtonVariantProps =
@@ -146,52 +146,58 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
     BaseButtonProps &
     ButtonVariantProps;
 
-function Button({
-    className,
-    variant,
-    size,
-    asChild = false,
-    isLoading = false,
-    hasIcon = false,
-    icon,
-    iconPosition = 'none',
-    loadingText,
-    children,
-    disabled,
-    ...props
-}: ButtonProps) {
-    const Comp = asChild ? Slot : 'button';
-    return (
-        <Comp
-            data-slot="button"
-            className={cn(
-                buttonVariants({
-                    variant,
-                    size,
-                    className,
-                    hasIcon,
-                    iconPosition,
-                    isLoading,
-                })
-            )}
-            disabled={disabled || isLoading}
-            {...props}
-        >
-            {isLoading ? (
-                <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {loadingText && (
-                        <span className="ml-2">{loadingText}</span>
-                    )}
-                </>
-            ) : (
-                <>
-                    {hasIcon && icon}
-                    {children}
-                </>
-            )}
-        </Comp>
-    );
-}
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+    function Button(
+        {
+            className,
+            variant,
+            size,
+            asChild = false,
+            isLoading = false,
+            hasIcon = false,
+            icon,
+            iconPosition = 'none',
+            loadingText,
+            children,
+            disabled,
+            ...props
+        },
+        ref
+    ) {
+        const Comp = asChild ? Slot : 'button';
+        return (
+            <Comp
+                ref={ref}
+                data-slot="button"
+                className={cn(
+                    buttonVariants({
+                        variant,
+                        size,
+                        className,
+                        hasIcon,
+                        iconPosition,
+                        isLoading,
+                    })
+                )}
+                disabled={disabled || isLoading}
+                {...props}
+            >
+                {isLoading ? (
+                    <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {loadingText && (
+                            <span className="ml-2">{loadingText}</span>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        {hasIcon && icon}
+                        {children}
+                    </>
+                )}
+            </Comp>
+        );
+    }
+);
 
 export { Button, buttonVariants };

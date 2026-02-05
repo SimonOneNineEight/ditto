@@ -52,6 +52,36 @@ const badgeVariants = cva(
           "border-transparent rounded-full px-3 py-1 bg-[#7f1d1d] text-white",
         withdrawn:
           "border-transparent rounded-full px-3 py-1 bg-muted text-white",
+        // Assessment type variants (pill style with orange accent)
+        take_home_project:
+          "border-transparent rounded-full px-3 py-1 bg-[#5c3d1a] text-white",
+        live_coding:
+          "border-transparent rounded-full px-3 py-1 bg-[#1e3a5f] text-white",
+        system_design:
+          "border-transparent rounded-full px-3 py-1 bg-[#4c1d95] text-white",
+        data_structures:
+          "border-transparent rounded-full px-3 py-1 bg-[#166534] text-white",
+        case_study:
+          "border-transparent rounded-full px-3 py-1 bg-[#5c4a1a] text-white",
+        assessment_other:
+          "border-transparent rounded-full px-3 py-1 bg-[#3a3a3a] text-white",
+        // Assessment status variants (pill style)
+        not_started:
+          "border-transparent rounded-full px-3 py-1 bg-muted text-white",
+        in_progress:
+          "border-transparent rounded-full px-3 py-1 bg-[#1e3a5f] text-white",
+        submitted:
+          "border-transparent rounded-full px-3 py-1 bg-[#166534] text-white",
+        reviewed:
+          "border-transparent rounded-full px-3 py-1 bg-[#4c1d95] text-white",
+        // Timeline item type variants
+        interview_type:
+          "border-transparent rounded-full px-3 py-1 bg-[#1e3a5f] text-white",
+        assessment_type:
+          "border-transparent rounded-full px-3 py-1 bg-[#5c3d1a] text-white",
+        // Timeline urgency variants
+        due_soon:
+          "border-transparent rounded-full px-3 py-1 bg-[#5c3d1a] text-white",
       },
     },
     defaultVariants: {

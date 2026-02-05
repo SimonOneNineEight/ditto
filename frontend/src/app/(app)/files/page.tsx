@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { StorageQuotaWidget } from '@/components/storage-quota/storage-quota-widget';
 import { UserFilesList } from '@/components/storage-quota/user-files-list';
-import { FileUpload } from '@/components/file-upload/file-upload';
+import { FileUpload, type FileUploadHandle } from '@/components/file-upload/file-upload';
 import {
     getStorageStats,
     getUserFiles,
@@ -15,6 +15,7 @@ import { Loader2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function FilesPage() {
+    const fileUploadRef = useRef<FileUploadHandle>(null);
     const [stats, setStats] = useState<StorageStats | null>(null);
     const [files, setFiles] = useState<UserFile[]>([]);
     const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -58,7 +59,7 @@ export default function FilesPage() {
                 title="Files"
                 subtitle="Manage your resumes, cover letters, and other documents"
                 actions={
-                    <Button size="sm">
+                    <Button size="sm" onClick={() => fileUploadRef.current?.trigger()}>
                         <Upload className="h-4 w-4 mr-1" />
                         Upload
                     </Button>
@@ -75,6 +76,7 @@ export default function FilesPage() {
                 ) : null}
 
                 <FileUpload
+                    ref={fileUploadRef}
                     onFileSelect={() => {}}
                     className="w-full"
                 />

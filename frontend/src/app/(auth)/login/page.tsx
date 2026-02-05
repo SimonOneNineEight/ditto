@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import MarketBanner from '../components/market-banner';
+import { AUTH_INPUT_CLASS } from '../components/auth-styles';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import OAuthButtons from '../components/oauth-buttons';
@@ -61,13 +62,14 @@ const LoginPage = () => {
                         className="flex flex-col gap-5"
                     >
                         <div>
-                            <label className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
+                            <label htmlFor="email" className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
                                 Email
                             </label>
                             <input
+                                id="email"
                                 type="email"
                                 {...register('email')}
-                                className="w-full px-2 py-1.5 outline-none border-b-2 border-b-border bg-transparent focus:border-primary transition-colors"
+                                className={AUTH_INPUT_CLASS}
                             />
                             {errors.email && (
                                 <p className="text-destructive text-sm mt-1">
@@ -77,27 +79,20 @@ const LoginPage = () => {
                         </div>
 
                         <div>
-                            <label className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
+                            <label htmlFor="password" className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
                                 Password
                             </label>
                             <input
+                                id="password"
                                 type="password"
                                 {...register('password')}
-                                className="w-full px-2 py-1.5 outline-none border-b-2 border-b-border bg-transparent focus:border-primary transition-colors"
+                                className={AUTH_INPUT_CLASS}
                             />
                             {errors.password && (
                                 <p className="text-destructive text-sm mt-1">
                                     {errors.password.message}
                                 </p>
                             )}
-                            <div className="flex justify-end mt-1">
-                                <Link
-                                    href="#"
-                                    className="text-xs text-muted-foreground hover:text-primary"
-                                >
-                                    Forgot password?
-                                </Link>
-                            </div>
                         </div>
 
                         {error && (
