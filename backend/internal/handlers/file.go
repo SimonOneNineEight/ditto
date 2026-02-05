@@ -15,15 +15,24 @@ import (
 )
 
 const (
-	MaxFileSize        = 5 * 1024 * 1024   // 5MB
-	MaxStoragePerUser  = 100 * 1024 * 1024 // 100MB
-	PresignedURLExpiry = 15 * time.Minute
+	MaxFileSize           = 5 * 1024 * 1024   // 5MB
+	MaxAssessmentFileSize = 10 * 1024 * 1024  // 10MB for assessment submissions
+	MaxStoragePerUser     = 100 * 1024 * 1024 // 100MB
+	PresignedURLExpiry    = 15 * time.Minute
 )
 
 var allowedFileTypes = map[string]bool{
 	"application/pdf": true,
 	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": true, // DOCX
 	"text/plain": true, // TXT
+}
+
+var assessmentAllowedFileTypes = map[string]bool{
+	"application/pdf": true,
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": true, // DOCX
+	"text/plain":              true,                                                  // TXT
+	"application/zip":         true,                                                  // ZIP
+	"application/x-zip-compressed": true,                                             // ZIP (alternate MIME)
 }
 
 type FileHandler struct {
@@ -39,11 +48,12 @@ func NewFileHandler(fileRepo *repository.FileRepository, s3Service *s3service.S3
 }
 
 type PresignedUploadRequest struct {
-	FileName      string     `json:"file_name" binding:"required"`
-	FileType      string     `json:"file_type" binding:"required"`
-	FileSize      int64      `json:"file_size" binding:"required"`
-	ApplicationID uuid.UUID  `json:"application_id" binding:"required"`
-	InterviewID   *uuid.UUID `json:"interview_id,omitempty"`
+	FileName          string     `json:"file_name" binding:"required"`
+	FileType          string     `json:"file_type" binding:"required"`
+	FileSize          int64      `json:"file_size" binding:"required"`
+	ApplicationID     uuid.UUID  `json:"application_id" binding:"required"`
+	InterviewID       *uuid.UUID `json:"interview_id,omitempty"`
+	SubmissionContext *string    `json:"submission_context,omitempty"` // "assessment" for 10MB limit
 }
 
 type PresignedUploadResponse struct {
@@ -102,14 +112,27 @@ func (h *FileHandler) GetPresignedUploadURL(c *gin.Context) {
 		return
 	}
 
-	if !allowedFileTypes[req.FileType] {
-		HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT"))
-		return
-	}
+	// Determine if this is an assessment upload (allows ZIP and 10MB limit)
+	isAssessmentUpload := req.SubmissionContext != nil && *req.SubmissionContext == "assessment"
 
-	if req.FileSize > MaxFileSize {
-		HandleError(c, errors.New(errors.ErrorValidationFailed, "file exceeds 5MB limit"))
-		return
+	if isAssessmentUpload {
+		if !assessmentAllowedFileTypes[req.FileType] {
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT, ZIP"))
+			return
+		}
+		if req.FileSize > MaxAssessmentFileSize {
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "file exceeds 10MB limit"))
+			return
+		}
+	} else {
+		if !allowedFileTypes[req.FileType] {
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT"))
+			return
+		}
+		if req.FileSize > MaxFileSize {
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "file exceeds 5MB limit"))
+			return
+		}
 	}
 
 	usedBytes, err := h.fileRepo.GetUserStorageUsage(userID)
@@ -379,14 +402,26 @@ func (h *FileHandler) ReplaceFile(c *gin.Context) {
 		return
 	}
 
-	if !allowedFileTypes[req.FileType] {
-		HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT"))
-		return
-	}
+	isAssessmentUpload := req.SubmissionContext != nil && *req.SubmissionContext == "assessment"
 
-	if req.FileSize > MaxFileSize {
-		HandleError(c, errors.New(errors.ErrorValidationFailed, "file exceeds 5MB limit"))
-		return
+	if isAssessmentUpload {
+		if !assessmentAllowedFileTypes[req.FileType] {
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT, ZIP"))
+			return
+		}
+		if req.FileSize > MaxAssessmentFileSize {
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "file exceeds 10MB limit"))
+			return
+		}
+	} else {
+		if !allowedFileTypes[req.FileType] {
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT"))
+			return
+		}
+		if req.FileSize > MaxFileSize {
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "file exceeds 5MB limit"))
+			return
+		}
 	}
 
 	usedBytes, err := h.fileRepo.GetUserStorageUsage(userID)

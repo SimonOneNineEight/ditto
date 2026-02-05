@@ -27,7 +27,14 @@ func Success(c *gin.Context, data interface{}) {
 }
 
 func SuccessWithStatus(c *gin.Context, status int, data interface{}) {
-	c.JSON(200, ApiResponse{
+	c.JSON(status, ApiResponse{
+		Success: true,
+		Data:    data,
+	})
+}
+
+func Created(c *gin.Context, data interface{}) {
+	c.JSON(201, ApiResponse{
 		Success: true,
 		Data:    data,
 	})

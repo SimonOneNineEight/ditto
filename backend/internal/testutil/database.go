@@ -157,6 +157,37 @@ func (td *TestDatabase) RunMigrations(t *testing.T) {
 		CREATE INDEX IF NOT EXISTS idx_files_user_id ON files(user_id) WHERE deleted_at IS NULL;
 		CREATE INDEX IF NOT EXISTS idx_files_application_id ON files(application_id) WHERE deleted_at IS NULL;
 
+		CREATE TABLE IF NOT EXISTS assessments (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id UUID NOT NULL REFERENCES users(id),
+			application_id UUID NOT NULL REFERENCES applications(id),
+			assessment_type VARCHAR(50) NOT NULL,
+			title VARCHAR(255) NOT NULL,
+			due_date DATE NOT NULL,
+			status VARCHAR(50) NOT NULL DEFAULT 'not_started',
+			instructions TEXT,
+			requirements TEXT,
+			created_at TIMESTAMP DEFAULT NOW(),
+			updated_at TIMESTAMP DEFAULT NOW(),
+			deleted_at TIMESTAMP
+		);
+
+		CREATE TABLE IF NOT EXISTS assessment_submissions (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			assessment_id UUID NOT NULL REFERENCES assessments(id),
+			submission_type VARCHAR(50) NOT NULL,
+			github_url VARCHAR(500),
+			file_id UUID REFERENCES files(id),
+			notes TEXT,
+			submitted_at TIMESTAMP DEFAULT NOW(),
+			created_at TIMESTAMP DEFAULT NOW(),
+			deleted_at TIMESTAMP
+		);
+
+		CREATE INDEX IF NOT EXISTS idx_assessments_user_id ON assessments(user_id) WHERE deleted_at IS NULL;
+		CREATE INDEX IF NOT EXISTS idx_assessments_application_id ON assessments(application_id) WHERE deleted_at IS NULL;
+		CREATE INDEX IF NOT EXISTS idx_assessment_submissions_assessment_id ON assessment_submissions(assessment_id) WHERE deleted_at IS NULL;
+
 		-- Insert test application statuses
 		INSERT INTO application_status (name) VALUES
 			('Applied'),
@@ -175,6 +206,8 @@ func (td *TestDatabase) RunMigrations(t *testing.T) {
 // Truncate truncates all tables for clean test state
 func (td *TestDatabase) Truncate(t *testing.T) {
 	tables := []string{
+		"assessment_submissions",
+		"assessments",
 		"files",
 		"applications",
 		"user_jobs",

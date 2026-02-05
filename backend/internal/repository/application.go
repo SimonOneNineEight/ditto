@@ -168,7 +168,7 @@ func (r *ApplicationRepository) SoftDeleteApplication(applicationID, userID uuid
 
 func (r *ApplicationRepository) GetApplicationsByUser(userID uuid.UUID, filters *ApplicationFilters) ([]*models.Application, error) {
 	baseQuery := `
-        SELECT id, user_id, job_id, application_status_id, applied_at, offer_received, attempt_number, notes, created_at, updated_at
+        SELECT a.id, a.user_id, a.job_id, a.application_status_id, a.applied_at, a.offer_received, a.attempt_number, a.notes, a.created_at, a.updated_at
         FROM applications a
         LEFT JOIN jobs j ON a.job_id = j.id
         LEFT JOIN companies c ON j.company_id = c.id
