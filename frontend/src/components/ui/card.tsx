@@ -1,14 +1,21 @@
 import { cn } from "@/lib/utils"
 
+interface CardProps extends React.ComponentProps<"div"> {
+  variant?: "default" | "inset"
+}
+
 function Card({
   className,
+  variant = "default",
   ...props
-}: React.ComponentProps<"div">) {
+}: CardProps) {
   return (
     <div
       data-slot="card"
       className={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-sm",
+        "border text-card-foreground",
+        variant === "default" && "rounded-lg bg-card shadow-sm",
+        variant === "inset" && "rounded-md bg-background",
         className
       )}
       {...props}

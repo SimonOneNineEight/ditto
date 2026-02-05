@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Building2, Pencil, Trash2, ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -22,6 +23,13 @@ import {
     getInterviewTypeLabel,
     type InterviewListItem,
 } from '@/services/interview-service';
+import {
+    listAssessments,
+    type Assessment,
+    type AssessmentStatus,
+} from '@/services/assessment-service';
+import { AssessmentList } from '@/components/assessment-list';
+import { AssessmentFormModal } from '@/components/assessment-form';
 
 const statusVariantMap: Record<string, 'applied' | 'screening' | 'interviewing' | 'offered' | 'rejected' | 'withdrawn' | 'default'> = {
     'Applied': 'applied',
@@ -35,22 +43,36 @@ const statusVariantMap: Record<string, 'applied' | 'screening' | 'interviewing' 
 interface TimelineEvent {
     title: string;
     subtitle?: string;
+    subtitleColor?: string;
     date: string;
     isPrimary: boolean;
     outcome?: string;
+    isOverdue?: boolean;
+    isDueSoon?: boolean;
+    href?: string;
 }
 
-function buildTimeline(app: ApplicationWithDetails, interviews: InterviewListItem[]): TimelineEvent[] {
-    const events: TimelineEvent[] = [];
+const ASSESSMENT_STATUS_COLORS: Record<string, string> = {
+    submitted: '#eab308',
+    passed: '#22c55e',
+    failed: '#ef4444',
+};
 
-    // Add "Application Submitted" event
+function buildTimeline(
+    app: ApplicationWithDetails,
+    interviews: InterviewListItem[],
+    assessments: Assessment[]
+): TimelineEvent[] {
+    const events: TimelineEvent[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     events.push({
         title: 'Application Submitted',
         date: app.applied_at,
         isPrimary: false,
     });
 
-    // Add interview events
     for (const interview of interviews) {
         const typeLabel = getInterviewTypeLabel(interview.interview_type);
         events.push({
@@ -59,13 +81,36 @@ function buildTimeline(app: ApplicationWithDetails, interviews: InterviewListIte
             date: interview.scheduled_date,
             isPrimary: false,
             outcome: interview.outcome || undefined,
+            href: `/interviews/${interview.id}`,
         });
     }
 
-    // Sort by date ascending
+    for (const assessment of assessments) {
+        const dueDate = new Date(assessment.due_date);
+        dueDate.setHours(0, 0, 0, 0);
+        const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const isOverdue = daysUntilDue < 0;
+        const isDueSoon = daysUntilDue >= 0 && daysUntilDue <= 3;
+
+        const completedStatuses = ['submitted', 'passed', 'failed'];
+        const isCompleted = completedStatuses.includes(assessment.status);
+
+        events.push({
+            title: `Assessment: ${assessment.title}`,
+            subtitle: !isCompleted
+                ? (isOverdue ? 'Overdue' : isDueSoon ? `Due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}` : undefined)
+                : `Status: ${assessment.status}`,
+            subtitleColor: isCompleted ? ASSESSMENT_STATUS_COLORS[assessment.status] : undefined,
+            date: assessment.due_date,
+            isPrimary: false,
+            isOverdue: !isCompleted && isOverdue,
+            isDueSoon: !isCompleted && isDueSoon,
+            href: `/applications/${app.id}/assessments/${assessment.id}`,
+        });
+    }
+
     events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    // Mark the most recent event as primary
     if (events.length > 0) {
         events[events.length - 1].isPrimary = true;
     }
@@ -73,12 +118,17 @@ function buildTimeline(app: ApplicationWithDetails, interviews: InterviewListIte
     return events;
 }
 
-function getOutcomeDotColor(outcome?: string): string {
-    if (!outcome) return '';
-    const lower = outcome.toLowerCase();
-    if (lower === 'passed' || lower === 'accepted') return 'bg-green-500';
-    if (lower === 'failed' || lower === 'rejected') return 'bg-red-500';
-    return 'bg-yellow-500';
+function getEventDotColor(event: TimelineEvent): string {
+    if (event.isOverdue) return 'bg-red-500';
+    if (event.isDueSoon) return 'bg-orange-500';
+    if (event.outcome) {
+        const lower = event.outcome.toLowerCase();
+        if (lower === 'passed' || lower === 'accepted') return 'bg-green-500';
+        if (lower === 'failed' || lower === 'rejected') return 'bg-red-500';
+        return 'bg-yellow-500';
+    }
+    if (event.isPrimary) return 'bg-primary';
+    return 'bg-muted-foreground/40';
 }
 
 function LoadingSkeleton() {
@@ -113,20 +163,23 @@ const ApplicationPage = () => {
 
     const [app, setApp] = useState<ApplicationWithDetails | null>(null);
     const [interviews, setInterviews] = useState<InterviewListItem[]>([]);
+    const [assessments, setAssessments] = useState<Assessment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isJdExpanded, setIsJdExpanded] = useState(false);
     const [isNotesExpanded, setIsNotesExpanded] = useState(false);
+    const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
             try {
                 setLoading(true);
-                const [applicationData, interviewData] = await Promise.all([
+                const [applicationData, interviewData, assessmentData] = await Promise.all([
                     getApplication(applicationId),
                     listInterviews({ limit: 1000 }),
+                    listAssessments(applicationId),
                 ]);
 
                 if (!applicationData) {
@@ -140,6 +193,7 @@ const ApplicationPage = () => {
                         (i) => i.application_id === applicationId
                     )
                 );
+                setAssessments(assessmentData);
             } catch {
                 setError('Failed to load application');
             } finally {
@@ -180,7 +234,7 @@ const ApplicationPage = () => {
     const positionTitle = app.job?.title || 'Untitled Position';
     const statusName = app.status?.name;
     const statusVariant = statusName ? (statusVariantMap[statusName] || 'default') : 'default';
-    const timeline = buildTimeline(app, interviews);
+    const timeline = buildTimeline(app, interviews, assessments);
 
     return (
         <div className="flex flex-col p-8 w-full">
@@ -269,10 +323,10 @@ const ApplicationPage = () => {
                     </Card>
 
                     {/* Job Description card */}
-                    {app.job?.job_description && (
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                                <CardTitle className="text-base">Job Description</CardTitle>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                            <CardTitle className="text-base">Job Description</CardTitle>
+                            {app.job?.job_description && (
                                 <button
                                     onClick={() => setIsJdExpanded(!isJdExpanded)}
                                     className="text-muted-foreground hover:text-foreground"
@@ -283,23 +337,25 @@ const ApplicationPage = () => {
                                         <ChevronDown className="h-[18px] w-[18px]" />
                                     )}
                                 </button>
-                            </CardHeader>
-                            <CardContent>
-                                {isJdExpanded ? (
+                            )}
+                        </CardHeader>
+                        <CardContent>
+                            {!app.job?.job_description ? (
+                                <p className="text-sm text-muted-foreground/60 italic">No job description provided</p>
+                            ) : isJdExpanded ? (
+                                <p className="text-sm leading-normal text-muted-foreground whitespace-pre-line">
+                                    {app.job.job_description}
+                                </p>
+                            ) : (
+                                <div className="relative max-h-[80px] overflow-hidden">
                                     <p className="text-sm leading-normal text-muted-foreground whitespace-pre-line">
                                         {app.job.job_description}
                                     </p>
-                                ) : (
-                                    <div className="relative max-h-[80px] overflow-hidden">
-                                        <p className="text-sm leading-normal text-muted-foreground whitespace-pre-line">
-                                            {app.job.job_description}
-                                        </p>
-                                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent" />
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )}
+                                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent" />
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
 
                     {/* Notes card */}
                     <Card>
@@ -318,7 +374,7 @@ const ApplicationPage = () => {
                         </CardHeader>
                         <CardContent>
                             {!app.notes ? (
-                                <p className="text-sm text-muted-foreground">No notes yet</p>
+                                <p className="text-sm text-muted-foreground/60 italic">No notes provided</p>
                             ) : isNotesExpanded ? (
                                 <p className="text-sm leading-normal text-muted-foreground whitespace-pre-line">
                                     {app.notes}
@@ -338,10 +394,26 @@ const ApplicationPage = () => {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                             <CardTitle className="text-base">Assessments</CardTitle>
-                            <Button size="sm"><Plus className="h-4 w-4" />Assessment</Button>
+                            {assessments.length > 0 && (
+                                <Button size="sm" onClick={() => setIsAssessmentModalOpen(true)}>
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    Assessment
+                                </Button>
+                            )}
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-muted-foreground">No assessments yet</p>
+                            <AssessmentList
+                                assessments={assessments}
+                                applicationId={applicationId}
+                                onAddClick={() => setIsAssessmentModalOpen(true)}
+                                onStatusUpdate={(id, newStatus) => {
+                                    setAssessments((prev) =>
+                                        prev.map((a) =>
+                                            a.id === id ? { ...a, status: newStatus as AssessmentStatus } : a
+                                        )
+                                    );
+                                }}
+                            />
                         </CardContent>
                     </Card>
                 </div>
@@ -357,33 +429,42 @@ const ApplicationPage = () => {
                                 <p className="text-sm text-muted-foreground">No events yet</p>
                             ) : (
                                 <div className="flex flex-col gap-4">
-                                    {timeline.map((event, index) => (
-                                        <div key={index} className="flex gap-3">
-                                            <div className="flex flex-col items-center">
-                                                <div
-                                                    className={`w-2 h-2 rounded-full mt-1.5 ${
-                                                        event.outcome
-                                                            ? getOutcomeDotColor(event.outcome)
-                                                            : event.isPrimary
-                                                              ? 'bg-primary'
-                                                              : 'bg-muted-foreground/40'
-                                                    }`}
-                                                />
-                                                {index < timeline.length - 1 && (
-                                                    <div className="w-px flex-1 bg-border mt-1" />
-                                                )}
+                                    {timeline.map((event, index) => {
+                                        const content = (
+                                            <div className={`flex gap-3 ${event.href ? 'cursor-pointer hover:bg-accent/50 -mx-2 px-2 py-1 rounded' : ''}`}>
+                                                <div className="flex flex-col items-center">
+                                                    <div className={`w-2 h-2 rounded-full mt-1.5 ${getEventDotColor(event)}`} />
+                                                    {index < timeline.length - 1 && (
+                                                        <div className="w-px flex-1 bg-border mt-1" />
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-col gap-0.5 pb-4">
+                                                    <span className={`text-sm font-medium ${event.isOverdue ? 'text-red-400' : ''}`}>
+                                                        {event.title}
+                                                    </span>
+                                                    {event.subtitle && (
+                                                        <span
+                                                            className={`text-xs ${event.isOverdue ? 'text-red-400' : event.isDueSoon ? 'text-orange-400' : !event.subtitleColor ? 'text-muted-foreground' : ''}`}
+                                                            style={event.subtitleColor ? { color: event.subtitleColor } : undefined}
+                                                        >
+                                                            {event.subtitle}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {format(new Date(event.date), 'MMM d, yyyy')}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col gap-0.5 pb-4">
-                                                <span className="text-sm font-medium">{event.title}</span>
-                                                {event.subtitle && (
-                                                    <span className="text-xs text-muted-foreground">{event.subtitle}</span>
-                                                )}
-                                                <span className="text-xs text-muted-foreground">
-                                                    {format(new Date(event.date), 'MMM d, yyyy')}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+
+                                        return event.href ? (
+                                            <Link key={index} href={event.href}>
+                                                {content}
+                                            </Link>
+                                        ) : (
+                                            <div key={index}>{content}</div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </CardContent>
@@ -399,6 +480,16 @@ const ApplicationPage = () => {
                 description="Are you sure you want to delete this application? This action cannot be undone."
                 isDeleting={isDeleting}
                 destructive
+            />
+
+            <AssessmentFormModal
+                applicationId={applicationId}
+                open={isAssessmentModalOpen}
+                onOpenChange={setIsAssessmentModalOpen}
+                onSuccess={async () => {
+                    const refreshed = await listAssessments(applicationId);
+                    setAssessments(refreshed);
+                }}
             />
         </div>
     );
