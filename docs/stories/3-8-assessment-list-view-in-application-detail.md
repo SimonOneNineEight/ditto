@@ -1,6 +1,6 @@
 # Story 3.8: Assessment List View in Application Detail
 
-Status: review
+Status: done
 
 ## Story
 

@@ -79,8 +79,8 @@ development_status:
   3-5-submission-tracking-github-links-and-notes: done
   3-6-submission-tracking-file-uploads: done
   3-7-assessment-deadline-integration-with-timeline: done
-  3-8-assessment-list-view-in-application-detail: review
-  epic-3-retrospective: optional
+  3-8-assessment-list-view-in-application-detail: done
+  epic-3-retrospective: done
 
   # Epic 4: Workflow Automation & Timeline
   epic-4: backlog
