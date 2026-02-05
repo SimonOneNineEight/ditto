@@ -56,6 +56,7 @@ func main() {
 		routes.RegisterInterviewerRoutes(apiGroup, appState)
 		routes.RegisterInterviewQuestionRoutes(apiGroup, appState)
 		routes.RegisterInterviewNoteRoutes(apiGroup, appState)
+		routes.RegisterAssessmentRoutes(apiGroup, appState)
 	}
 
 	port := os.Getenv("PORT")
