@@ -313,16 +313,13 @@ func (r *ApplicationRepository) GetRecentApplications(userID uuid.UUID, limit in
         LEFT JOIN jobs j ON a.job_id = j.id
         LEFT JOIN companies c ON j.company_id = c.id
         LEFT JOIN application_status ast ON a.application_status_id = ast.id
-        WHERE a.user_id = $1 
+        WHERE a.user_id = $1
         AND a.deleted_at IS NULL
-        AND a.applied_at >= $2
-        AND a.applied_at <= $3
-        ORDER BY applied_at DESC
-        LIMIT $4
+        ORDER BY a.created_at DESC
+        LIMIT $2
     `
 
-	rows, err := r.db.Query(
-		query, userID, time.Now().AddDate(0, 0, -7), time.Now(), limit)
+	rows, err := r.db.Query(query, userID, limit)
 	if err != nil {
 		return nil, errors.ConvertError(err)
 	}
