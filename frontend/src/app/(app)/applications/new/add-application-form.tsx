@@ -26,13 +26,7 @@ import {
     uploadToS3,
     confirmUpload,
 } from '@/lib/file-service';
-
-const JOB_TYPES = [
-    { value: 'full-time', label: 'Full-time' },
-    { value: 'part-time', label: 'Part-time' },
-    { value: 'contract', label: 'Contract' },
-    { value: 'internship', label: 'Internship' },
-] as const;
+import { JOB_TYPES } from '@/lib/constants';
 
 const PLATFORMS = [
     { value: 'linkedin', label: 'LinkedIn' },

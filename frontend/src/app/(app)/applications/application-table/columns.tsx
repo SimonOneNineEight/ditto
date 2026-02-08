@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { type ApplicationWithDetails, type SortColumn, type SortOrder } from '@/services/application-service';
+import { formatJobType } from '@/lib/constants';
 import { format } from 'date-fns';
 
 interface SortState {
@@ -188,9 +189,7 @@ export const createColumns = (
         maxSize: 120,
         meta: { className: 'hidden lg:table-cell' },
         cell: ({ row }) => {
-            const jobType = row.original.job?.job_type;
-            if (!jobType) return <span className="text-muted-foreground">—</span>;
-            return <span className="text-[13px] text-muted-foreground">{jobType}</span>;
+            return <span className="text-[13px] text-muted-foreground">{formatJobType(row.original.job?.job_type)}</span>;
         },
     },
     {
