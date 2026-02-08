@@ -1,0 +1,228 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4</storyId>
+    <title>Auto-Save Infrastructure for Rich Text Content</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2026-02-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-4-auto-save-infrastructure-for-rich-text-content.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>all my notes and rich text content to auto-save automatically</iWant>
+    <soThat>I never lose work even if my browser crashes or I forget to click save</soThat>
+    <tasks>
+      <task id="1" ac="1,5,6">Create useAutoSave Custom Hook
+        <subtask>1.1 Create frontend/src/lib/hooks/useAutoSave.ts with TypeScript generics support</subtask>
+        <subtask>1.2 Implement 30-second debounce using lodash debounce or custom implementation</subtask>
+        <subtask>1.3 Track content changes via hash comparison or dirty flag (previousDataRef pattern)</subtask>
+        <subtask>1.4 Return status: 'idle' | 'saving' | 'saved' | 'error' and lastSaved timestamp</subtask>
+        <subtask>1.5 Implement retry function for failed saves</subtask>
+        <subtask>1.6 Add cleanup on unmount to flush pending saves</subtask>
+        <subtask>1.7 Write unit tests for debounce timing and change detection</subtask>
+      </task>
+      <task id="2" ac="2,3,4">Create AutoSaveIndicator Component
+        <subtask>2.1 Create frontend/src/components/shared/AutoSaveIndicator/AutoSaveIndicator.tsx</subtask>
+        <subtask>2.2 Create frontend/src/components/shared/AutoSaveIndicator/index.ts barrel export</subtask>
+        <subtask>2.3 Implement idle state (no indicator shown or subtle "Auto-save enabled")</subtask>
+        <subtask>2.4 Implement saving state: Loader2 spinner + "Saving..." text</subtask>
+        <subtask>2.5 Implement saved state: Check icon + "Saved" text + optional timestamp</subtask>
+        <subtask>2.6 Implement error state: AlertCircle icon + "Save failed" + Retry button</subtask>
+        <subtask>2.7 Add aria-live="polite" for screen reader announcements</subtask>
+        <subtask>2.8 Style using Tailwind matching existing dashboard patterns</subtask>
+      </task>
+      <task id="3" ac="1,2,3,4,5,6">Integrate Auto-Save into Interview Notes Editor
+        <subtask>3.1 Locate existing interview notes rich text editor (TipTap) in app/(app)/interviews/[id]/</subtask>
+        <subtask>3.2 Import and configure useAutoSave hook with note content and save function</subtask>
+        <subtask>3.3 Add AutoSaveIndicator to editor toolbar or adjacent position</subtask>
+        <subtask>3.4 Verify auto-save triggers correctly after 30s pause</subtask>
+        <subtask>3.5 Test error handling with network simulation</subtask>
+      </task>
+      <task id="4" ac="1,2,3,4,5,6">Integrate Auto-Save into Assessment Notes
+        <subtask>4.1 Locate assessment notes editor in app/(app)/assessments/[id]/ components</subtask>
+        <subtask>4.2 Apply same useAutoSave + AutoSaveIndicator pattern</subtask>
+        <subtask>4.3 Verify consistent behavior across interview and assessment editors</subtask>
+      </task>
+      <task id="5" ac="1">Backend Idempotency Verification
+        <subtask>5.1 Verify existing PUT /api/interview-notes/:id is idempotent</subtask>
+        <subtask>5.2 Verify existing PUT /api/assessment-submissions/:id handles repeated saves</subtask>
+        <subtask>5.3 Add updated_at timestamp comparison if needed to prevent stale writes</subtask>
+      </task>
+      <task id="6" ac="2,3,4">Testing and Accessibility
+        <subtask>6.1 Manual testing: verify 30s debounce timing</subtask>
+        <subtask>6.2 Test rapid typing followed by pause - should only trigger one save</subtask>
+        <subtask>6.3 Test network failure scenario - error state and retry flow</subtask>
+        <subtask>6.4 Verify aria-live announces status changes to screen readers</subtask>
+        <subtask>6.5 Test keyboard accessibility of retry button</subtask>
+        <subtask>6.6 Test browser crash/tab close recovery</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Rich text content auto-saves after 30 seconds of inactivity - When editing interview notes, prep materials, or assessment notes, content saves automatically after 30s of no typing</ac>
+    <ac id="2">Visual "Saving..." indicator appears during save request - A status indicator shows when save is in progress</ac>
+    <ac id="3">Indicator changes to "Saved" with timestamp after successful save - User sees confirmation that content was saved</ac>
+    <ac id="4">"Save failed - retry" message appears on failure with retry button - If save fails, user can manually retry</ac>
+    <ac id="5">Auto-save only triggers if content has changed - No unnecessary save requests if content is unchanged</ac>
+    <ac id="6">Multiple rapid edits are debounced into a single save after 30s of inactivity - Typing continuously delays save until user pauses</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Epic 4 Technical Specification</title>
+        <section>Story 4.4: Auto-Save Infrastructure</section>
+        <snippet>Contains complete useAutoSave hook implementation with useState, useRef, useMemo pattern. Includes AutoSaveIndicator component with Loader2, Check, AlertCircle icons and retry button.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Project Architecture</title>
+        <section>Lifecycle Patterns - Auto-Save Pattern</section>
+        <snippet>Defines useAutoSave hook pattern with debounce, status states, and usage example with interviewService.updateNote integration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Definitions</title>
+        <section>Epic 4, Story 4.4</section>
+        <snippet>Story definition with acceptance criteria for auto-save infrastructure covering debounce timing, visual indicators, and error handling.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>frontend/src/components/interview-detail/notes-section.tsx</path>
+        <kind>component</kind>
+        <symbol>NoteSection</symbol>
+        <lines>1-165</lines>
+        <reason>EXISTING auto-save implementation to be REFACTORED. Contains inline AutoSaveStatus type, autoSaveTimerRef, lastSavedRef, performAutoSave callback. Extract this logic into reusable useAutoSave hook.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/components/rich-text-editor.tsx</path>
+        <kind>component</kind>
+        <symbol>RichTextEditor</symbol>
+        <lines>1-168</lines>
+        <reason>TipTap-based rich text editor with onUpdate callback. AutoSaveIndicator should be placed in toolbar area (line 66). Uses @tiptap/react, StarterKit, extensions.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/services/interview-service.ts</path>
+        <kind>service</kind>
+        <symbol>createOrUpdateNote</symbol>
+        <lines>367-376</lines>
+        <reason>Existing API endpoint for saving interview notes. POST /api/interviews/:id/notes with note_type and content. This is the save function to pass to useAutoSave.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/services/assessment-service.ts</path>
+        <kind>service</kind>
+        <symbol>createSubmission</symbol>
+        <lines>180-189</lines>
+        <reason>API for assessment submissions. POST /api/assessments/:id/submissions. May need auto-save for notes-type submissions.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/components/submission-form/submission-form-modal.tsx</path>
+        <kind>component</kind>
+        <symbol>SubmissionFormModal</symbol>
+        <lines>1-304</lines>
+        <reason>Assessment submission form with notes Textarea. Uses react-hook-form with explicit submit. Consider if auto-save applies here or only to existing notes.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/app/(app)/dashboard/components/UpcomingWidget.tsx</path>
+        <kind>component</kind>
+        <symbol>UpcomingWidget</symbol>
+        <reason>Reference for error state with retry button pattern and accessibility (aria-labels). Apply similar pattern to AutoSaveIndicator error state.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/lib/utils.ts</path>
+        <kind>utility</kind>
+        <symbol>cn</symbol>
+        <reason>Tailwind class name utility. Use for conditional styling in AutoSaveIndicator.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <package name="@tiptap/react" version="^3.17.1">Rich text editor framework</package>
+        <package name="@tiptap/starter-kit" version="^3.17.1">TipTap core extensions</package>
+        <package name="lucide-react" version="^0.452.0">Icons: Loader2, Check, AlertCircle</package>
+        <package name="react" version="^18">React with hooks</package>
+        <package name="date-fns" version="^4.1.0">Optional for timestamp formatting</package>
+        <package name="tailwind-merge" version="^2.5.3">For className merging</package>
+      </ecosystem>
+      <note>No lodash in package.json - implement debounce with native setTimeout or add lodash-es if needed</note>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="tech-spec">Auto-save debounce must be exactly 30 seconds per PRD specification</constraint>
+    <constraint source="tech-spec">Auto-save completion must be less than 1 second (NFR)</constraint>
+    <constraint source="architecture">Hook location: frontend/src/lib/hooks/useAutoSave.ts</constraint>
+    <constraint source="architecture">Component location: frontend/src/components/shared/AutoSaveIndicator/</constraint>
+    <constraint source="story">Backend endpoints must be idempotent - verify existing PUT endpoints</constraint>
+    <constraint source="story">Must work with existing TipTap onUpdate callback pattern</constraint>
+    <constraint source="accessibility">AutoSaveIndicator must have aria-live="polite" for screen reader announcements</constraint>
+    <constraint source="accessibility">Retry button must be keyboard accessible</constraint>
+    <constraint source="pattern">Follow barrel export pattern (index.ts) for new component directory</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>useAutoSave</name>
+      <kind>React hook</kind>
+      <signature><![CDATA[
+export const useAutoSave = <T>(
+    data: T,
+    saveFunction: (data: T) => Promise<void>,
+    options?: {
+        debounceMs?: number;  // default: 30000
+        enabled?: boolean;    // default: true
+    }
+) => {
+    return {
+        status: 'idle' | 'saving' | 'saved' | 'error',
+        lastSaved: Date | null,
+        retry: () => void
+    };
+};
+      ]]></signature>
+      <path>frontend/src/lib/hooks/useAutoSave.ts</path>
+    </interface>
+    <interface>
+      <name>AutoSaveIndicator</name>
+      <kind>React component</kind>
+      <signature><![CDATA[
+interface AutoSaveIndicatorProps {
+    status: 'idle' | 'saving' | 'saved' | 'error';
+    lastSaved?: Date | null;
+    onRetry?: () => void;
+}
+
+export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps>
+      ]]></signature>
+      <path>frontend/src/components/shared/AutoSaveIndicator/AutoSaveIndicator.tsx</path>
+    </interface>
+    <interface>
+      <name>Interview Notes Save</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/interviews/:id/notes { note_type: NoteType, content: string }</signature>
+      <path>frontend/src/services/interview-service.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Frontend uses React 18 with Next.js 14. No testing framework currently configured in package.json. Manual testing required per tasks. If unit tests added, use Jest or Vitest with React Testing Library. Focus on hook behavior: debounce timing, status transitions, cleanup on unmount.</standards>
+    <locations>
+      <location>frontend/src/lib/hooks/__tests__/ (create if adding unit tests)</location>
+      <location>frontend/src/components/shared/AutoSaveIndicator/__tests__/ (create if adding unit tests)</location>
+    </locations>
+    <ideas>
+      <idea ac="1,6">Test debounce: call hook with changing data rapidly, verify save only triggers once after 30s pause</idea>
+      <idea ac="5">Test no-change detection: call hook with same data, verify save is not triggered</idea>
+      <idea ac="2,3">Test status transitions: idle -> saving -> saved flow</idea>
+      <idea ac="4">Test error state: mock failed save, verify status='error' and retry function works</idea>
+      <idea ac="1">Test cleanup: unmount during pending save, verify save is flushed or cancelled cleanly</idea>
+      <idea ac="2,3,4">Test AutoSaveIndicator renders correct icons and text for each status</idea>
+      <idea ac="4">Test retry button click calls onRetry callback</idea>
+    </ideas>
+  </tests>
+</story-context>

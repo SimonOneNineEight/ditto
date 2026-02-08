@@ -1,0 +1,220 @@
+<story-context id="4-1-dashboard-statistics-and-overview" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>1</storyId>
+    <title>Dashboard Statistics and Overview</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-1-dashboard-statistics-and-overview.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a job seeker</asA>
+    <iWant>a dashboard showing my application statistics at a glance</iWant>
+    <soThat>I can quickly understand my job search progress without digging through lists</soThat>
+    <tasks>
+      <task id="1" ac="1,5,7">
+        <title>Create Dashboard Stats API endpoint</title>
+        <subtasks>
+          <subtask id="1.1">Create GET /api/dashboard/stats endpoint in backend/internal/handlers/dashboard_handler.go</subtask>
+          <subtask id="1.2">Implement DashboardRepository.GetStats() with aggregation query</subtask>
+          <subtask id="1.3">Return {total_applications, active_applications, interview_count, offer_count, status_counts}</subtask>
+          <subtask id="1.4">Add 5-minute response caching (cache key: dashboard:stats:user:{id})</subtask>
+          <subtask id="1.5">Write repository tests for stats aggregation</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="1,5">
+        <title>Create Dashboard page and stats service</title>
+        <subtasks>
+          <subtask id="2.1">Create frontend/src/app/(app)/dashboard/page.tsx</subtask>
+          <subtask id="2.2">Create frontend/src/services/dashboard-service.ts with getStats() method</subtask>
+          <subtask id="2.3">Add dashboard route to sidebar navigation (mark as active when on dashboard)</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="2,3,4">
+        <title>Create StatCard components matching design file</title>
+        <subtasks>
+          <subtask id="3.1">Create frontend/src/components/stat-card/stat-card.tsx component</subtask>
+          <subtask id="3.2">Match design: 20px padding, 8px corner radius, border, transparent background</subtask>
+          <subtask id="3.3">Header: 13px label ($--muted-foreground), 18px icon ($--primary or $--accent)</subtask>
+          <subtask id="3.4">Value: 32px font-weight 600 ($--foreground or $--accent for offers)</subtask>
+          <subtask id="3.5">Create stat card variants: default (primary icon), accent (offers with trophy icon)</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="1,2,3,4">
+        <title>Render stats row on Dashboard</title>
+        <subtasks>
+          <subtask id="4.1">Create StatsRow component with 4 stat cards in horizontal layout (24px gap)</subtask>
+          <subtask id="4.2">Card 1: "Total Applications" with briefcase icon</subtask>
+          <subtask id="4.3">Card 2: "Active" with trending-up icon</subtask>
+          <subtask id="4.4">Card 3: "Interviews" with calendar icon</subtask>
+          <subtask id="4.5">Card 4: "Offers" with trophy icon (accent color)</subtask>
+          <subtask id="4.6">Cards use width: fill_container to distribute evenly</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="6">
+        <title>Implement click-to-filter navigation</title>
+        <subtasks>
+          <subtask id="5.1">Make stat cards clickable with hover state</subtask>
+          <subtask id="5.2">Total Applications → /applications (no filter)</subtask>
+          <subtask id="5.3">Active → /applications?status=saved,applied,interview</subtask>
+          <subtask id="5.4">Interviews → /applications?status=interview</subtask>
+          <subtask id="5.5">Offers → /applications?status=offer</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="1-7">
+        <title>Testing and validation</title>
+        <subtasks>
+          <subtask id="6.1">Test API returns correct aggregated counts</subtask>
+          <subtask id="6.2">Test stats display correctly on dashboard</subtask>
+          <subtask id="6.3">Test click navigation to filtered application list</subtask>
+          <subtask id="6.4">Test dashboard loads within 2 seconds</subtask>
+          <subtask id="6.5">Verify design matches ditto-design.pen Dashboard frame</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Dashboard displays 4 stat cards showing: Total Applications, Active (Saved + Applied + Interview), Interviews count, Offers count</criterion>
+    <criterion id="2">Each stat card shows: label, icon, large numeric value with proper styling per design file</criterion>
+    <criterion id="3">Stat cards use Card/Stat components from design system (component IDs: QBiyZ, Gv7b0, GUztO, Lyy6W)</criterion>
+    <criterion id="4">"Offers" card uses accent color ($--accent) for the value</criterion>
+    <criterion id="5">Dashboard loads within 2 seconds (NFR-1.1)</criterion>
+    <criterion id="6">Clicking any stat card filters the application list to that status (navigation to /applications?status=X)</criterion>
+    <criterion id="7">Stats are cached for 5 minutes to reduce database queries</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-4.md" title="Epic 4 Technical Specification" section="Story 4.1: Dashboard Statistics and Overview" snippet="Dashboard displays 4 stat cards in horizontal row. Card styling: 8px radius, 20px padding, 1px border. Backend returns DashboardStatsResponse with total, active, interview, offer counts." />
+      <doc path="docs/architecture.md" title="Architecture Document" section="Epic to Architecture Mapping" snippet="Epic 4 backend: dashboard_handler.go, timeline_handler.go, notification_handler.go. Frontend: app/(app)/dashboard/, dashboardService.ts." />
+      <doc path="docs/PRD.md" title="Product Requirements Document" section="FR-4.1" snippet="Dashboard overview showing application statistics, quick actions, upcoming events widget." />
+      <doc path="docs/accessibility-standards.md" title="Accessibility Standards" section="Quick Reference Checklist" snippet="All interactive elements keyboard accessible. Focus indicators visible. Color is not the only indicator of status/state. Text contrast 4.5:1 minimum." />
+      <doc path="docs/retrospectives/epic-3-retrospective.md" title="Epic 3 Retrospective" section="Lessons Learned" snippet="Card inset variant for nested cards. Optimistic UI + toast + rollback pattern. getCountdownInfo() for date urgency display." />
+    </docs>
+    <code>
+      <file path="backend/internal/handlers/application.go" kind="handler" symbol="ApplicationHandler" reason="Reference for handler patterns - dependency injection, error handling, response format" />
+      <file path="backend/internal/repository/application.go" kind="repository" symbol="ApplicationRepository" lines="1-100" reason="Reference for repository patterns - query structure, caching, database access" />
+      <file path="frontend/src/services/application-service.ts" kind="service" symbol="getApplications, getApplicationStatuses" reason="Reference for frontend service patterns - API calls, response typing" />
+      <file path="frontend/src/components/sidebar/sidebar.tsx" kind="component" symbol="sidebarMenu, AppSidebar" reason="Dashboard route already exists at '/'. Need to verify route activation logic." />
+      <file path="frontend/src/components/ui/card.tsx" kind="component" symbol="Card, CardHeader, CardContent" reason="Base card component to extend for StatCard. Has default and inset variants." />
+      <file path="frontend/src/app/(app)/page.tsx" kind="page" reason="Current dashboard placeholder - will be replaced with new dashboard page" />
+      <file path="frontend/src/app/(app)/applications/application-filters.tsx" kind="component" symbol="ApplicationFilters" reason="Reference for filter URL parameter handling pattern" />
+      <file path="backend/cmd/server/main.go" kind="main" lines="47-60" symbol="apiGroup routes registration" reason="Pattern for registering new dashboard routes" />
+    </code>
+    <dependencies>
+      <backend>
+        <package name="gin-gonic/gin" version="1.10.1" />
+        <package name="jmoiron/sqlx" version="1.4.0" />
+        <package name="google/uuid" version="1.6.0" />
+        <package name="lib/pq" version="1.10.9" />
+      </backend>
+      <frontend>
+        <package name="next" version="14.2.15" />
+        <package name="react" version="^18" />
+        <package name="axios" version="1.7.9" />
+        <package name="lucide-react" version="0.452.0" />
+        <package name="tailwindcss" version="4.1.10" />
+        <package name="@radix-ui/react-slot" version="1.1.0" />
+        <package name="class-variance-authority" version="0.7.0" />
+      </frontend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">Backend follows handler → repository pattern with dependency injection via AppState</constraint>
+    <constraint type="architecture">Frontend uses Next.js App Router with server components by default, client components for interactivity</constraint>
+    <constraint type="pattern">All database queries must include "deleted_at IS NULL" for soft delete support</constraint>
+    <constraint type="pattern">API responses use pkg/response.Success() and pkg/response.Error() helpers</constraint>
+    <constraint type="pattern">Frontend services use @/lib/axios configured instance for API calls</constraint>
+    <constraint type="testing">Repository tests required before marking story done (Epic 3 retro commitment)</constraint>
+    <constraint type="performance">Dashboard must load within 2 seconds (NFR-1.1)</constraint>
+    <constraint type="caching">Stats cached for 5 minutes - implement simple in-memory cache with user-specific key</constraint>
+    <constraint type="accessibility">All interactive elements keyboard accessible, focus indicators visible (from accessibility-standards.md)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="GET /api/dashboard/stats" kind="REST endpoint">
+      <signature>GET /api/dashboard/stats → DashboardStatsResponse</signature>
+      <path>backend/internal/handlers/dashboard_handler.go (to be created)</path>
+      <response>
+        {
+          "total_applications": number,
+          "active_applications": number,
+          "interview_count": number,
+          "offer_count": number,
+          "status_counts": {
+            "saved": number,
+            "applied": number,
+            "interview": number,
+            "offer": number,
+            "rejected": number
+          },
+          "updated_at": string (ISO 8601)
+        }
+      </response>
+    </interface>
+    <interface name="DashboardRepository" kind="repository interface">
+      <signature>GetStats(userID uuid.UUID) (*DashboardStats, error)</signature>
+      <path>backend/internal/repository/dashboard_repository.go (to be created)</path>
+    </interface>
+    <interface name="dashboardService" kind="frontend service">
+      <signature>getStats(): Promise&lt;DashboardStatsResponse&gt;</signature>
+      <path>frontend/src/services/dashboard-service.ts (to be created)</path>
+    </interface>
+    <interface name="StatCard" kind="React component">
+      <signature>StatCard({ label, value, icon, variant, onClick }: StatCardProps)</signature>
+      <path>frontend/src/components/stat-card/stat-card.tsx (to be created)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Backend: Go test files with _test.go suffix using testify assertions. Repository tests mock database with sqlx. Handler tests mock repositories.
+      Frontend: Currently no test infrastructure (deferred to Epic 6). Manual testing against design file required.
+    </standards>
+    <locations>
+      <location>backend/internal/repository/*_test.go</location>
+      <location>backend/internal/handlers/*_test.go</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test GetStats returns correct counts for user with multiple applications in different statuses</idea>
+      <idea ac="1">Test GetStats returns zeros for user with no applications</idea>
+      <idea ac="5">Test API response time is under 500ms for typical dataset</idea>
+      <idea ac="7">Test cache returns same result within 5 minutes without DB query</idea>
+      <idea ac="7">Test cache invalidation on application create/update/delete</idea>
+      <idea ac="6">Test click navigation generates correct URL with status filter</idea>
+    </ideas>
+  </tests>
+
+  <designFile>
+    <reference>ditto-design.pen</reference>
+    <frame id="yRtnW" name="Dashboard">Main dashboard screen</frame>
+    <components>
+      <component id="5PoVy" name="StatsRow">4 stat cards, 24px gap, fill container width</component>
+      <component id="QBiyZ" name="Card/Stat">Total Applications - briefcase icon, primary color</component>
+      <component id="Gv7b0" name="Card/StatActive">Active - trending-up icon, primary color</component>
+      <component id="GUztO" name="Card/StatInterviews">Interviews - calendar icon, primary color</component>
+      <component id="Lyy6W" name="Card/StatOffers">Offers - trophy icon, accent color</component>
+    </components>
+    <styling>
+      <style property="cornerRadius">8px</style>
+      <style property="padding">20px</style>
+      <style property="border">1px $--border (transparent fill)</style>
+      <style property="label">13px, font-weight 500, $--muted-foreground</style>
+      <style property="value">32px, font-weight 600, $--foreground (or $--accent for Offers)</style>
+      <style property="icon">18px, $--primary (or $--accent for Offers)</style>
+    </styling>
+  </designFile>
+
+  <previousStoryLearnings source="3-8-assessment-list-view-in-application-detail">
+    <learning>Card inset variant available in card.tsx for nested cards</learning>
+    <learning>Select badge variant available in select.tsx for pill-shaped dropdowns</learning>
+    <learning>Optimistic UI pattern established for immediate UI feedback with rollback on error</learning>
+    <learning>Status badge colors: gray, blue, yellow, green, red for consistent status display</learning>
+    <learning>getCountdownInfo() helper available for countdown displays (useful for Story 4.3)</learning>
+    <learning>Design file alignment: team consistently references ditto-design.pen for implementation decisions</learning>
+  </previousStoryLearnings>
+</story-context>
