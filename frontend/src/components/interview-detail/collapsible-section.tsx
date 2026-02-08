@@ -55,6 +55,7 @@ export const CollapsibleSection = ({
                             className="h-7 text-xs text-muted-foreground hover:text-foreground"
                             onClick={(e) => {
                                 e.stopPropagation();
+                                setIsOpen(true);
                                 onAdd();
                             }}
                         >
