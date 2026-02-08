@@ -157,6 +157,28 @@ func (td *TestDatabase) RunMigrations(t *testing.T) {
 		CREATE INDEX IF NOT EXISTS idx_files_user_id ON files(user_id) WHERE deleted_at IS NULL;
 		CREATE INDEX IF NOT EXISTS idx_files_application_id ON files(application_id) WHERE deleted_at IS NULL;
 
+		CREATE TABLE IF NOT EXISTS interviews (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id UUID NOT NULL REFERENCES users(id),
+			application_id UUID NOT NULL REFERENCES applications(id),
+			round_number INT NOT NULL DEFAULT 1,
+			scheduled_date DATE NOT NULL,
+			scheduled_time VARCHAR(10),
+			duration_minutes INT,
+			outcome VARCHAR(50),
+			overall_feeling VARCHAR(50),
+			went_well TEXT,
+			could_improve TEXT,
+			confidence_level INT,
+			interview_type VARCHAR(50) NOT NULL,
+			created_at TIMESTAMP DEFAULT NOW(),
+			updated_at TIMESTAMP DEFAULT NOW(),
+			deleted_at TIMESTAMP
+		);
+
+		CREATE INDEX IF NOT EXISTS idx_interviews_user_id ON interviews(user_id) WHERE deleted_at IS NULL;
+		CREATE INDEX IF NOT EXISTS idx_interviews_application_id ON interviews(application_id) WHERE deleted_at IS NULL;
+
 		CREATE TABLE IF NOT EXISTS assessments (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			user_id UUID NOT NULL REFERENCES users(id),
@@ -188,12 +210,13 @@ func (td *TestDatabase) RunMigrations(t *testing.T) {
 		CREATE INDEX IF NOT EXISTS idx_assessments_application_id ON assessments(application_id) WHERE deleted_at IS NULL;
 		CREATE INDEX IF NOT EXISTS idx_assessment_submissions_assessment_id ON assessment_submissions(assessment_id) WHERE deleted_at IS NULL;
 
-		-- Insert test application statuses
+		-- Insert application statuses (system data, matches production)
 		INSERT INTO application_status (name) VALUES
+			('Saved'),
 			('Applied'),
-			('Interview Scheduled'),
-			('Rejected'),
-			('Offer Received')
+			('Interview'),
+			('Offer'),
+			('Rejected')
 		ON CONFLICT DO NOTHING;
 	`
 
@@ -208,6 +231,7 @@ func (td *TestDatabase) Truncate(t *testing.T) {
 	tables := []string{
 		"assessment_submissions",
 		"assessments",
+		"interviews",
 		"files",
 		"applications",
 		"user_jobs",

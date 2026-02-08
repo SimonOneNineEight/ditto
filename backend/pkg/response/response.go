@@ -73,3 +73,14 @@ func SuccessWithWarnings(c *gin.Context, data interface{}, warnings []string) {
 func NoContent(c *gin.Context) {
 	c.Status(204)
 }
+
+func BadRequest(c *gin.Context, message string) {
+	c.JSON(400, ApiResponse{
+		Success: false,
+		Error: &ErrorDetail{
+			Message: message,
+			Code:    "BAD_REQUEST",
+			Details: nil,
+		},
+	})
+}

@@ -83,12 +83,12 @@ development_status:
   epic-3-retrospective: done
 
   # Epic 4: Workflow Automation & Timeline
-  epic-4: backlog
-  4-1-dashboard-statistics-and-overview: backlog
-  4-2-dashboard-quick-actions: backlog
-  4-3-upcoming-items-widget-next-5-events: backlog
-  4-4-auto-save-infrastructure-for-rich-text-content: backlog
-  4-5-in-app-notification-center-with-configurable-preferences: backlog
+  epic-4: contexted
+  4-1-dashboard-statistics-and-overview: done
+  4-2-dashboard-quick-actions: done
+  4-3-upcoming-items-widget-next-5-events: done
+  4-4-auto-save-infrastructure-for-rich-text-content: done
+  4-5-in-app-notification-center-with-configurable-preferences: done
   4-6-timeline-view-enhancements-filters-and-date-ranges: backlog
   epic-4-retrospective: optional
 

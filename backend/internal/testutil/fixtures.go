@@ -117,6 +117,35 @@ func BoolPtr(b bool) *bool {
 	return &b
 }
 
+// CreateTestInterview creates a test interview
+func CreateTestInterview(userID, applicationID uuid.UUID, scheduledDate time.Time, interviewType string) *models.Interview {
+	return &models.Interview{
+		ID:            uuid.New(),
+		UserID:        userID,
+		ApplicationID: applicationID,
+		RoundNumber:   1,
+		ScheduledDate: scheduledDate,
+		InterviewType: interviewType,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+}
+
+// CreateTestAssessment creates a test assessment
+func CreateTestAssessment(userID, applicationID uuid.UUID, dueDate string, status string) *models.Assessment {
+	return &models.Assessment{
+		ID:             uuid.New(),
+		UserID:         userID,
+		ApplicationID:  applicationID,
+		AssessmentType: models.AssessmentTypeTakeHomeProject,
+		Title:          "Take-Home Project",
+		DueDate:        dueDate,
+		Status:         status,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+	}
+}
+
 // Test data sets
 var (
 	// Test users
@@ -133,11 +162,12 @@ var (
 		CreateTestCompany("Apple", "apple.com"),
 	}
 
-	// Test application statuses
+	// Test application statuses (matches production system data)
 	TestApplicationStatuses = []*models.ApplicationStatus{
+		CreateTestApplicationStatus("Saved"),
 		CreateTestApplicationStatus("Applied"),
-		CreateTestApplicationStatus("Interview Scheduled"),
+		CreateTestApplicationStatus("Interview"),
+		CreateTestApplicationStatus("Offer"),
 		CreateTestApplicationStatus("Rejected"),
-		CreateTestApplicationStatus("Offer Received"),
 	}
 )

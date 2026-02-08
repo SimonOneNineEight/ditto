@@ -1,6 +1,7 @@
 'use client';
 
 import { PageHeader } from '@/components/page-header';
+import { NotificationPreferences } from '@/components/notification-center';
 
 export default function SettingsPage() {
     return (
@@ -10,10 +11,8 @@ export default function SettingsPage() {
                 subtitle="Manage your account and preferences"
             />
 
-            <section className="max-w-2xl">
-                <p className="text-muted-foreground">
-                    Account settings coming soon.
-                </p>
+            <section className="flex w-full flex-col gap-6">
+                <NotificationPreferences />
             </section>
         </>
     );
