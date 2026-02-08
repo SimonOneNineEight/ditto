@@ -3,10 +3,13 @@ package main
 import (
 	"ditto-backend/internal/middleware"
 	"ditto-backend/internal/routes"
+	"ditto-backend/internal/services"
 	"ditto-backend/internal/utils"
 	"ditto-backend/pkg/response"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -57,12 +60,26 @@ func main() {
 		routes.RegisterInterviewQuestionRoutes(apiGroup, appState)
 		routes.RegisterInterviewNoteRoutes(apiGroup, appState)
 		routes.RegisterAssessmentRoutes(apiGroup, appState)
+		routes.RegisterDashboardRoutes(apiGroup, appState)
+		routes.RegisterNotificationRoutes(apiGroup, appState)
 	}
+
+	scheduler := services.NewNotificationScheduler(appState.DB)
+	scheduler.Start(15 * time.Minute)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8081"
 	}
+
+	go func() {
+		sigChan := make(chan os.Signal, 1)
+		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+		<-sigChan
+		log.Println("Shutting down...")
+		scheduler.Stop()
+		os.Exit(0)
+	}()
 
 	log.Printf("Server starting on port %s", port)
 	r.Run(":" + port)
