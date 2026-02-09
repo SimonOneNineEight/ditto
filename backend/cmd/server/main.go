@@ -62,6 +62,7 @@ func main() {
 		routes.RegisterAssessmentRoutes(apiGroup, appState)
 		routes.RegisterDashboardRoutes(apiGroup, appState)
 		routes.RegisterNotificationRoutes(apiGroup, appState)
+		routes.RegisterTimelineRoutes(apiGroup, appState)
 	}
 
 	scheduler := services.NewNotificationScheduler(appState.DB)

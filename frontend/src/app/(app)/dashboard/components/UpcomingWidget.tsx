@@ -69,10 +69,10 @@ export function UpcomingWidget() {
                     </button>
                 ))}
                 <Link
-                    href="/applications"
+                    href="/timeline"
                     className="ml-auto text-sm text-primary hover:underline transition-colors"
                 >
-                    View applications
+                    View all
                 </Link>
             </div>
 
