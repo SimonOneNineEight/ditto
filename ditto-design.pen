@@ -12454,12 +12454,13 @@
                   "type": "frame",
                   "id": "vLnBG",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -12471,7 +12472,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -12522,6 +12523,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "DPnUM",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -13657,12 +13672,13 @@
                   "type": "frame",
                   "id": "dvAgq",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -13674,7 +13690,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -13725,6 +13741,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "TMSD5",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -14077,12 +14107,13 @@
                   "type": "frame",
                   "id": "00hfz",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -14094,7 +14125,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -14145,6 +14176,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "Y9Sle",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -15182,12 +15227,13 @@
                   "type": "frame",
                   "id": "6hKR2",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -15199,7 +15245,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -15250,6 +15296,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "EP3jN",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -15997,12 +16057,13 @@
                   "type": "frame",
                   "id": "Zi8lD",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -16014,7 +16075,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -16065,6 +16126,20 @@
                         },
                         "voABl": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "5KqFU",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -17626,12 +17701,13 @@
                   "type": "frame",
                   "id": "IP1qu",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -17643,7 +17719,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -17694,6 +17770,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "ttuls",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -18047,12 +18137,13 @@
                   "type": "frame",
                   "id": "TEv5p",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -18064,7 +18155,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -18115,6 +18206,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "DFUGo",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -18757,12 +18862,13 @@
                   "type": "frame",
                   "id": "nLuEf",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -18774,7 +18880,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -18825,6 +18931,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "CvzoN",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -18991,12 +19111,13 @@
                   "type": "frame",
                   "id": "I1kux",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -19008,7 +19129,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -19059,6 +19180,20 @@
                         },
                         "voABl": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "ofwiq",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -19216,12 +19351,13 @@
                   "type": "frame",
                   "id": "ZfyiK",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -19233,7 +19369,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -19284,6 +19420,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "3xsMN",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -19449,12 +19599,13 @@
                   "type": "frame",
                   "id": "hXhmF",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -19466,7 +19617,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -19517,6 +19668,20 @@
                         },
                         "voABl": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "p3zdG",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -21336,12 +21501,13 @@
                   "type": "frame",
                   "id": "707Gl",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -21353,7 +21519,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -21404,6 +21570,20 @@
                         },
                         "voABl": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "zLbMb",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -22818,12 +22998,13 @@
                   "type": "frame",
                   "id": "BQokJ",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -22835,7 +23016,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -22886,6 +23067,20 @@
                         },
                         "voABl": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "COt9x",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -24675,12 +24870,13 @@
                   "type": "frame",
                   "id": "66a0g",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -24692,7 +24888,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -24743,6 +24939,20 @@
                         },
                         "voABl": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "Ra2nL",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -26392,12 +26602,13 @@
                   "type": "frame",
                   "id": "Yf7u9",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -26409,7 +26620,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -26460,6 +26671,20 @@
                         },
                         "voABl": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "hlYnA",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -27792,12 +28017,13 @@
                   "type": "frame",
                   "id": "sfTg8",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -27809,7 +28035,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -27860,6 +28086,20 @@
                         },
                         "voABl": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "LRwg7",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -29675,12 +29915,13 @@
                   "type": "frame",
                   "id": "J5H4K",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -29692,7 +29933,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -29743,6 +29984,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "EEdyE",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -30131,12 +30386,13 @@
                   "type": "frame",
                   "id": "SB1XQ",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -30148,7 +30404,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -30199,6 +30455,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "NXuKX",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -30651,12 +30921,13 @@
                   "type": "frame",
                   "id": "ghIWu",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -30668,7 +30939,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -30719,6 +30990,20 @@
                         },
                         "voABl": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "YKMKE",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -31709,12 +31994,13 @@
                   "type": "frame",
                   "id": "KTlWl",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -31726,7 +32012,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -31777,6 +32063,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "VSD2c",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -32518,12 +32818,13 @@
                   "type": "frame",
                   "id": "6SyFM",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -32535,7 +32836,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -32586,6 +32887,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "GVrzh",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -33085,12 +33400,13 @@
                   "type": "frame",
                   "id": "m3SnJ",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -33102,7 +33418,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -33153,6 +33469,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "JSmCk",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -33630,12 +33960,13 @@
                   "type": "frame",
                   "id": "aI5Cl",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -33647,7 +33978,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -33698,6 +34029,20 @@
                         },
                         "voABl": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "5EPu4",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -35058,12 +35403,13 @@
                   "type": "frame",
                   "id": "Z2hcy",
                   "name": "Logo",
+                  "width": "fill_container",
                   "gap": 8,
                   "padding": [
-                    0,
-                    4,
-                    16,
-                    4
+                    12,
+                    8,
+                    20,
+                    8
                   ],
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -35075,7 +35421,7 @@
                       "fill": "$--foreground",
                       "content": "Ditto",
                       "fontFamily": "Suez One",
-                      "fontSize": 20,
+                      "fontSize": 36,
                       "fontWeight": "normal"
                     }
                   ]
@@ -35126,6 +35472,20 @@
                         },
                         "GXuyC": {
                           "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "nL8db",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
                         }
                       }
                     },
@@ -37975,6 +38335,1258 @@
                       "content": "3 days ago"
                     }
                   }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "R1oHU",
+      "x": 21560,
+      "y": 0,
+      "name": "Timeline",
+      "width": 1440,
+      "height": 1400,
+      "fill": "$--background",
+      "children": [
+        {
+          "type": "frame",
+          "id": "98DzQ",
+          "name": "Sidebar",
+          "width": 248,
+          "height": "fill_container",
+          "fill": "$--card",
+          "layout": "vertical",
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "frame",
+              "id": "RdeGi",
+              "name": "SidebarTop",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                24,
+                12
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "iBaFI",
+                  "name": "Logo",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "padding": [
+                    12,
+                    8,
+                    20,
+                    8
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "itapS",
+                      "name": "logoText",
+                      "fill": "$--foreground",
+                      "content": "Ditto",
+                      "fontFamily": "Suez One",
+                      "fontSize": 36,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "g8kr5",
+                  "name": "NavItems",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "id": "KUXpJ",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "dashNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "layout-dashboard"
+                        },
+                        "GXuyC": {
+                          "content": "Dashboard"
+                        }
+                      }
+                    },
+                    {
+                      "id": "tFK8E",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "appsNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "folder"
+                        },
+                        "GXuyC": {
+                          "content": "Applications"
+                        }
+                      }
+                    },
+                    {
+                      "id": "XAOPU",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "intNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "calendar"
+                        },
+                        "GXuyC": {
+                          "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "aicrx",
+                      "type": "ref",
+                      "ref": "hSwim",
+                      "name": "timeNav",
+                      "descendants": {
+                        "DMqum": {
+                          "iconFontName": "clock-3"
+                        },
+                        "voABl": {
+                          "content": "Timeline"
+                        }
+                      }
+                    },
+                    {
+                      "id": "0LSay",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "filesNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "file"
+                        },
+                        "GXuyC": {
+                          "content": "Files"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "Yuj9l",
+              "type": "ref",
+              "ref": "O5p9v",
+              "name": "sidebarUser"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "OjRUq",
+          "name": "MainContent",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 32,
+          "padding": 32,
+          "children": [
+            {
+              "id": "eEq07",
+              "type": "ref",
+              "ref": "3Wk1g",
+              "width": "fill_container",
+              "name": "header",
+              "descendants": {
+                "yNE0O": {
+                  "content": "Timeline"
+                },
+                "lwkXN": {
+                  "content": "Track all your upcoming interviews and assessments in one place."
+                },
+                "LS091": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "NIAsx",
+              "name": "FilterSection",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "za2hu",
+                  "name": "TypeFilterRow",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "au0IM",
+                      "name": "typeLabel",
+                      "fill": "$--muted-foreground",
+                      "content": "Type",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "VqW5N",
+                      "name": "chipAllActive",
+                      "fill": "$--primary",
+                      "cornerRadius": 999,
+                      "padding": [
+                        6,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "enIoi",
+                          "name": "chipAllText",
+                          "fill": "$--primary-foreground",
+                          "content": "All",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "TYJpy",
+                      "name": "chipInterviews",
+                      "fill": "transparent",
+                      "cornerRadius": 999,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "padding": [
+                        6,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "r8u7B",
+                          "name": "chipIntText",
+                          "fill": "$--muted-foreground",
+                          "content": "Interviews",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "TpdGJ",
+                      "name": "chipAssessments",
+                      "fill": "transparent",
+                      "cornerRadius": 999,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "padding": [
+                        6,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "nP8Dx",
+                          "name": "chipAssText",
+                          "fill": "$--muted-foreground",
+                          "content": "Assessments",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "E5nvX",
+                  "name": "RangeFilterRow",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "0h6jQ",
+                      "name": "rangeLabel",
+                      "fill": "$--muted-foreground",
+                      "content": "Range",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "xcLrh",
+                      "name": "chipToday",
+                      "fill": "transparent",
+                      "cornerRadius": 999,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "padding": [
+                        6,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "sciT0",
+                          "name": "chipTodayText",
+                          "fill": "$--muted-foreground",
+                          "content": "Today",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "iYQzV",
+                      "name": "chipThisWeek",
+                      "fill": "transparent",
+                      "cornerRadius": 999,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "padding": [
+                        6,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "C5g3c",
+                          "name": "chipWeekText",
+                          "fill": "$--muted-foreground",
+                          "content": "This Week",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "xqMWc",
+                      "name": "chipThisMonth",
+                      "fill": "transparent",
+                      "cornerRadius": 999,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "padding": [
+                        6,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "5D4Nd",
+                          "name": "chipMonthText",
+                          "fill": "$--muted-foreground",
+                          "content": "This Month",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "InE3H",
+                      "name": "chipAllUpcoming",
+                      "fill": "$--primary",
+                      "cornerRadius": 999,
+                      "padding": [
+                        6,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "SmW3C",
+                          "name": "chipAllUpText",
+                          "fill": "$--primary-foreground",
+                          "content": "All Upcoming",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "FnKyN",
+              "name": "TimelineList",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "uFZ4W",
+                  "name": "OverdueGroup",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "OqUPt",
+                      "name": "overdueHeader",
+                      "fill": "$--destructive",
+                      "content": "Overdue",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "UoWFc",
+                      "name": "overdueItem",
+                      "width": "fill_container",
+                      "fill": "$--card",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#7f1d1d"
+                      },
+                      "gap": 16,
+                      "padding": 16,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "zZcxf",
+                          "name": "iconWrap",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "#5c1a1a",
+                          "cornerRadius": 8,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "CzgbG",
+                              "name": "odIconInner",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "code",
+                              "iconFontFamily": "lucide",
+                              "fill": "$--destructive"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "jc03Z",
+                          "name": "info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "J77im",
+                              "name": "row1",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "vQXl9",
+                                  "name": "typeBadge",
+                                  "fill": "#5c1a1a",
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    2,
+                                    6
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "GABXF",
+                                      "name": "odBadgeText",
+                                      "fill": "$--destructive",
+                                      "content": "Assessment",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "3lXU3",
+                                  "name": "odCompany",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Stripe",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "SAg5A",
+                              "name": "odTitle",
+                              "fill": "$--foreground",
+                              "content": "Take Home Project",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "GoXML",
+                              "name": "odDate",
+                              "fill": "$--destructive",
+                              "content": "Due: Jan 25 (Yesterday)",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "id": "7YCya",
+                          "type": "ref",
+                          "ref": "iTzUC",
+                          "name": "odCountdown"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "FUivb",
+                  "name": "TodayGroup",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "DOYBu",
+                      "name": "todayHeader",
+                      "fill": "$--muted-foreground",
+                      "content": "Today",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dCKvt",
+                      "name": "todayItem",
+                      "width": "fill_container",
+                      "fill": "$--card",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "gap": 16,
+                      "padding": 16,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "sXmIu",
+                          "name": "iconWrap",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "#14532d",
+                          "cornerRadius": 8,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "F5pj2",
+                              "name": "tdIconInner",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "calendar",
+                              "iconFontFamily": "lucide",
+                              "fill": "#4ade80"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "7W5yR",
+                          "name": "info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "8VEVt",
+                              "name": "row1",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "FFYMy",
+                                  "name": "typeBadge",
+                                  "fill": "$--primary-muted",
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    2,
+                                    6
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "v7KTa",
+                                      "name": "tdBadgeText",
+                                      "fill": "$--primary",
+                                      "content": "Interview",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dOhu3",
+                                  "name": "tdCompany",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Netflix",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "BYtTL",
+                              "name": "tdTitle",
+                              "fill": "$--foreground",
+                              "content": "Behavioral Interview - Final Round",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "q24iU",
+                              "name": "tdDate",
+                              "fill": "$--muted-foreground",
+                              "content": "Today at 4:00 PM",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "id": "YJeeM",
+                          "type": "ref",
+                          "ref": "phBFK",
+                          "name": "tdCountdown"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "07tXD",
+                  "name": "TomorrowGroup",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "sE8TW",
+                      "name": "tmrHeader",
+                      "fill": "$--muted-foreground",
+                      "content": "Tomorrow",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "yMgEJ",
+                      "name": "tomorrowItem",
+                      "width": "fill_container",
+                      "fill": "$--card",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "gap": 16,
+                      "padding": 16,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "XlHpk",
+                          "name": "iconWrap",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "$--primary-muted",
+                          "cornerRadius": 8,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "hA7Qk",
+                              "name": "tmIconInner",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "calendar",
+                              "iconFontFamily": "lucide",
+                              "fill": "$--primary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fGgvp",
+                          "name": "info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "8qVJf",
+                              "name": "row1",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "WMNZF",
+                                  "name": "typeBadge",
+                                  "fill": "$--primary-muted",
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    2,
+                                    6
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "HIgZw",
+                                      "name": "tmBadgeText",
+                                      "fill": "$--primary",
+                                      "content": "Interview",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "f51aJ",
+                                  "name": "tmCompany",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Google",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "qn6sZ",
+                              "name": "tmTitle",
+                              "fill": "$--foreground",
+                              "content": "Technical Interview - Round 2",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "3Yk2A",
+                              "name": "tmDate",
+                              "fill": "$--muted-foreground",
+                              "content": "Tomorrow at 2:00 PM",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "id": "AQB3X",
+                          "type": "ref",
+                          "ref": "c82oF",
+                          "name": "tmCountdown"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "MjO6a",
+                  "name": "ThisWeekGroup",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uZIFp",
+                      "name": "weekHeader",
+                      "fill": "$--muted-foreground",
+                      "content": "This Week",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "7uj01",
+                      "name": "weekAssessment",
+                      "width": "fill_container",
+                      "fill": "$--card",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "gap": 16,
+                      "padding": 16,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ujHrX",
+                          "name": "iconWrap",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "$--accent-muted",
+                          "cornerRadius": 8,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "hEAId",
+                              "name": "wk1IconInner",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "code",
+                              "iconFontFamily": "lucide",
+                              "fill": "$--accent"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "P6uEx",
+                          "name": "info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "bcNnQ",
+                              "name": "row1",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "Z6BlU",
+                                  "name": "typeBadge",
+                                  "fill": "$--accent-muted",
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    2,
+                                    6
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "68ztV",
+                                      "name": "wk1BadgeText",
+                                      "fill": "$--accent",
+                                      "content": "Assessment",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "y5wF0",
+                                  "name": "wk1Company",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Amazon",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "nKQ9I",
+                              "name": "wk1Title",
+                              "fill": "$--foreground",
+                              "content": "System Design Exercise",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "n5AM7",
+                              "name": "wk1Date",
+                              "fill": "$--muted-foreground",
+                              "content": "Due: Monday, Jan 29",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "id": "yasS9",
+                          "type": "ref",
+                          "ref": "WG3fV",
+                          "name": "wk1Countdown",
+                          "descendants": {
+                            "8t6eB": {
+                              "content": "In 3 days"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Jw3pr",
+                      "name": "weekInterview",
+                      "width": "fill_container",
+                      "fill": "$--card",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "gap": 16,
+                      "padding": 16,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "JW3F2",
+                          "name": "iconWrap",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "$--primary-muted",
+                          "cornerRadius": 8,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "9bc12",
+                              "name": "wk2IconInner",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "calendar",
+                              "iconFontFamily": "lucide",
+                              "fill": "$--primary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "JnwzK",
+                          "name": "info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "MSFLW",
+                              "name": "row1",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "WItmK",
+                                  "name": "typeBadge",
+                                  "fill": "$--primary-muted",
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    2,
+                                    6
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "RyZEo",
+                                      "name": "wk2BadgeText",
+                                      "fill": "$--primary",
+                                      "content": "Interview",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "uHdSp",
+                                  "name": "wk2Company",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Meta",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "yOWVe",
+                              "name": "wk2Title",
+                              "fill": "$--foreground",
+                              "content": "HR Screening",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "uLYhe",
+                              "name": "wk2Date",
+                              "fill": "$--muted-foreground",
+                              "content": "Friday, Jan 31 at 10:00 AM",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "id": "OrY8W",
+                          "type": "ref",
+                          "ref": "2t27k",
+                          "name": "wk2Countdown",
+                          "descendants": {
+                            "nR0F1": {
+                              "content": "In 5 days"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "AjOvg",
+                  "name": "LaterGroup",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ZXsNc",
+                      "name": "laterHeader",
+                      "fill": "$--muted-foreground",
+                      "content": "Later",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wKCpz",
+                      "name": "laterAssessment",
+                      "width": "fill_container",
+                      "fill": "$--card",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "gap": 16,
+                      "padding": 16,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "hyG3I",
+                          "name": "iconWrap",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "$--accent-muted",
+                          "cornerRadius": 8,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "XZzOc",
+                              "name": "ltIconInner",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "code",
+                              "iconFontFamily": "lucide",
+                              "fill": "$--accent"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Ntczt",
+                          "name": "info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "GyHEh",
+                              "name": "row1",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "rpoVL",
+                                  "name": "typeBadge",
+                                  "fill": "$--accent-muted",
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    2,
+                                    6
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "ku9vR",
+                                      "name": "ltBadgeText",
+                                      "fill": "$--accent",
+                                      "content": "Assessment",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "hHF6P",
+                                  "name": "ltCompany",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Apple",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "Ja3gM",
+                              "name": "ltTitle",
+                              "fill": "$--foreground",
+                              "content": "Coding Challenge - Backend",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "0Zx9C",
+                              "name": "ltDate",
+                              "fill": "$--muted-foreground",
+                              "content": "Due: Feb 10",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "id": "nLITV",
+                          "type": "ref",
+                          "ref": "2t27k",
+                          "name": "ltCountdown",
+                          "descendants": {
+                            "nR0F1": {
+                              "content": "In 15 days"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }
