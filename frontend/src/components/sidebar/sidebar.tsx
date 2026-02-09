@@ -7,17 +7,14 @@ import {
     SidebarContent,
     SidebarFooter,
     SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import { Briefcase, Calendar, LayoutDashboard, Users, FileText } from 'lucide-react';
+import { Folder, Calendar, LayoutDashboard, Clock, File, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { NavUser } from './nav-user';
-import { X } from 'lucide-react';
 import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
 
 const suezOne = Suez_One({
     weight: '400',
@@ -34,25 +31,24 @@ const sidebarMenu = [
     {
         title: 'Applications',
         url: '/applications',
-        icon: Briefcase,
+        icon: Folder,
     },
     {
         title: 'Interviews',
         url: '/interviews',
-        icon: Users,
+        icon: Calendar,
     },
     {
         title: 'Timeline',
         url: '/timeline',
-        icon: Calendar,
+        icon: Clock,
     },
     {
         title: 'Files',
         url: '/files',
-        icon: FileText,
+        icon: File,
     },
 ];
-
 
 const AppSidebar = () => {
     const { isMobile, setOpen, toggleSidebar } = useSidebar();
@@ -65,7 +61,7 @@ const AppSidebar = () => {
 
     return (
         <Sidebar side={side}>
-            <SidebarHeader className="relative pt-6">
+            <SidebarHeader className="relative px-3 pt-6 pb-2">
                 {isMobile && (
                     <Button
                         variant="ghost"
@@ -77,32 +73,42 @@ const AppSidebar = () => {
                     />
                 )}
                 <Link href="/">
-                    <h1 className={suezOne.className + ' text-center pb-2'}>
+                    <h1
+                        className={cn(
+                            suezOne.className,
+                            'text-center text-4xl text-foreground py-3'
+                        )}
+                    >
                         Ditto
                     </h1>
                 </Link>
             </SidebarHeader>
-            <SidebarContent>
-                <SidebarMenu>
+            <SidebarContent className="px-3 gap-1">
+                <nav className="flex flex-col gap-1">
                     {sidebarMenu.map((item) => {
                         const isActive =
                             item.url === '/'
                                 ? pathname === item.url
                                 : pathname.startsWith(item.url);
                         return (
-                            <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton asChild isActive={isActive}>
-                                    <Link href={item.url}>
-                                        <item.icon />
-                                        <span>{item.title}</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
+                            <Link
+                                key={item.title}
+                                href={item.url}
+                                className={cn(
+                                    'flex items-center gap-3 rounded-md px-4 py-3 text-sm transition-colors',
+                                    isActive
+                                        ? 'bg-primary text-foreground font-medium'
+                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                )}
+                            >
+                                <item.icon className="h-[18px] w-[18px]" />
+                                <span>{item.title}</span>
+                            </Link>
                         );
                     })}
-                </SidebarMenu>
+                </nav>
             </SidebarContent>
-            <SidebarFooter>
+            <SidebarFooter className="p-0">
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
