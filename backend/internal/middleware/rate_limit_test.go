@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"ditto-backend/pkg/database"
+	"ditto-backend/internal/testutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,16 +12,35 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupTestRouter(t *testing.T) (*gin.Engine, *database.Database) {
+func setupTestRouter(t *testing.T) (*gin.Engine, *testutil.TestDatabase) {
 	gin.SetMode(gin.TestMode)
-	db, err := database.NewConnection()
+	db := testutil.NewTestDatabase(t)
+	db.RunMigrations(t)
+
+	// Create rate_limits table if not exists (matches migration 000003)
+	_, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS rate_limits (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			resource VARCHAR(100) NOT NULL,
+			request_count INT NOT NULL DEFAULT 0,
+			window_start TIMESTAMP NOT NULL,
+			window_end TIMESTAMP NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
 	require.NoError(t, err)
+
+	// Create indexes
+	_, _ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_rate_limits_user_resource_window ON rate_limits(user_id, resource, window_start, window_end)`)
+	_, _ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_rate_limits_window_end ON rate_limits(window_end)`)
 
 	router := gin.New()
 	return router, db
 }
 
-func createTestUser(t *testing.T, db *database.Database, email string) uuid.UUID {
+func createTestUser(t *testing.T, db *testutil.TestDatabase, email string) uuid.UUID {
 	userID := uuid.New()
 	_, err := db.Exec(`
 		INSERT INTO users (id, name, email, created_at, updated_at)
@@ -33,21 +52,21 @@ func createTestUser(t *testing.T, db *database.Database, email string) uuid.UUID
 	return userID
 }
 
-func cleanupTestRateLimits(t *testing.T, db *database.Database, userID uuid.UUID) {
+func cleanupTestRateLimits(t *testing.T, db *testutil.TestDatabase, userID uuid.UUID) {
 	_, err := db.Exec("DELETE FROM rate_limits WHERE user_id = $1", userID)
 	require.NoError(t, err)
 }
 
-func cleanupTestUser(t *testing.T, db *database.Database, userID uuid.UUID) {
+func cleanupTestUser(t *testing.T, db *testutil.TestDatabase, userID uuid.UUID) {
 	_, err := db.Exec("DELETE FROM users WHERE id = $1", userID)
 	require.NoError(t, err)
 }
 
 func TestRateLimiter_Middleware_NoAuth(t *testing.T) {
 	router, db := setupTestRouter(t)
-	defer db.Close()
+	defer db.Close(t)
 
-	limiter := NewRateLimiter(db)
+	limiter := NewRateLimiter(db.Database)
 
 	router.GET("/test", limiter.Middleware("test_resource", 10), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
@@ -63,13 +82,13 @@ func TestRateLimiter_Middleware_NoAuth(t *testing.T) {
 
 func TestRateLimiter_Middleware_Success(t *testing.T) {
 	router, db := setupTestRouter(t)
-	defer db.Close()
+	defer db.Close(t)
 
 	userID := createTestUser(t, db, "middleware_test_success@example.com")
 	defer cleanupTestRateLimits(t, db, userID)
 	defer cleanupTestUser(t, db, userID)
 
-	limiter := NewRateLimiter(db)
+	limiter := NewRateLimiter(db.Database)
 
 	router.GET("/test", func(c *gin.Context) {
 		c.Set("user_id", userID)
@@ -89,13 +108,13 @@ func TestRateLimiter_Middleware_Success(t *testing.T) {
 
 func TestRateLimiter_Middleware_LimitExceeded(t *testing.T) {
 	router, db := setupTestRouter(t)
-	defer db.Close()
+	defer db.Close(t)
 
 	userID := createTestUser(t, db, "middleware_test_limit@example.com")
 	defer cleanupTestRateLimits(t, db, userID)
 	defer cleanupTestUser(t, db, userID)
 
-	limiter := NewRateLimiter(db)
+	limiter := NewRateLimiter(db.Database)
 
 	router.GET("/test", func(c *gin.Context) {
 		c.Set("user_id", userID)
@@ -126,7 +145,7 @@ func TestRateLimiter_Middleware_LimitExceeded(t *testing.T) {
 
 func TestRateLimiter_Middleware_MultipleUsers(t *testing.T) {
 	router, db := setupTestRouter(t)
-	defer db.Close()
+	defer db.Close(t)
 
 	userID1 := createTestUser(t, db, "middleware_test_user1@example.com")
 	userID2 := createTestUser(t, db, "middleware_test_user2@example.com")
@@ -135,7 +154,7 @@ func TestRateLimiter_Middleware_MultipleUsers(t *testing.T) {
 	defer cleanupTestUser(t, db, userID1)
 	defer cleanupTestUser(t, db, userID2)
 
-	limiter := NewRateLimiter(db)
+	limiter := NewRateLimiter(db.Database)
 
 	// Middleware that allows setting user_id via header for testing
 	router.GET("/test", func(c *gin.Context) {
@@ -175,13 +194,13 @@ func TestRateLimiter_Middleware_MultipleUsers(t *testing.T) {
 
 func TestRateLimiter_Middleware_DifferentResources(t *testing.T) {
 	router, db := setupTestRouter(t)
-	defer db.Close()
+	defer db.Close(t)
 
 	userID := createTestUser(t, db, "middleware_test_resources@example.com")
 	defer cleanupTestRateLimits(t, db, userID)
 	defer cleanupTestUser(t, db, userID)
 
-	limiter := NewRateLimiter(db)
+	limiter := NewRateLimiter(db.Database)
 
 	router.GET("/resource1", func(c *gin.Context) {
 		c.Set("user_id", userID)
