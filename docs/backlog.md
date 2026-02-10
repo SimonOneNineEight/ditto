@@ -15,3 +15,5 @@ Routing guidance:
 | 2026-01-22 | 1-4 | 1 | Enhancement | Low | TBD | Open | No retry-from-error for file upload — user must re-select file after failure. Preserve file ref on error. Target: Story 6-7 |
 | 2026-01-22 | 1-4 | 1 | Enhancement | Low | TBD | Open | AC-4 partial: Add dedicated "Replace" button to FileItem for single-action file replacement. Target: Story 6-7 |
 | 2026-02-04 | 3-6 | 3 | TechDebt | Low | TBD | Open | Orphaned files cleanup: Assessment file uploads create file records immediately, but if user cancels before saving submission, files remain orphaned. Add periodic cleanup job for files not linked to any submission/interview after X days. Target: Epic 6 |
+| 2026-02-09 | 5-1 | 5 | Bug | Low | TBD | Closed | UpdatedAt field not populated in search results - convertRowsToResults doesn't parse updated_at string to time.Time. File: search_repository.go:286-299. FIXED same day. |
+| 2026-02-09 | 5-3 | 5 | TechDebt | Med | TBD | Closed | getApplication(id) fetches ALL applications (limit=1000) to find one by ID instead of using dedicated endpoint. FIXED: Added GET /api/applications/:id/with-details endpoint. |

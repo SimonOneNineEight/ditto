@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context version="1.0">
+  <metadata>
+    <story-id>5-3-advanced-application-filtering-and-sorting</story-id>
+    <story-title>Advanced Application Filtering and Sorting</story-title>
+    <epic>Epic 5: Search, Discovery &amp; Data Management</epic>
+    <generated>2026-02-09</generated>
+  </metadata>
+
+  <documentation>
+    <doc name="tech-spec-epic-5.md" path="docs/tech-spec-epic-5.md">
+      <summary>Technical specification for Epic 5 including acceptance criteria for Story 5.3</summary>
+      <key-points>
+        <point>Filter by: Status (multi-select), Date range (from/to), Company (search/select), Has interviews (yes/no), Has assessments (yes/no)</point>
+        <point>Sort by: Date (newest/oldest), Company name (A-Z/Z-A), Status, Last updated</point>
+        <point>Multiple filters combine with AND logic</point>
+        <point>Filter state persists in URL for sharing/bookmarking</point>
+        <point>"Clear all filters" button resets all filters</point>
+        <point>Display: "Showing 15 of 127 applications" reflecting current filter state</point>
+      </key-points>
+    </doc>
+
+    <doc name="architecture.md" path="docs/architecture.md">
+      <summary>Project architecture and implementation patterns</summary>
+      <key-patterns>
+        <pattern name="API Endpoints">Pattern: /api/{resource}/{id?}/{action?} - all plural</pattern>
+        <pattern name="Database Tables">lowercase, plural, snake_case</pattern>
+        <pattern name="Pagination">Offset-based: ?page=1&amp;per_page=20, max 100</pattern>
+        <pattern name="Go Files">snake_case.go for files, PascalCase for structs</pattern>
+        <pattern name="React Components">PascalCase.tsx, camelCase functions</pattern>
+        <pattern name="Date Format">ISO 8601 for API, UTC for storage</pattern>
+        <pattern name="Soft Deletes">deleted_at column, filter WHERE deleted_at IS NULL</pattern>
+      </key-patterns>
+    </doc>
+  </documentation>
+
+  <existing-code>
+    <backend>
+      <file path="backend/internal/repository/application.go">
+        <description>Application repository with existing filter infrastructure</description>
+        <interfaces>
+          <interface name="ApplicationFilters">
+            <![CDATA[
+type ApplicationFilters struct {
+    JobTitle      string
+    CompanyName   string
+    StatusID      *uuid.UUID
+    OfferReceived *bool
+    JobID         *uuid.UUID
+    CompanyID     *uuid.UUID
+    DateFrom      *time.Time
+    DateTo        *time.Time
+    SortBy        string
+    SortOrder     string
+    Limit         int
+    Offset        int
+}
+            ]]>
+          </interface>
+        </interfaces>
+        <methods>
+          <method name="buildFilterQuery">Builds WHERE clauses dynamically with parameterized queries</method>
+          <method name="buildOrderByClause">Maps sort columns: company, position, status, applied_at, location</method>
+          <method name="GetApplicationsWithDetails">Returns applications with joined job, company, status</method>
+          <method name="GetApplicationCount">Returns total count for pagination</method>
+        </methods>
+        <notes>
+          <note>StatusID is currently single UUID - needs enhancement for multi-select (StatusIDs []uuid.UUID)</note>
+          <note>No has_interviews or has_assessments filters yet - need EXISTS subqueries</note>
+          <note>SortBy supports: company, position, status, applied_at, location - need to add updated_at</note>
+        </notes>
+      </file>
+
+      <file path="backend/internal/handlers/application.go">
+        <description>Application handler with parseApplicationFilters function</description>
+        <interfaces>
+          <interface name="parseApplicationFilters">
+            <![CDATA[
+func parseApplicationFilters(c *gin.Context) *repository.ApplicationFilters {
+    // Parses: limit, page, job_title, company_name, job_id, companyID, status_id,
+    // offer_received, date_from, date_to, sort_by, sort_order
+    // Valid sort columns: company, position, status, applied_at, location
+}
+            ]]>
+          </interface>
+        </interfaces>
+        <notes>
+          <note>status_id currently single value - need comma-separated parsing for multi-select</note>
+          <note>Need to add has_interviews and has_assessments boolean params</note>
+          <note>Need to add updated_at to valid sort columns</note>
+        </notes>
+      </file>
+    </backend>
+
+    <frontend>
+      <file path="frontend/src/app/(app)/applications/page.tsx">
+        <description>Applications list page with URL state persistence</description>
+        <patterns>
+          <pattern name="URL State">useSearchParams + useRouter for filter state in URL</pattern>
+          <pattern name="getFiltersFromURL">Parses URL params to Filters object</pattern>
+          <pattern name="updateURL">Updates URL with router.replace (no history bloat)</pattern>
+          <pattern name="handleFilterChange">Resets page to 1 when filters change</pattern>
+        </patterns>
+        <notes>
+          <note>Already has URL persistence pattern - extend for new filter params</note>
+          <note>hasActiveFilters checks status_id, company_name, date_from, date_to</note>
+          <note>Need to add has_interviews, has_assessments, multi-status to hasActiveFilters</note>
+        </notes>
+      </file>
+
+      <file path="frontend/src/app/(app)/applications/application-filters.tsx">
+        <description>Current filter component with single status select, company search, date range</description>
+        <components>
+          <component name="ApplicationFilters">
+            <props>statuses, currentFilters, onFilterChange, onClear, hasActiveFilters</props>
+            <features>
+              <feature>Company search with 300ms debounce</feature>
+              <feature>Single Select for status (needs multi-select)</feature>
+              <feature>DatePicker for date_from and date_to</feature>
+              <feature>Filter chips (Badge) with X button to remove</feature>
+              <feature>"Clear Filters" button</feature>
+            </features>
+          </component>
+        </components>
+        <notes>
+          <note>Status is single Select - need Popover with checkboxes for multi-select</note>
+          <note>No sort dropdown - need to add</note>
+          <note>No has_interviews/has_assessments toggles - need to add</note>
+          <note>No "Showing X of Y" count display - need to add</note>
+        </notes>
+      </file>
+
+      <file path="frontend/src/services/application-service.ts">
+        <description>Application service with existing filter params</description>
+        <interfaces>
+          <interface name="ApplicationFilters">
+            <![CDATA[
+export interface ApplicationFilters {
+    status_id?: string;
+    company_name?: string;
+    job_title?: string;
+    date_from?: string; // YYYY-MM-DD
+    date_to?: string;   // YYYY-MM-DD
+    sort_by?: SortColumn;
+    sort_order?: SortOrder;
+    page?: number;
+    limit?: number;
+}
+
+export type SortColumn = 'company' | 'position' | 'status' | 'applied_at' | 'location';
+export type SortOrder = 'asc' | 'desc';
+            ]]>
+          </interface>
+        </interfaces>
+        <notes>
+          <note>status_id is single string - need status_ids for comma-separated multi-select</note>
+          <note>Need to add has_interviews?: boolean, has_assessments?: boolean</note>
+          <note>Need to add 'updated_at' to SortColumn type</note>
+        </notes>
+      </file>
+    </frontend>
+  </existing-code>
+
+  <dependencies>
+    <backend>
+      <dependency name="gin-gonic/gin" version="v1.10.1">Web framework</dependency>
+      <dependency name="jmoiron/sqlx" version="v1.4.0">Database queries</dependency>
+      <dependency name="lib/pq" version="v1.10.9">PostgreSQL driver with pq.Array support</dependency>
+      <dependency name="google/uuid" version="v1.6.0">UUID handling</dependency>
+    </backend>
+    <frontend>
+      <dependency name="@radix-ui/react-select" version="^2.2.6">Select component</dependency>
+      <dependency name="@radix-ui/react-popover" version="^1.1.15">Popover for multi-select</dependency>
+      <dependency name="react-day-picker" version="^9.13.0">Date picker</dependency>
+      <dependency name="date-fns" version="^4.1.0">Date formatting</dependency>
+      <dependency name="cmdk" version="^1.1.1">Command component (shadcn/ui)</dependency>
+      <dependency name="lucide-react" version="^0.452.0">Icons</dependency>
+    </frontend>
+  </dependencies>
+
+  <constraints>
+    <constraint type="architecture">
+      Components in `app/(app)/applications/components/` per project structure
+    </constraint>
+    <constraint type="architecture">
+      Service methods in `services/application-service.ts` - extend existing
+    </constraint>
+    <constraint type="architecture">
+      Repository filter building in `repository/application.go` - extend existing
+    </constraint>
+    <constraint type="api">
+      Multi-select status passed as comma-separated: ?status=interview,offer
+    </constraint>
+    <constraint type="api">
+      Boolean params: ?has_interviews=true&amp;has_assessments=false
+    </constraint>
+    <constraint type="api">
+      Sort param format: ?sort=date_desc|date_asc|company_asc|company_desc|status_asc|updated_desc
+    </constraint>
+    <constraint type="url">
+      Filter state persists in URL using Next.js useSearchParams
+    </constraint>
+    <constraint type="url">
+      Use router.replace to avoid history bloat
+    </constraint>
+    <constraint type="ui">
+      Match ditto-design.pen styling patterns from GlobalSearch and sidebar
+    </constraint>
+    <constraint type="performance">
+      Company filter uses 300ms debounce (existing pattern)
+    </constraint>
+  </constraints>
+
+  <implementation-guidance>
+    <backend-changes>
+      <change file="backend/internal/repository/application.go">
+        <description>Extend ApplicationFilters struct and query building</description>
+        <details>
+          <![CDATA[
+1. Add StatusIDs []uuid.UUID field for multi-select (replace StatusID)
+2. Add HasInterviews *bool and HasAssessments *bool fields
+3. In buildFilterQuery:
+   - For StatusIDs: "status = ANY($?)" with pq.Array(statusIDs)
+   - For HasInterviews: "EXISTS (SELECT 1 FROM interviews WHERE application_id = applications.id AND deleted_at IS NULL)"
+   - For HasAssessments: "EXISTS (SELECT 1 FROM assessments WHERE application_id = applications.id AND deleted_at IS NULL)"
+4. In buildOrderByClause:
+   - Add "updated_at": "a.updated_at" to sortColumns map
+          ]]>
+        </details>
+      </change>
+      <change file="backend/internal/handlers/application.go">
+        <description>Extend parseApplicationFilters for new params</description>
+        <details>
+          <![CDATA[
+1. Parse status param as comma-separated: strings.Split(c.Query("status"), ",")
+2. Convert each to uuid.UUID, collect into []uuid.UUID
+3. Parse has_interviews and has_assessments as booleans
+4. Add "updated_at" to validSortColumns map
+          ]]>
+        </details>
+      </change>
+    </backend-changes>
+
+    <frontend-changes>
+      <change file="frontend/src/services/application-service.ts">
+        <description>Extend ApplicationFilters interface and getApplications</description>
+        <details>
+          <![CDATA[
+1. Change status_id to status_ids?: string[] or keep as comma-separated string
+2. Add has_interviews?: boolean, has_assessments?: boolean
+3. Add 'updated_at' to SortColumn type
+4. Update getApplications to serialize status_ids as comma-separated
+          ]]>
+        </details>
+      </change>
+      <change file="frontend/src/app/(app)/applications/components/AdvancedFilters.tsx" action="create">
+        <description>New component with multi-select status, toggles, sort</description>
+        <details>
+          <![CDATA[
+1. Multi-select status: Popover with checkboxes (not Select)
+2. Date range: existing DatePicker pattern
+3. Company search: existing debounced Input pattern
+4. Has interviews/assessments: Toggle switches or checkboxes
+5. Sort dropdown: Select with options
+6. Clear all button
+7. Filter count display: "Showing X of Y applications"
+          ]]>
+        </details>
+      </change>
+      <change file="frontend/src/app/(app)/applications/components/FilterChips.tsx" action="create">
+        <description>Display active filters as removable chips</description>
+        <details>
+          <![CDATA[
+1. Render Badge for each active filter
+2. X button removes that filter
+3. Multiple statuses shown as "Status: Interview, Offer" or separate chips
+          ]]>
+        </details>
+      </change>
+      <change file="frontend/src/app/(app)/applications/page.tsx">
+        <description>Integrate AdvancedFilters, update URL parsing</description>
+        <details>
+          <![CDATA[
+1. Import and use AdvancedFilters instead of ApplicationFilters
+2. Update getFiltersFromURL to parse new params (status as comma-separated, has_interviews, has_assessments)
+3. Update updateURL to serialize new params
+4. Update hasActiveFilters to include new filter types
+5. Pass total count to component for "Showing X of Y" display
+          ]]>
+        </details>
+      </change>
+    </frontend-changes>
+  </implementation-guidance>
+
+  <learnings-from-previous-stories>
+    <learning source="5-2-global-search-ui-with-grouped-results">
+      URL state pattern with useSearchParams proven and working
+    </learning>
+    <learning source="5-2-global-search-ui-with-grouped-results">
+      300ms debounce for search inputs is correct timing
+    </learning>
+    <learning source="5-2-global-search-ui-with-grouped-results">
+      shadcn/ui Command component patterns available for reference
+    </learning>
+    <learning source="5-2-global-search-ui-with-grouped-results">
+      lib/sanitizer.ts exists if user input needs sanitization
+    </learning>
+    <learning source="1-5-enhanced-application-list-with-filtering">
+      Basic filtering infrastructure exists and works - this story enhances it
+    </learning>
+  </learnings-from-previous-stories>
+
+  <testing-guidance>
+    <test-case id="1">Apply single status filter, verify only matching applications shown</test-case>
+    <test-case id="2">Apply multiple status filters, verify OR within status, AND with other filters</test-case>
+    <test-case id="3">Apply has_interviews=true, verify only apps with interviews shown</test-case>
+    <test-case id="4">Apply has_assessments=true, verify only apps with assessments shown</test-case>
+    <test-case id="5">Copy URL with filters, open in new tab, verify same filter state restored</test-case>
+    <test-case id="6">Click "Clear all filters", verify all filters reset and URL cleaned</test-case>
+    <test-case id="7">Change sort order, verify list reorders correctly</test-case>
+    <test-case id="8">Verify "Showing X of Y" count updates correctly with filters</test-case>
+    <test-case id="9">Apply filters with no matches, verify empty state message</test-case>
+  </testing-guidance>
+</story-context>

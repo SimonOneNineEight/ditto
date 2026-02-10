@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type ApplicationRepository struct {
@@ -22,18 +23,21 @@ type ApplicationRepository struct {
 }
 
 type ApplicationFilters struct {
-	JobTitle      string
-	CompanyName   string
-	StatusID      *uuid.UUID
-	OfferReceived *bool
-	JobID         *uuid.UUID
-	CompanyID     *uuid.UUID
-	DateFrom      *time.Time
-	DateTo        *time.Time
-	SortBy        string
-	SortOrder     string
-	Limit         int
-	Offset        int
+	JobTitle       string
+	CompanyName    string
+	StatusID       *uuid.UUID
+	StatusIDs      []uuid.UUID
+	OfferReceived  *bool
+	JobID          *uuid.UUID
+	CompanyID      *uuid.UUID
+	DateFrom       *time.Time
+	DateTo         *time.Time
+	HasInterviews  *bool
+	HasAssessments *bool
+	SortBy         string
+	SortOrder      string
+	Limit          int
+	Offset         int
 }
 
 type ApplicationWithDetails struct {
@@ -245,6 +249,52 @@ func (r *ApplicationRepository) GetApplicationsWithDetails(userID uuid.UUID, fil
 	}
 
 	return applicationsWithDetails, nil
+}
+
+func (r *ApplicationRepository) GetApplicationByIDWithDetails(applicationID, userID uuid.UUID) (*ApplicationWithDetails, error) {
+	query := `
+        SELECT a.id, a.user_id, a.job_id, a.application_status_id, a.applied_at, a.offer_received, a.attempt_number, a.notes, a.created_at, a.updated_at,
+            j.id as "job.id", j.company_id as "job.company_id", j.title as "job.title", j.job_description as "job.job_description", j.location as "job.location",
+            j.job_type as "job.job_type", j.source_url as "job.source_url", j.platform as "job.platform",
+            j.min_salary as "job.min_salary", j.max_salary as "job.max_salary",
+            j.currency as "job.currency", j.is_expired as "job.is_expired", j.created_at as "job.created_at", j.updated_at as "job.updated_at",
+            c.id as "company.id", c.name as "company.name", c.description as "company.description", c.website as "company.website",
+            c.logo_url as "company.logo_url", c.created_at as "company.created_at", c.updated_at as "company.updated_at",
+            ast.id as "application_status.id", ast.name as "application_status.name", ast.created_at as "application_status.created_at", ast.updated_at as "application_status.updated_at"
+        FROM applications a
+        LEFT JOIN jobs j ON a.job_id = j.id
+        LEFT JOIN companies c ON j.company_id = c.id
+        LEFT JOIN application_status ast ON a.application_status_id = ast.id
+        WHERE a.id = $1
+        AND a.user_id = $2
+        AND a.deleted_at IS NULL
+    `
+
+	var application models.Application
+	var job models.Job
+	var company models.Company
+	var applicationStatus models.ApplicationStatus
+
+	row := r.db.QueryRow(query, applicationID, userID)
+	err := row.Scan(
+		&application.ID, &application.UserID, &application.JobID, &application.ApplicationStatusID, &application.AppliedAt, &application.OfferReceived, &application.AttemptNumber, &application.Notes, &application.CreatedAt, &application.UpdatedAt,
+		&job.ID, &job.CompanyID, &job.Title, &job.JobDescription,
+		&job.Location, &job.JobType, &job.SourceURL, &job.Platform, &job.MinSalary, &job.MaxSalary, &job.Currency,
+		&job.IsExpired, &job.CreatedAt, &job.UpdatedAt,
+		&company.ID, &company.Name, &company.Description, &company.Website,
+		&company.LogoURL, &company.CreatedAt, &company.UpdatedAt,
+		&applicationStatus.ID, &applicationStatus.Name, &applicationStatus.CreatedAt, &applicationStatus.UpdatedAt,
+	)
+	if err != nil {
+		return nil, errors.ConvertError(err)
+	}
+
+	return &ApplicationWithDetails{
+		Application: application,
+		Job:         &job,
+		Company:     &company,
+		Status:      &applicationStatus,
+	}, nil
 }
 
 func (r *ApplicationRepository) GetApplicationCount(userID uuid.UUID, filters *ApplicationFilters) (int, error) {
@@ -476,6 +526,8 @@ func (r *ApplicationRepository) buildOrderByClause(filters *ApplicationFilters) 
 		"status":     "ast.name",
 		"applied_at": "a.applied_at",
 		"location":   "j.location",
+		"updated_at": "a.updated_at",
+		"job_type":   "j.job_type",
 	}
 
 	sortOrder := "DESC"
@@ -554,6 +606,28 @@ func (r *ApplicationRepository) buildFilterQuery(filters *ApplicationFilters, ba
 		query += fmt.Sprintf(" AND application_status_id = $%d", argIndex)
 		args = append(args, filters.StatusID)
 		argIndex++
+	}
+
+	if len(filters.StatusIDs) > 0 {
+		query += fmt.Sprintf(" AND application_status_id = ANY($%d)", argIndex)
+		args = append(args, pq.Array(filters.StatusIDs))
+		argIndex++
+	}
+
+	if filters.HasInterviews != nil {
+		if *filters.HasInterviews {
+			query += " AND EXISTS (SELECT 1 FROM interviews i WHERE i.application_id = a.id AND i.deleted_at IS NULL)"
+		} else {
+			query += " AND NOT EXISTS (SELECT 1 FROM interviews i WHERE i.application_id = a.id AND i.deleted_at IS NULL)"
+		}
+	}
+
+	if filters.HasAssessments != nil {
+		if *filters.HasAssessments {
+			query += " AND EXISTS (SELECT 1 FROM assessments asmt WHERE asmt.application_id = a.id AND asmt.deleted_at IS NULL)"
+		} else {
+			query += " AND NOT EXISTS (SELECT 1 FROM assessments asmt WHERE asmt.application_id = a.id AND asmt.deleted_at IS NULL)"
+		}
 	}
 
 	return query, args, argIndex

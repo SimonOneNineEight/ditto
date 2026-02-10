@@ -7,6 +7,7 @@ import (
 	"ditto-backend/pkg/errors"
 	"ditto-backend/pkg/response"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -109,6 +110,25 @@ func (h *ApplicationHandler) GetApplication(c *gin.Context) {
 	}
 
 	application, err := h.applicationRepo.GetApplicationByID(applicationID, userID)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	response.Success(c, application)
+}
+
+// GET /api/applications/:id/with-details
+func (h *ApplicationHandler) GetApplicationWithDetails(c *gin.Context) {
+	userID := c.MustGet("user_id").(uuid.UUID)
+
+	applicationID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid application ID"))
+		return
+	}
+
+	application, err := h.applicationRepo.GetApplicationByIDWithDetails(applicationID, userID)
 	if err != nil {
 		HandleError(c, err)
 		return
@@ -452,6 +472,35 @@ func parseApplicationFilters(c *gin.Context) *repository.ApplicationFilters {
 		}
 	}
 
+	if statusIDsStr := c.Query("status_ids"); statusIDsStr != "" {
+		statusStrs := strings.Split(statusIDsStr, ",")
+		var statusIDs []uuid.UUID
+		for _, s := range statusStrs {
+			s = strings.TrimSpace(s)
+			if s == "" {
+				continue
+			}
+			if id, err := uuid.Parse(s); err == nil {
+				statusIDs = append(statusIDs, id)
+			}
+		}
+		if len(statusIDs) > 0 {
+			filters.StatusIDs = statusIDs
+		}
+	}
+
+	if hasInterviewsStr := c.Query("has_interviews"); hasInterviewsStr != "" {
+		if hasInterviews, err := strconv.ParseBool(hasInterviewsStr); err == nil {
+			filters.HasInterviews = &hasInterviews
+		}
+	}
+
+	if hasAssessmentsStr := c.Query("has_assessments"); hasAssessmentsStr != "" {
+		if hasAssessments, err := strconv.ParseBool(hasAssessmentsStr); err == nil {
+			filters.HasAssessments = &hasAssessments
+		}
+	}
+
 	if offerReceivedStr := c.Query("offer_received"); offerReceivedStr != "" {
 		if offerReceived, err := strconv.ParseBool(offerReceivedStr); err == nil {
 			filters.OfferReceived = &offerReceived
@@ -475,7 +524,7 @@ func parseApplicationFilters(c *gin.Context) *repository.ApplicationFilters {
 		// Validate sort column
 		validSortColumns := map[string]bool{
 			"company": true, "position": true, "status": true,
-			"applied_at": true, "location": true,
+			"applied_at": true, "location": true, "updated_at": true, "job_type": true,
 		}
 		if validSortColumns[sortBy] {
 			filters.SortBy = sortBy

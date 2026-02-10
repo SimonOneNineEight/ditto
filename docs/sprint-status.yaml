@@ -90,13 +90,13 @@ development_status:
   4-4-auto-save-infrastructure-for-rich-text-content: done
   4-5-in-app-notification-center-with-configurable-preferences: done
   4-6-timeline-view-enhancements-filters-and-date-ranges: done
-  epic-4-retrospective: optional
+  epic-4-retrospective: done
 
   # Epic 5: Search, Discovery & Data Management
-  epic-5: backlog
-  5-1-global-search-backend-infrastructure: backlog
-  5-2-global-search-ui-with-grouped-results: backlog
-  5-3-advanced-application-filtering-and-sorting: backlog
+  epic-5: contexted
+  5-1-global-search-backend-infrastructure: done
+  5-2-global-search-ui-with-grouped-results: done
+  5-3-advanced-application-filtering-and-sorting: done
   5-4-data-export-applications-and-interviews-to-csv: backlog
   5-5-data-backup-and-recovery-information: backlog
   epic-5-retrospective: optional

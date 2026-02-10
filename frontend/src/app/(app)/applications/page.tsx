@@ -40,12 +40,18 @@ const ApplicationPageContent = () => {
     const getFiltersFromURL = useCallback((): Filters => {
         const sortBy = searchParams.get('sort_by') as SortColumn | null;
         const sortOrder = searchParams.get('sort_order') as SortOrder | null;
+        const statusIdsParam = searchParams.get('status_ids');
+        const hasInterviewsParam = searchParams.get('has_interviews');
+        const hasAssessmentsParam = searchParams.get('has_assessments');
 
         return {
             status_id: searchParams.get('status_id') || undefined,
+            status_ids: statusIdsParam ? statusIdsParam.split(',').filter(Boolean) : undefined,
             company_name: searchParams.get('company_name') || undefined,
             date_from: searchParams.get('date_from') || undefined,
             date_to: searchParams.get('date_to') || undefined,
+            has_interviews: hasInterviewsParam === 'true' ? true : undefined,
+            has_assessments: hasAssessmentsParam === 'true' ? true : undefined,
             sort_by: sortBy || undefined,
             sort_order: sortOrder || undefined,
             page: Number(searchParams.get('page')) || 1,
@@ -57,9 +63,14 @@ const ApplicationPageContent = () => {
     const updateURL = useCallback((filters: Filters) => {
         const params = new URLSearchParams();
         if (filters.status_id) params.set('status_id', filters.status_id);
+        if (filters.status_ids && filters.status_ids.length > 0) {
+            params.set('status_ids', filters.status_ids.join(','));
+        }
         if (filters.company_name) params.set('company_name', filters.company_name);
         if (filters.date_from) params.set('date_from', filters.date_from);
         if (filters.date_to) params.set('date_to', filters.date_to);
+        if (filters.has_interviews) params.set('has_interviews', 'true');
+        if (filters.has_assessments) params.set('has_assessments', 'true');
         if (filters.sort_by) params.set('sort_by', filters.sort_by);
         if (filters.sort_order) params.set('sort_order', filters.sort_order);
         if (filters.page && filters.page > 1) params.set('page', String(filters.page));
@@ -153,10 +164,22 @@ const ApplicationPageContent = () => {
     const currentFilters = getFiltersFromURL();
     const hasActiveFilters = !!(
         currentFilters.status_id ||
+        (currentFilters.status_ids && currentFilters.status_ids.length > 0) ||
         currentFilters.company_name ||
         currentFilters.date_from ||
-        currentFilters.date_to
+        currentFilters.date_to ||
+        currentFilters.has_interviews ||
+        currentFilters.has_assessments
     );
+
+    const [unfilteredTotal, setUnfilteredTotal] = useState<number | undefined>(undefined);
+
+    // Fetch unfiltered total for "Showing X of Y" display
+    useEffect(() => {
+        getApplications({ page: 1, limit: 1 })
+            .then(result => setUnfilteredTotal(result.total))
+            .catch(() => { /* non-critical */ });
+    }, []);
 
     const sortState = useMemo(() => ({
         column: currentFilters.sort_by || null,
@@ -193,6 +216,8 @@ const ApplicationPageContent = () => {
                 onFilterChange={handleFilterChange}
                 onClear={handleClearFilters}
                 hasActiveFilters={hasActiveFilters}
+                total={unfilteredTotal}
+                filteredCount={total}
             />
             {loading ? (
                 <div className="flex items-center justify-center py-12">

@@ -20,6 +20,7 @@ func RegisterApplicationRoutes(apiGroup *gin.RouterGroup, appState *utils.AppSta
 			applicationHandler.GetApplicationsWithDetails)
 		applications.GET("/stats", applicationHandler.GetApplicationStats)
 		applications.GET("/recent", applicationHandler.GetRecentApplications)
+		applications.GET("/:id/with-details", applicationHandler.GetApplicationWithDetails)
 		applications.GET("/:id", applicationHandler.GetApplication)
 		applications.PUT("/:id", applicationHandler.UpdateApplication)
 		applications.PATCH("/:id/status",

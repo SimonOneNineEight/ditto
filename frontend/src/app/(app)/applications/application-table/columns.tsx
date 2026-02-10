@@ -33,6 +33,7 @@ const sortColumnMap: Record<string, SortColumn> = {
     status: 'status',
     location: 'location',
     applyDate: 'applied_at',
+    jobType: 'job_type',
 };
 
 interface SortableHeaderProps {
@@ -184,7 +185,15 @@ export const createColumns = (
     },
     {
         id: 'jobType',
-        header: () => <span className="hidden lg:inline text-xs font-semibold text-muted-foreground">Type</span>,
+        header: () => (
+            <SortableHeader
+                label="Type"
+                columnId="jobType"
+                sortState={options.sortState}
+                onSort={options.onSort}
+                className="hidden lg:inline-flex"
+            />
+        ),
         minSize: 80,
         maxSize: 120,
         meta: { className: 'hidden lg:table-cell' },

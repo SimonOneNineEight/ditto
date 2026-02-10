@@ -44,15 +44,18 @@ export interface ApplicationWithDetails {
     status?: ApplicationStatus;
 }
 
-export type SortColumn = 'company' | 'position' | 'status' | 'applied_at' | 'location';
+export type SortColumn = 'company' | 'position' | 'status' | 'applied_at' | 'location' | 'updated_at' | 'job_type';
 export type SortOrder = 'asc' | 'desc';
 
 export interface ApplicationFilters {
     status_id?: string;
+    status_ids?: string[];
     company_name?: string;
     job_title?: string;
     date_from?: string; // YYYY-MM-DD
     date_to?: string;   // YYYY-MM-DD
+    has_interviews?: boolean;
+    has_assessments?: boolean;
     sort_by?: SortColumn;
     sort_order?: SortOrder;
     page?: number;
@@ -71,10 +74,15 @@ export async function getApplications(filters: ApplicationFilters = {}): Promise
     const params = new URLSearchParams();
 
     if (filters.status_id) params.set('status_id', filters.status_id);
+    if (filters.status_ids && filters.status_ids.length > 0) {
+        params.set('status_ids', filters.status_ids.join(','));
+    }
     if (filters.company_name) params.set('company_name', filters.company_name);
     if (filters.job_title) params.set('job_title', filters.job_title);
     if (filters.date_from) params.set('date_from', filters.date_from);
     if (filters.date_to) params.set('date_to', filters.date_to);
+    if (filters.has_interviews !== undefined) params.set('has_interviews', String(filters.has_interviews));
+    if (filters.has_assessments !== undefined) params.set('has_assessments', String(filters.has_assessments));
     if (filters.sort_by) params.set('sort_by', filters.sort_by);
     if (filters.sort_order) params.set('sort_order', filters.sort_order);
     if (filters.page) params.set('page', String(filters.page));
@@ -93,10 +101,8 @@ export async function getApplicationStatuses(): Promise<ApplicationStatus[]> {
 }
 
 export async function getApplication(id: string): Promise<ApplicationWithDetails | null> {
-    // Use the with-details endpoint since the basic endpoint doesn't include job/company
-    const response = await api.get(`/api/applications/with-details?limit=1000`);
-    const applications = response.data?.data?.applications || [];
-    return applications.find((app: ApplicationWithDetails) => app.id === id) || null;
+    const response = await api.get(`/api/applications/${id}/with-details`);
+    return response.data?.data || null;
 }
 
 export async function deleteApplication(id: string): Promise<void> {
