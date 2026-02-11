@@ -18,6 +18,7 @@ type ApplicationHandler struct {
 	applicationRepo *repository.ApplicationRepository
 	companyRepo     *repository.CompanyRepository
 	jobRepo         *repository.JobRepository
+	dashboardRepo   *repository.DashboardRepository
 }
 
 type UpdateApplicationStatusReq struct {
@@ -42,6 +43,7 @@ func NewApplicationHandler(appState *utils.AppState) *ApplicationHandler {
 		applicationRepo: repository.NewApplicationRepository(appState.DB),
 		companyRepo:     repository.NewCompanyRepository(appState.DB),
 		jobRepo:         repository.NewJobRepository(appState.DB),
+		dashboardRepo:   repository.NewDashboardRepository(appState.DB),
 	}
 }
 
@@ -171,6 +173,7 @@ func (h *ApplicationHandler) CreateApplication(c *gin.Context) {
 		return
 	}
 
+	h.dashboardRepo.InvalidateCache(userID)
 	response.Success(c, createdApplication)
 }
 
@@ -240,6 +243,7 @@ func (h *ApplicationHandler) QuickCreateApplication(c *gin.Context) {
 		return
 	}
 
+	h.dashboardRepo.InvalidateCache(userID)
 	response.Success(c, gin.H{
 		"application": createdApplication,
 		"job":         createdJob,
@@ -318,7 +322,7 @@ func (h *ApplicationHandler) UpdateApplication(c *gin.Context) {
 		}
 	}
 
-	// Return updated application with details
+	h.dashboardRepo.InvalidateCache(userID)
 	response.Success(c, gin.H{
 		"id": applicationID,
 	})
@@ -348,6 +352,8 @@ func (h *ApplicationHandler) UpdateApplicationStatus(c *gin.Context) {
 		return
 	}
 
+	h.dashboardRepo.InvalidateCache(userID)
+
 	// Return updated application
 	application, err := h.applicationRepo.GetApplicationByID(applicationID, userID)
 	if err != nil {
@@ -374,6 +380,7 @@ func (h *ApplicationHandler) DeleteApplication(c *gin.Context) {
 		return
 	}
 
+	h.dashboardRepo.InvalidateCache(userID)
 	response.Success(c, gin.H{"message": "Application deleted successfully"})
 }
 

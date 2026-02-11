@@ -15,7 +15,7 @@ import { usePathname } from 'next/navigation';
 import { NavUser } from './nav-user';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
-import { GlobalSearch } from '@/components/shared/GlobalSearch';
+import { GlobalSearch } from '@/components/global-search';
 
 const suezOne = Suez_One({
     weight: '400',

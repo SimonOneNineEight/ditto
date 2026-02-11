@@ -41,6 +41,7 @@ type InterviewHandler struct {
 	interviewerRepo       *repository.InterviewerRepository
 	interviewQuestionRepo *repository.InterviewQuestionRepository
 	interviewNoteRepo     *repository.InterviewNoteRepository
+	dashboardRepo         *repository.DashboardRepository
 }
 
 func NewInterviewHandler(appState *utils.AppState) *InterviewHandler {
@@ -50,6 +51,7 @@ func NewInterviewHandler(appState *utils.AppState) *InterviewHandler {
 		interviewerRepo:       repository.NewInterviewerRepository(appState.DB),
 		interviewQuestionRepo: repository.NewInterviewQuestionRepository(appState.DB),
 		interviewNoteRepo:     repository.NewInterviewNoteRepository(appState.DB),
+		dashboardRepo:         repository.NewDashboardRepository(appState.DB),
 	}
 }
 
@@ -89,6 +91,7 @@ func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 		return
 	}
 
+	h.dashboardRepo.InvalidateCache(userID)
 	response.Success(c, gin.H{
 		"interview": createdInterview,
 	})
@@ -251,6 +254,7 @@ func (h *InterviewHandler) UpdateInterview(c *gin.Context) {
 		return
 	}
 
+	h.dashboardRepo.InvalidateCache(userID)
 	response.Success(c, gin.H{
 		"interview": updatedInterview,
 	})
@@ -485,5 +489,6 @@ func (h *InterviewHandler) DeleteInterview(c *gin.Context) {
 		return
 	}
 
+	h.dashboardRepo.InvalidateCache(userID)
 	response.NoContent(c)
 }

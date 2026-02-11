@@ -8,7 +8,8 @@ import { createColumns } from './application-table/columns';
 import { ApplicationFilters } from './application-filters';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Download } from 'lucide-react';
+import { ExportDialog } from '@/components/export-dialog';
 import {
     getApplications,
     getApplicationStatuses,
@@ -22,6 +23,7 @@ import {
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
+import { ApplicationListSkeleton } from '@/components/loading-skeleton';
 
 const ApplicationPageContent = () => {
     const searchParams = useSearchParams();
@@ -34,6 +36,7 @@ const ApplicationPageContent = () => {
     const [page, setPage] = useState(1);
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [exportDialogOpen, setExportDialogOpen] = useState(false);
     const limit = 50;
 
     // Read filters from URL params
@@ -202,12 +205,22 @@ const ApplicationPageContent = () => {
                 title="Applications"
                 subtitle="Manage and track all your job applications"
                 actions={
-                    <Link href="/applications/new">
-                        <Button size="sm">
-                            <Plus className="h-4 w-4 mr-1" />
-                            Application
+                    <div className="flex items-center gap-2">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setExportDialogOpen(true)}
+                        >
+                            <Download className="h-4 w-4 mr-1" />
+                            Export
                         </Button>
-                    </Link>
+                        <Link href="/applications/new">
+                            <Button size="sm">
+                                <Plus className="h-4 w-4 mr-1" />
+                                Application
+                            </Button>
+                        </Link>
+                    </div>
                 }
             />
             <ApplicationFilters
@@ -220,8 +233,8 @@ const ApplicationPageContent = () => {
                 filteredCount={total}
             />
             {loading ? (
-                <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <div className="rounded-lg border">
+                    <ApplicationListSkeleton count={8} />
                 </div>
             ) : (
                 <ApplicationTable
@@ -242,6 +255,14 @@ const ApplicationPageContent = () => {
                 title="Delete Application"
                 description="Are you sure you want to delete this application? This action cannot be undone."
                 isDeleting={deleting}
+            />
+
+            <ExportDialog
+                open={exportDialogOpen}
+                onOpenChange={setExportDialogOpen}
+                filters={currentFilters}
+                totalFiltered={total}
+                totalAll={unfilteredTotal}
             />
         </>
     );

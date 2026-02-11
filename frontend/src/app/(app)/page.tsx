@@ -6,6 +6,7 @@ import { Briefcase, TrendingUp, Calendar, Trophy, AlertCircle, RefreshCw, Plus }
 import { PageHeader } from '@/components/page-header';
 import { StatCard } from '@/components/stat-card';
 import { Button } from '@/components/ui/button';
+import { DashboardStatsSkeleton } from '@/components/loading-skeleton';
 import { getStats, DashboardStats } from '@/services/dashboard-service';
 import { ApplicationSelectorDialog } from '@/components/application-selector';
 import { InterviewFormModal } from '@/components/interview-form/interview-form-modal';
@@ -130,33 +131,37 @@ export default function Dashboard() {
                 actions={quickActions}
             />
 
-            <div className="flex gap-6">
-                <StatCard
-                    label="Total Applications"
-                    value={loading ? 0 : (stats?.total_applications ?? 0)}
-                    icon={Briefcase}
-                    onClick={() => handleStatClick()}
-                />
-                <StatCard
-                    label="Active"
-                    value={loading ? 0 : (stats?.active_applications ?? 0)}
-                    icon={TrendingUp}
-                    onClick={() => handleStatClick('saved,applied,interview')}
-                />
-                <StatCard
-                    label="Interviews"
-                    value={loading ? 0 : (stats?.interview_count ?? 0)}
-                    icon={Calendar}
-                    onClick={() => handleStatClick('interview')}
-                />
-                <StatCard
-                    label="Offers"
-                    value={loading ? 0 : (stats?.offer_count ?? 0)}
-                    icon={Trophy}
-                    variant="accent"
-                    onClick={() => handleStatClick('offer')}
-                />
-            </div>
+            {loading ? (
+                <DashboardStatsSkeleton count={4} />
+            ) : (
+                <div className="flex gap-6">
+                    <StatCard
+                        label="Total Applications"
+                        value={stats?.total_applications ?? 0}
+                        icon={Briefcase}
+                        onClick={() => handleStatClick()}
+                    />
+                    <StatCard
+                        label="Active"
+                        value={stats?.active_applications ?? 0}
+                        icon={TrendingUp}
+                        onClick={() => handleStatClick('saved,applied,interview')}
+                    />
+                    <StatCard
+                        label="Interviews"
+                        value={stats?.interview_count ?? 0}
+                        icon={Calendar}
+                        onClick={() => handleStatClick('interview')}
+                    />
+                    <StatCard
+                        label="Offers"
+                        value={stats?.offer_count ?? 0}
+                        icon={Trophy}
+                        variant="accent"
+                        onClick={() => handleStatClick('offer')}
+                    />
+                </div>
+            )}
 
             <UpcomingWidget />
 

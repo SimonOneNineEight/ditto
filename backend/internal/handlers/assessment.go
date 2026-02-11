@@ -48,6 +48,7 @@ type AssessmentHandler struct {
 	submissionRepo  *repository.AssessmentSubmissionRepository
 	applicationRepo *repository.ApplicationRepository
 	fileRepo        *repository.FileRepository
+	dashboardRepo   *repository.DashboardRepository
 }
 
 func NewAssessmentHandler(appState *utils.AppState) *AssessmentHandler {
@@ -56,6 +57,7 @@ func NewAssessmentHandler(appState *utils.AppState) *AssessmentHandler {
 		submissionRepo:  repository.NewAssessmentSubmissionRepository(appState.DB),
 		applicationRepo: repository.NewApplicationRepository(appState.DB),
 		fileRepo:        repository.NewFileRepository(appState.DB),
+		dashboardRepo:   repository.NewDashboardRepository(appState.DB),
 	}
 }
 
@@ -112,6 +114,7 @@ func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 		return
 	}
 
+	h.dashboardRepo.InvalidateCache(userID)
 	formatDueDate(createdAssessment)
 
 	response.Success(c, gin.H{
@@ -256,6 +259,7 @@ func (h *AssessmentHandler) UpdateAssessment(c *gin.Context) {
 		return
 	}
 
+	h.dashboardRepo.InvalidateCache(userID)
 	formatDueDate(updatedAssessment)
 
 	response.Success(c, gin.H{
@@ -278,6 +282,7 @@ func (h *AssessmentHandler) DeleteAssessment(c *gin.Context) {
 		return
 	}
 
+	h.dashboardRepo.InvalidateCache(userID)
 	response.NoContent(c)
 }
 
@@ -309,6 +314,7 @@ func (h *AssessmentHandler) UpdateStatus(c *gin.Context) {
 		return
 	}
 
+	h.dashboardRepo.InvalidateCache(userID)
 	formatDueDate(updatedAssessment)
 
 	response.Success(c, gin.H{
