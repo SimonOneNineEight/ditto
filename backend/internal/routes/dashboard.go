@@ -13,6 +13,7 @@ func RegisterDashboardRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState
 
 	dashboard := apiGroup.Group("/dashboard")
 	dashboard.Use(middleware.AuthMiddleware())
+	dashboard.Use(middleware.CSRFMiddleware())
 	{
 		dashboard.GET("/stats", dashboardHandler.GetStats)
 		dashboard.GET("/upcoming", dashboardHandler.GetUpcomingItems)

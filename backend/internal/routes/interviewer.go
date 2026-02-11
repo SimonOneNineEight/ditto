@@ -14,6 +14,7 @@ func RegisterInterviewerRoutes(apiGroup *gin.RouterGroup, appState *utils.AppSta
 	// Nested route under interviews for creation
 	interviews := apiGroup.Group("/interviews")
 	interviews.Use(middleware.AuthMiddleware())
+	interviews.Use(middleware.CSRFMiddleware())
 	{
 		interviews.POST("/:id/interviewers", interviewerHandler.CreateInterviewer)
 	}
@@ -21,6 +22,7 @@ func RegisterInterviewerRoutes(apiGroup *gin.RouterGroup, appState *utils.AppSta
 	// Direct routes for update/delete
 	interviewers := apiGroup.Group("/interviewers")
 	interviewers.Use(middleware.AuthMiddleware())
+	interviewers.Use(middleware.CSRFMiddleware())
 	{
 		interviewers.PUT("/:id", interviewerHandler.UpdateInterviewer)
 		interviewers.DELETE("/:id", interviewerHandler.DeleteInterviewer)

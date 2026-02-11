@@ -18,11 +18,11 @@ func RegisterCompanyRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState) 
 		companies.GET("/search", companyHandler.SearchCompanies)
 		companies.GET("/:id", companyHandler.GetCompany)
 
-		companies.POST("/select", middleware.AuthMiddleware(), companyHandler.SelectOrCreateCompany)
-		companies.POST("", middleware.AuthMiddleware(), companyHandler.CreateCompany)
+		companies.POST("/select", middleware.AuthMiddleware(), middleware.CSRFMiddleware(), companyHandler.SelectOrCreateCompany)
+		companies.POST("", middleware.AuthMiddleware(), middleware.CSRFMiddleware(), companyHandler.CreateCompany)
 
-		companies.PUT("/:id", middleware.AuthMiddleware(), companyHandler.UpdateCompany)
+		companies.PUT("/:id", middleware.AuthMiddleware(), middleware.CSRFMiddleware(), companyHandler.UpdateCompany)
 
-		companies.DELETE("/:id", middleware.AuthMiddleware(), companyHandler.DeleteCompany)
+		companies.DELETE("/:id", middleware.AuthMiddleware(), middleware.CSRFMiddleware(), companyHandler.DeleteCompany)
 	}
 }

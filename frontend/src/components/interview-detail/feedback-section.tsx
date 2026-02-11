@@ -5,6 +5,7 @@ import { FileText, MessageSquare, Lightbulb, BookOpen, StickyNote } from 'lucide
 import { CollapsibleSection } from './collapsible-section';
 import { InterviewNote } from '@/services/interview-service';
 import { Badge } from '@/components/ui/badge';
+import { sanitizeHtml } from '@/lib/sanitizer';
 
 interface FeedbackSectionProps {
     notes: InterviewNote[];
@@ -80,7 +81,7 @@ export const FeedbackSection = ({ notes }: FeedbackSectionProps) => {
                             {note.content ? (
                                 <div
                                     className="prose prose-sm max-w-none text-muted-foreground"
-                                    dangerouslySetInnerHTML={{ __html: note.content }}
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
                                 />
                             ) : (
                                 <p className="text-muted-foreground italic">No content</p>

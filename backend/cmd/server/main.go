@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -33,11 +34,14 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(middleware.SecurityHeaders())
+	r.Use(gzip.Gzip(gzip.DefaultCompression))
+	r.Use(middleware.SlowRequestLogger())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:8080", "http://localhost:8082", "http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-CSRF-Token"},
+		ExposeHeaders:    []string{"Content-Length", "X-CSRF-Token"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
@@ -64,6 +68,7 @@ func main() {
 		routes.RegisterNotificationRoutes(apiGroup, appState)
 		routes.RegisterTimelineRoutes(apiGroup, appState)
 		routes.RegisterSearchRoutes(apiGroup, appState)
+		routes.RegisterExportRoutes(apiGroup, appState)
 	}
 
 	scheduler := services.NewNotificationScheduler(appState.DB)

@@ -19,6 +19,7 @@ func RegisterExtractRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState) 
 
 	apiGroup.POST("/extract-job-url",
 		middleware.AuthMiddleware(),
+		middleware.CSRFMiddleware(),
 		rateLimiter.Middleware("url_extraction", 30), // 30 requests per 24 hours
 		extractHandler.ExtractJobURL)
 }

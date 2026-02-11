@@ -13,6 +13,7 @@ func RegisterJobRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState) {
 
 	jobs := apiGroup.Group("/jobs")
 	jobs.Use(middleware.AuthMiddleware())
+	jobs.Use(middleware.CSRFMiddleware())
 	{
 		jobs.GET("", jobHandler.GetJobs)
 		jobs.GET("/with-details", jobHandler.GetJobsWithDetails)

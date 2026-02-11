@@ -9,6 +9,7 @@ import (
 
 	"ditto-backend/internal/models"
 	"ditto-backend/internal/repository"
+	"ditto-backend/internal/services"
 	"ditto-backend/internal/utils"
 	"ditto-backend/pkg/errors"
 	"ditto-backend/pkg/response"
@@ -49,6 +50,7 @@ type AssessmentHandler struct {
 	applicationRepo *repository.ApplicationRepository
 	fileRepo        *repository.FileRepository
 	dashboardRepo   *repository.DashboardRepository
+	sanitizer       *services.SanitizerService
 }
 
 func NewAssessmentHandler(appState *utils.AppState) *AssessmentHandler {
@@ -58,6 +60,7 @@ func NewAssessmentHandler(appState *utils.AppState) *AssessmentHandler {
 		applicationRepo: repository.NewApplicationRepository(appState.DB),
 		fileRepo:        repository.NewFileRepository(appState.DB),
 		dashboardRepo:   repository.NewDashboardRepository(appState.DB),
+		sanitizer:       appState.Sanitizer,
 	}
 }
 
@@ -96,6 +99,15 @@ func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 	if err != nil {
 		HandleError(c, err)
 		return
+	}
+
+	if req.Instructions != nil && *req.Instructions != "" {
+		sanitized := h.sanitizer.SanitizeHTML(*req.Instructions)
+		req.Instructions = &sanitized
+	}
+	if req.Requirements != nil && *req.Requirements != "" {
+		sanitized := h.sanitizer.SanitizeHTML(*req.Requirements)
+		req.Requirements = &sanitized
 	}
 
 	assessment := &models.Assessment{
@@ -241,7 +253,7 @@ func (h *AssessmentHandler) UpdateAssessment(c *gin.Context) {
 		if *req.Instructions == "" {
 			updates["instructions"] = nil
 		} else {
-			updates["instructions"] = *req.Instructions
+			updates["instructions"] = h.sanitizer.SanitizeHTML(*req.Instructions)
 		}
 	}
 
@@ -249,7 +261,7 @@ func (h *AssessmentHandler) UpdateAssessment(c *gin.Context) {
 		if *req.Requirements == "" {
 			updates["requirements"] = nil
 		} else {
-			updates["requirements"] = *req.Requirements
+			updates["requirements"] = h.sanitizer.SanitizeHTML(*req.Requirements)
 		}
 	}
 
@@ -372,6 +384,11 @@ func (h *AssessmentHandler) CreateSubmission(c *gin.Context) {
 			HandleError(c, errors.New(errors.ErrorBadRequest, "file not found or does not belong to user"))
 			return
 		}
+	}
+
+	if req.Notes != nil && *req.Notes != "" {
+		sanitized := h.sanitizer.SanitizeHTML(*req.Notes)
+		req.Notes = &sanitized
 	}
 
 	submission := &models.AssessmentSubmission{

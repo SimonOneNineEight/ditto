@@ -37,6 +37,7 @@ func RegisterFileRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState) {
 
 	files := apiGroup.Group("/files")
 	files.Use(middleware.AuthMiddleware())
+	files.Use(middleware.CSRFMiddleware())
 	{
 		files.GET("", fileHandler.ListFiles)
 		files.POST("/presigned-upload", rateLimiter.Middleware("file_upload", 50), fileHandler.GetPresignedUploadURL)

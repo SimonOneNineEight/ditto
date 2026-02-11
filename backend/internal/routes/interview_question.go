@@ -14,6 +14,7 @@ func RegisterInterviewQuestionRoutes(apiGroup *gin.RouterGroup, appState *utils.
 	// Nested routes under interviews for creation and reorder
 	interviews := apiGroup.Group("/interviews")
 	interviews.Use(middleware.AuthMiddleware())
+	interviews.Use(middleware.CSRFMiddleware())
 	{
 		interviews.POST("/:id/questions", questionHandler.CreateQuestion)
 		interviews.PATCH("/:id/questions/reorder", questionHandler.ReorderQuestions)
@@ -22,6 +23,7 @@ func RegisterInterviewQuestionRoutes(apiGroup *gin.RouterGroup, appState *utils.
 	// Direct routes for update/delete
 	questions := apiGroup.Group("/interview-questions")
 	questions.Use(middleware.AuthMiddleware())
+	questions.Use(middleware.CSRFMiddleware())
 	{
 		questions.PUT("/:id", questionHandler.UpdateQuestion)
 		questions.DELETE("/:id", questionHandler.DeleteQuestion)

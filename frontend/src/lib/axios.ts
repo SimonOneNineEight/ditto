@@ -1,6 +1,10 @@
 import axios from 'axios';
 import { getSession, signOut } from 'next-auth/react';
 
+const CSRF_HEADER = 'X-CSRF-Token';
+
+let csrfToken: string | null = null;
+
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081',
     timeout: 30000,
@@ -21,13 +25,26 @@ api.interceptors.request.use(async (config) => {
         if (session?.accessToken) {
             config.headers.Authorization = `Bearer ${session.accessToken}`;
         }
+
+        const method = config.method?.toUpperCase();
+        if (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') {
+            if (csrfToken) {
+                config.headers[CSRF_HEADER] = csrfToken;
+            }
+        }
     }
 
     return config;
 });
 
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        const newToken = response.headers[CSRF_HEADER.toLowerCase()];
+        if (newToken) {
+            csrfToken = newToken;
+        }
+        return response;
+    },
     async (error) => {
         if (error.response) {
             console.error('Response Error: ', error.response.data);
@@ -35,6 +52,10 @@ api.interceptors.response.use(
 
             if (error.response.status === 401 && typeof window !== 'undefined') {
                 await signOut({ callbackUrl: '/login' });
+            }
+
+            if (error.response.status === 403 && error.response.data?.code === 'CSRF_ERROR') {
+                csrfToken = null;
             }
         } else if (error.request) {
             console.error('Request Error: ', error.request);

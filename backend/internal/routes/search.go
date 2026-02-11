@@ -13,6 +13,7 @@ func RegisterSearchRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState) {
 
 	search := apiGroup.Group("/search")
 	search.Use(middleware.AuthMiddleware())
+	search.Use(middleware.CSRFMiddleware())
 	{
 		search.GET("", searchHandler.GetSearch)
 	}

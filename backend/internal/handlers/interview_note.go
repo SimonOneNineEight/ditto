@@ -3,6 +3,7 @@ package handlers
 import (
 	"ditto-backend/internal/models"
 	"ditto-backend/internal/repository"
+	"ditto-backend/internal/services"
 	"ditto-backend/internal/utils"
 	"ditto-backend/pkg/errors"
 	"ditto-backend/pkg/response"
@@ -21,12 +22,14 @@ type CreateOrUpdateNoteRequest struct {
 type InterviewNoteHandler struct {
 	interviewNoteRepo *repository.InterviewNoteRepository
 	interviewRepo     *repository.InterviewRepository
+	sanitizer         *services.SanitizerService
 }
 
 func NewInterviewNoteHandler(appState *utils.AppState) *InterviewNoteHandler {
 	return &InterviewNoteHandler{
 		interviewNoteRepo: repository.NewInterviewNoteRepository(appState.DB),
 		interviewRepo:     repository.NewInterviewRepository(appState.DB),
+		sanitizer:         appState.Sanitizer,
 	}
 }
 
@@ -55,6 +58,11 @@ func (h *InterviewNoteHandler) CreateOrUpdateNote(c *gin.Context) {
 	if req.Content != nil && len(*req.Content) > maxNoteContentSize {
 		HandleError(c, errors.New(errors.ErrorBadRequest, "content exceeds maximum size of 50KB"))
 		return
+	}
+
+	if req.Content != nil && *req.Content != "" {
+		sanitized := h.sanitizer.SanitizeHTML(*req.Content)
+		req.Content = &sanitized
 	}
 
 	existingNote, err := h.interviewNoteRepo.GetNoteByInterviewAndType(interviewID, req.NoteType)

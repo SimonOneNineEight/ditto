@@ -13,6 +13,7 @@ func RegisterAssessmentRoutes(apiGroup *gin.RouterGroup, appState *utils.AppStat
 
 	assessments := apiGroup.Group("/assessments")
 	assessments.Use(middleware.AuthMiddleware())
+	assessments.Use(middleware.CSRFMiddleware())
 	{
 		assessments.POST("", assessmentHandler.CreateAssessment)
 		assessments.GET("", assessmentHandler.ListAssessments)
@@ -26,6 +27,7 @@ func RegisterAssessmentRoutes(apiGroup *gin.RouterGroup, appState *utils.AppStat
 
 	submissions := apiGroup.Group("/assessment-submissions")
 	submissions.Use(middleware.AuthMiddleware())
+	submissions.Use(middleware.CSRFMiddleware())
 	{
 		submissions.DELETE("/:submissionId", assessmentHandler.DeleteSubmission)
 	}

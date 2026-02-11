@@ -13,6 +13,7 @@ func RegisterApplicationRoutes(apiGroup *gin.RouterGroup, appState *utils.AppSta
 
 	applications := apiGroup.Group("/applications")
 	applications.Use(middleware.AuthMiddleware())
+	applications.Use(middleware.CSRFMiddleware())
 	{
 		applications.GET("", applicationHandler.GetApplications)
 		applications.POST("", applicationHandler.CreateApplication)

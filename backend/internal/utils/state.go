@@ -1,12 +1,14 @@
 package utils
 
 import (
+	"ditto-backend/internal/services"
 	"ditto-backend/pkg/database"
 	"path/filepath"
 )
 
 type AppState struct {
-	DB *database.Database
+	DB        *database.Database
+	Sanitizer *services.SanitizerService
 }
 
 func NewAppState() (*AppState, error) {
@@ -21,7 +23,8 @@ func NewAppState() (*AppState, error) {
 	}
 
 	return &AppState{
-		DB: db,
+		DB:        db,
+		Sanitizer: services.NewSanitizerService(),
 	}, nil
 }
 

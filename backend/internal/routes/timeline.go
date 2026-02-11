@@ -13,6 +13,7 @@ func RegisterTimelineRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState)
 
 	timeline := apiGroup.Group("/timeline")
 	timeline.Use(middleware.AuthMiddleware())
+	timeline.Use(middleware.CSRFMiddleware())
 	{
 		timeline.GET("", timelineHandler.GetTimelineItems)
 	}

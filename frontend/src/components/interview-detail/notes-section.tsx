@@ -1,9 +1,18 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 
 import { CollapsibleSection } from './collapsible-section';
-import { RichTextEditor } from '@/components/rich-text-editor';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const RichTextEditor = dynamic(
+    () => import('@/components/rich-text-editor').then(mod => ({ default: mod.RichTextEditor })),
+    {
+        loading: () => <Skeleton className="h-[200px] w-full rounded-lg" />,
+        ssr: false,
+    }
+);
 import { AutoSaveIndicator } from '@/components/auto-save-indicator';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import {

@@ -13,6 +13,7 @@ func RegisterInterviewNoteRoutes(apiGroup *gin.RouterGroup, appState *utils.AppS
 
 	interviews := apiGroup.Group("/interviews")
 	interviews.Use(middleware.AuthMiddleware())
+	interviews.Use(middleware.CSRFMiddleware())
 	{
 		interviews.POST("/:id/notes", noteHandler.CreateOrUpdateNote)
 	}

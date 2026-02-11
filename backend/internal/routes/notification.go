@@ -13,6 +13,7 @@ func RegisterNotificationRoutes(apiGroup *gin.RouterGroup, appState *utils.AppSt
 
 	notifications := apiGroup.Group("/notifications")
 	notifications.Use(middleware.AuthMiddleware())
+	notifications.Use(middleware.CSRFMiddleware())
 	{
 		notifications.GET("", notificationHandler.ListNotifications)
 		notifications.GET("/count", notificationHandler.GetUnreadCount)
@@ -22,6 +23,7 @@ func RegisterNotificationRoutes(apiGroup *gin.RouterGroup, appState *utils.AppSt
 
 	users := apiGroup.Group("/users")
 	users.Use(middleware.AuthMiddleware())
+	users.Use(middleware.CSRFMiddleware())
 	{
 		users.GET("/notification-preferences", notificationHandler.GetPreferences)
 		users.PUT("/notification-preferences", notificationHandler.UpdatePreferences)

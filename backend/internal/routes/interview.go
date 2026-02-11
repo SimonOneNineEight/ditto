@@ -13,6 +13,7 @@ func RegisterInterviewRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState
 
 	interviews := apiGroup.Group("/interviews")
 	interviews.Use(middleware.AuthMiddleware())
+	interviews.Use(middleware.CSRFMiddleware())
 	{
 		interviews.POST("", interviewHandler.CreateInterview)
 		interviews.GET("", interviewHandler.ListInterviews)
