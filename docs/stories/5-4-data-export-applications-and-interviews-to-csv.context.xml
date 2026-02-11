@@ -1,0 +1,168 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5.4</storyId>
+    <title>Data Export - Applications and Interviews to CSV</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-4-data-export-applications-and-interviews-to-csv.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker with many applications and interviews</asA>
+    <iWant>to export my data to CSV format</iWant>
+    <soThat>I can analyze my job search progress in Excel or create external backups</soThat>
+    <tasks>
+      <task id="1" name="Create Export Backend Endpoints" acs="3,4,5,7">
+        <subtask>1.1 Create backend/internal/handlers/export.go with export handler struct</subtask>
+        <subtask>1.2 Implement GET /api/export/applications endpoint returning CSV</subtask>
+        <subtask>1.3 Implement GET /api/export/interviews endpoint returning CSV</subtask>
+        <subtask>1.4 Set proper response headers: Content-Type: text/csv, Content-Disposition</subtask>
+        <subtask>1.5 Use streaming response for large datasets</subtask>
+        <subtask>1.6 Register routes in backend/internal/routes/</subtask>
+      </task>
+      <task id="2" name="Support Filter Parameters in Export" acs="6">
+        <subtask>2.1 Accept filter query params: status_ids, date_from, date_to, company, etc.</subtask>
+        <subtask>2.2 Reuse existing buildFilterQuery logic from application_repository.go</subtask>
+        <subtask>2.3 For interviews export, join with applications table for filters</subtask>
+      </task>
+      <task id="3" name="Create Export Dialog Component" acs="1,2">
+        <subtask>3.1 Create frontend/src/components/shared/ExportDialog/ExportDialog.tsx</subtask>
+        <subtask>3.2 Add radio buttons for export type selection</subtask>
+        <subtask>3.3 Show filter summary if active filters present</subtask>
+        <subtask>3.4 Add checkbox for ignoring current filters</subtask>
+        <subtask>3.5 Add loading state and toast feedback</subtask>
+      </task>
+      <task id="4" name="Create Export Service" acs="3">
+        <subtask>4.1 Create frontend/src/services/exportService.ts</subtask>
+        <subtask>4.2 Handle CSV download using blob response</subtask>
+        <subtask>4.3 Handle error responses with user-friendly messages</subtask>
+      </task>
+      <task id="5" name="Integrate Export into Application List" acs="1,6">
+        <subtask>5.1 Add Export button to application list toolbar</subtask>
+        <subtask>5.2 Pass current filter state to ExportDialog</subtask>
+        <subtask>5.3 Wire up dialog actions to exportService</subtask>
+      </task>
+      <task id="6" name="Add Export to Settings Page" acs="1">
+        <subtask>6.1 Add Data Export section to settings page</subtask>
+        <subtask>6.2 Add Export All Data button</subtask>
+        <subtask>6.3 No filters passed from settings</subtask>
+      </task>
+      <task id="7" name="Testing" acs="1,2,3,4,5,6,7">
+        <subtask>7.1-7.7 Manual testing of all export scenarios</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Export access points - From settings page or application list, user can click "Export Data" to open export options</ac>
+    <ac id="2">Export type selection - User can select: Applications only, Interviews only, or Both</ac>
+    <ac id="3">CSV generation - Export generates properly formatted CSV files with relevant fields</ac>
+    <ac id="4">Applications CSV fields - Includes: company, job_title, status, application_date, description, notes</ac>
+    <ac id="5">Interviews CSV fields - Includes: company, job_title, round_number, interview_type, scheduled_date, questions, answers, feedback</ac>
+    <ac id="6">Filter-aware export - Export respects current filters if initiated from filtered application list view</ac>
+    <ac id="7">Performance - Export completes within 10 seconds for up to 1000 records</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-5.md" title="Epic 5 Technical Specification" section="Story 5.4">
+        Export requirements: CSV format for applications and interviews, filter-aware export, performance NFR of 10s for 1000 records.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Document" section="API Contracts">
+        Export endpoints defined: GET /api/export/applications, GET /api/export/interviews. Handler pattern, repository pattern.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Document" section="Implementation Patterns">
+        Go handler struct pattern, React component pattern, frontend service pattern with axios.
+      </doc>
+      <doc path="docs/epics.md" title="Epics Document" section="Epic 5 - Story 5.4">
+        Original story definition for data export functionality.
+      </doc>
+      <doc path="docs/stories/5-3-advanced-application-filtering-and-sorting.md" title="Previous Story" section="Dev Agent Record">
+        Filter patterns to reuse: ApplicationFilters struct, parseApplicationFilters function, buildFilterQuery.
+      </doc>
+    </docs>
+    <code>
+      <artifact path="backend/internal/handlers/application.go" kind="handler" symbol="ApplicationHandler" lines="1-100" reason="Handler pattern to follow for ExportHandler; parseApplicationFilters function (lines 433-539) for filter parsing logic"/>
+      <artifact path="backend/internal/repository/application.go" kind="repository" symbol="ApplicationRepository" lines="1-50" reason="ApplicationFilters struct (lines 25-41) defines filter parameters; buildFilterQuery method to reuse for export filtering"/>
+      <artifact path="backend/internal/repository/interview.go" kind="repository" symbol="InterviewRepository" lines="1-100" reason="Interview data access patterns for export query"/>
+      <artifact path="backend/internal/routes/application.go" kind="routes" symbol="RegisterApplicationRoutes" lines="1-35" reason="Route registration pattern to follow for export routes"/>
+      <artifact path="frontend/src/services/application-service.ts" kind="service" symbol="getApplications" lines="1-111" reason="Service pattern for API calls; ApplicationFilters interface to reuse for export"/>
+      <artifact path="frontend/src/app/(app)/settings/page.tsx" kind="page" symbol="SettingsPage" lines="1-19" reason="Settings page structure - add Data Export section here"/>
+      <artifact path="frontend/src/components/shared/GlobalSearch" kind="component" symbol="GlobalSearch" reason="Shared component structure pattern for ExportDialog"/>
+      <artifact path="frontend/src/components/ui/dialog.tsx" kind="component" symbol="Dialog" reason="shadcn/ui Dialog component for export modal"/>
+    </code>
+    <dependencies>
+      <node>
+        <package name="axios" version="^1.7.9">HTTP client for blob response handling in export download</package>
+        <package name="@radix-ui/react-dialog" version="^1.1.2">Dialog component base for ExportDialog</package>
+        <package name="sonner" version="^2.0.7">Toast notifications for export success/error</package>
+        <package name="zod" version="^3.24.2">Schema validation for export options</package>
+      </node>
+      <go>
+        <package name="encoding/csv">Standard library for CSV generation</package>
+        <package name="github.com/gin-gonic/gin" version="v1.10.1">Web framework for handlers and streaming response</package>
+        <package name="github.com/google/uuid" version="v1.6.0">UUID handling for filter params</package>
+        <package name="github.com/jmoiron/sqlx" version="v1.4.0">Database queries for export data</package>
+      </go>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Follow existing handler struct pattern: NewExportHandler with injected repositories</constraint>
+    <constraint type="pattern">Use parseApplicationFilters pattern for query param parsing in export endpoints</constraint>
+    <constraint type="pattern">Reuse buildFilterQuery from application_repository for consistent filtering</constraint>
+    <constraint type="pattern">Shared components go in frontend/src/components/shared/ with index.ts barrel export</constraint>
+    <constraint type="security">All export endpoints must use AuthMiddleware for user authentication</constraint>
+    <constraint type="security">Filter by user_id to ensure users only export their own data</constraint>
+    <constraint type="performance">Use streaming CSV response to avoid memory issues with large datasets</constraint>
+    <constraint type="performance">Export must complete within 10 seconds for 1000 records</constraint>
+    <constraint type="api">Content-Type: text/csv, Content-Disposition: attachment; filename=*.csv</constraint>
+    <constraint type="frontend">Use blob response type for axios export requests</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="GET /api/export/applications" kind="REST endpoint" path="backend/internal/handlers/export.go">
+      Query params: status_ids, date_from, date_to, company_name, has_interviews, has_assessments, sort_by, sort_order
+      Response: text/csv stream with columns: Company, Job Title, Status, Application Date, Description, Notes
+    </interface>
+    <interface name="GET /api/export/interviews" kind="REST endpoint" path="backend/internal/handlers/export.go">
+      Query params: status_ids (via application), date_from, date_to, company_name
+      Response: text/csv stream with columns: Company, Job Title, Round Number, Interview Type, Scheduled Date, Questions, Answers, Feedback
+    </interface>
+    <interface name="ApplicationFilters" kind="struct" path="backend/internal/repository/application.go" signature="type ApplicationFilters struct { JobTitle, CompanyName string; StatusIDs []uuid.UUID; DateFrom, DateTo *time.Time; HasInterviews, HasAssessments *bool; SortBy, SortOrder string; Limit, Offset int }">
+      Filter struct to reuse for export endpoints
+    </interface>
+    <interface name="parseApplicationFilters" kind="function" path="backend/internal/handlers/application.go" signature="func parseApplicationFilters(c *gin.Context) *repository.ApplicationFilters">
+      Parse query params into ApplicationFilters struct - reuse or extract for export
+    </interface>
+    <interface name="exportService" kind="frontend service" path="frontend/src/services/exportService.ts" signature="export async function exportApplications(filters?: ApplicationFilters): Promise&lt;void&gt;">
+      Export service methods: exportApplications(filters?), exportInterviews(filters?)
+    </interface>
+    <interface name="ExportDialog" kind="component" path="frontend/src/components/shared/ExportDialog/ExportDialog.tsx" signature="interface ExportDialogProps { open: boolean; onOpenChange: (open: boolean) => void; filters?: ApplicationFilters; }">
+      Export dialog component with type selection and filter awareness
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Manual testing approach per project convention. Backend handlers tested via API calls.
+      Frontend components tested via user interaction. No automated test framework currently required.
+    </standards>
+    <locations>
+      <location>Manual testing via browser and API client (Postman/curl)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test Export button appears on both settings page and application list</idea>
+      <idea ac="2">Test all three export type options work: Applications, Interviews, Both</idea>
+      <idea ac="3">Verify downloaded CSV has proper headers and formatting</idea>
+      <idea ac="4">Verify applications CSV has all required columns</idea>
+      <idea ac="5">Verify interviews CSV has all required columns including questions/answers</idea>
+      <idea ac="6">Test export from filtered view exports only filtered data</idea>
+      <idea ac="6">Test "ignore filters" checkbox exports all data</idea>
+      <idea ac="7">Performance test with 100+ records to verify speed</idea>
+      <idea ac="all">Test error handling when export fails</idea>
+    </ideas>
+  </tests>
+</story-context>
