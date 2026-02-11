@@ -12,6 +12,90 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Tests for IP-based rate limiting (unauthenticated endpoints)
+
+func TestRateLimitAuthIP_AllowsRequests(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+
+	router.POST("/login", RateLimitAuthIP(), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest("POST", "/login", nil)
+	req.RemoteAddr = "192.168.1.100:12345"
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "10", w.Header().Get("X-RateLimit-Limit"))
+	assert.NotEmpty(t, w.Header().Get("X-RateLimit-Remaining"))
+	assert.NotEmpty(t, w.Header().Get("X-RateLimit-Reset"))
+}
+
+func TestRateLimitAuthIP_BlocksAfterLimit(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+
+	router.POST("/login", RateLimitAuthIP(), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	testIP := "10.0.0.1:12345"
+
+	for i := 0; i < 10; i++ {
+		req := httptest.NewRequest("POST", "/login", nil)
+		req.RemoteAddr = testIP
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+	}
+
+	req := httptest.NewRequest("POST", "/login", nil)
+	req.RemoteAddr = testIP
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusTooManyRequests, w.Code)
+	assert.Contains(t, w.Body.String(), "Too many requests")
+	assert.Contains(t, w.Body.String(), "RATE_LIMIT")
+	assert.NotEmpty(t, w.Header().Get("Retry-After"))
+}
+
+func TestRateLimitAuthIP_DifferentIPsIndependent(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+
+	router.POST("/login", RateLimitAuthIP(), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	ip1 := "172.16.0.1:12345"
+	ip2 := "172.16.0.2:12345"
+
+	for i := 0; i < 10; i++ {
+		req := httptest.NewRequest("POST", "/login", nil)
+		req.RemoteAddr = ip1
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+	}
+
+	req := httptest.NewRequest("POST", "/login", nil)
+	req.RemoteAddr = ip1
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusTooManyRequests, w.Code)
+
+	req = httptest.NewRequest("POST", "/login", nil)
+	req.RemoteAddr = ip2
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+// Tests for user-based rate limiting (authenticated endpoints)
+
 func setupTestRouter(t *testing.T) (*gin.Engine, *testutil.TestDatabase) {
 	gin.SetMode(gin.TestMode)
 	db := testutil.NewTestDatabase(t)
