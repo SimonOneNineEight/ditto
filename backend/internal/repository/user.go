@@ -165,6 +165,107 @@ func (r *UserRepository) ClearRefreshToken(userID uuid.UUID) error {
 	return nil
 }
 
+func (r *UserRepository) SoftDeleteUser(userID uuid.UUID) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return errors.NewDatabaseError("failed to begin transaction", err)
+	}
+	defer tx.Rollback()
+
+	now := time.Now()
+
+	_, err = tx.Exec("DELETE FROM notifications WHERE user_id = $1", userID)
+	if err != nil {
+		return errors.NewDatabaseError("failed to delete notifications", err)
+	}
+
+	_, err = tx.Exec("DELETE FROM user_notification_preferences WHERE user_id = $1", userID)
+	if err != nil {
+		return errors.NewDatabaseError("failed to delete notification preferences", err)
+	}
+
+	_, err = tx.Exec(`
+		UPDATE assessment_submissions SET deleted_at = $1
+		WHERE assessment_id IN (SELECT id FROM assessments WHERE user_id = $2)
+		AND deleted_at IS NULL`, now, userID)
+	if err != nil {
+		return errors.NewDatabaseError("failed to delete assessment submissions", err)
+	}
+
+	_, err = tx.Exec("UPDATE assessments SET deleted_at = $1 WHERE user_id = $2 AND deleted_at IS NULL", now, userID)
+	if err != nil {
+		return errors.NewDatabaseError("failed to delete assessments", err)
+	}
+
+	_, err = tx.Exec(`
+		UPDATE interview_questions SET deleted_at = $1
+		WHERE interview_id IN (SELECT id FROM interviews WHERE user_id = $2)
+		AND deleted_at IS NULL`, now, userID)
+	if err != nil {
+		return errors.NewDatabaseError("failed to delete interview questions", err)
+	}
+
+	_, err = tx.Exec(`
+		UPDATE interview_notes SET deleted_at = $1
+		WHERE interview_id IN (SELECT id FROM interviews WHERE user_id = $2)
+		AND deleted_at IS NULL`, now, userID)
+	if err != nil {
+		return errors.NewDatabaseError("failed to delete interview notes", err)
+	}
+
+	_, err = tx.Exec(`
+		UPDATE interviewers SET deleted_at = $1
+		WHERE interview_id IN (SELECT id FROM interviews WHERE user_id = $2)
+		AND deleted_at IS NULL`, now, userID)
+	if err != nil {
+		return errors.NewDatabaseError("failed to delete interviewers", err)
+	}
+
+	_, err = tx.Exec("UPDATE interviews SET deleted_at = $1 WHERE user_id = $2 AND deleted_at IS NULL", now, userID)
+	if err != nil {
+		return errors.NewDatabaseError("failed to delete interviews", err)
+	}
+
+	_, err = tx.Exec("UPDATE files SET deleted_at = $1 WHERE user_id = $2 AND deleted_at IS NULL", now, userID)
+	if err != nil {
+		return errors.NewDatabaseError("failed to delete files", err)
+	}
+
+	_, err = tx.Exec("UPDATE applications SET deleted_at = $1 WHERE user_id = $2 AND deleted_at IS NULL", now, userID)
+	if err != nil {
+		return errors.NewDatabaseError("failed to delete applications", err)
+	}
+
+	_, err = tx.Exec("DELETE FROM users_auth WHERE user_id = $1", userID)
+	if err != nil {
+		return errors.NewDatabaseError("failed to delete user auth", err)
+	}
+
+	result, err := tx.Exec(`
+		UPDATE users
+		SET deleted_at = $1, updated_at = $1
+		WHERE id = $2 AND deleted_at IS NULL
+	`, now, userID)
+	if err != nil {
+		return errors.ConvertError(err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.ConvertError(err)
+	}
+
+	if rowsAffected == 0 {
+		return errors.New(errors.ErrorNotFound, "user not found")
+	}
+
+	if err = tx.Commit(); err != nil {
+		return errors.ConvertError(err)
+	}
+
+	return nil
+}
+
 func (r *UserRepository) CreateOrUpdateOAuthUser(email, name, provider, avatarURL string) (*models.User, error) {
 	tx, err := r.db.Beginx()
 	if err != nil {

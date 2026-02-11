@@ -316,3 +316,18 @@ func (h *AuthHandler) OAuthLogin(c *gin.Context) {
 
 	response.Success(c, authResponse)
 }
+
+func (h *AuthHandler) DeleteAccount(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		HandleError(c, errors.New(errors.ErrorUnauthorized, "user not authenticated"))
+		return
+	}
+
+	if err := h.userRepo.SoftDeleteUser(userID.(uuid.UUID)); err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	response.Success(c, gin.H{"message": "account deleted successfully"})
+}
