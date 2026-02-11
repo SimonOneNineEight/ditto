@@ -1,0 +1,243 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5</storyId>
+    <title>Data Backup and Recovery Information</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-5-data-backup-and-recovery-information.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a job seeker using ditto</asA>
+    <iWant>to know my data is backed up and understand how to recover it</iWant>
+    <soThat>I have peace of mind that my job search data won't be lost</soThat>
+    <tasks>
+      <task id="1" ac="1,2,4">Create Data Backup Info Section in Settings
+        <subtask>1.1 Add "Data &amp; Privacy" section to settings page with Card component</subtask>
+        <subtask>1.2 Display backup policy text: "Your data is automatically backed up daily at 2:00 AM UTC"</subtask>
+        <subtask>1.3 Display data retention policy text: "Your data is retained indefinitely while your account is active"</subtask>
+        <subtask>1.4 Add informational icon/tooltip explaining backup coverage</subtask>
+      </task>
+      <task id="2" ac="3">Create Full JSON Export Backend Endpoint
+        <subtask>2.1 Create GET /api/export/full endpoint in backend/internal/handlers/export.go</subtask>
+        <subtask>2.2 Query all user data: applications, interviews (with questions, notes, interviewers), assessments (with submissions)</subtask>
+        <subtask>2.3 Include file metadata with signed download URLs (1-hour expiry)</subtask>
+        <subtask>2.4 Structure JSON with clear sections: {applications: [], interviews: [], assessments: [], files: []}</subtask>
+        <subtask>2.5 Set response headers: Content-Type: application/json, Content-Disposition: attachment</subtask>
+        <subtask>2.6 Add to export routes in backend/internal/routes/export.go</subtask>
+      </task>
+      <task id="3" ac="3">Add Full Backup Button to Settings UI
+        <subtask>3.1 Add "Download Full Backup (JSON)" button in Data &amp; Privacy section</subtask>
+        <subtask>3.2 Extend exportService.ts with exportFullBackup() method</subtask>
+        <subtask>3.3 Handle JSON blob download similar to CSV export pattern</subtask>
+        <subtask>3.4 Show loading state and success toast on completion</subtask>
+      </task>
+      <task id="4" ac="5,6">Create Account Deletion Backend Endpoint
+        <subtask>4.1 Create DELETE /api/users/account endpoint in backend/internal/handlers/user.go or new account.go</subtask>
+        <subtask>4.2 Implement soft delete cascade: set deleted_at on users, applications, interviews, assessments, files, notifications</subtask>
+        <subtask>4.3 Use database transaction to ensure atomicity</subtask>
+        <subtask>4.4 Revoke all active sessions/tokens for the user</subtask>
+        <subtask>4.5 Return 204 No Content on success</subtask>
+        <subtask>4.6 Register route with auth middleware</subtask>
+      </task>
+      <task id="5" ac="5">Create Account Deletion UI with Multi-Step Confirmation
+        <subtask>5.1 Add "Danger Zone" section at bottom of settings with red border styling</subtask>
+        <subtask>5.2 Add "Delete Account" button with destructive variant</subtask>
+        <subtask>5.3 Create DeleteAccountDialog component with multi-step confirmation</subtask>
+        <subtask>5.4 Call DELETE /api/users/account on final confirmation</subtask>
+        <subtask>5.5 On success, clear auth state and redirect to login</subtask>
+      </task>
+      <task id="6" ac="1,2,3,4,5,6">Testing
+        <subtask>6.1 Manual test: Verify backup policy and retention info displayed in settings</subtask>
+        <subtask>6.2 Manual test: Download full JSON backup, verify structure</subtask>
+        <subtask>6.3 Manual test: Verify file URLs in JSON backup are valid signed URLs</subtask>
+        <subtask>6.4 Manual test: Account deletion multi-step flow works correctly</subtask>
+        <subtask>6.5 Manual test: After account deletion, user is logged out</subtask>
+        <subtask>6.6 Manual test: Verify all user data is soft-deleted</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">In settings, show backup policy: "Your data is automatically backed up daily"</criterion>
+    <criterion id="2">Show last backup timestamp (if available from system)</criterion>
+    <criterion id="3">Full data export includes: applications, interviews, assessments, notes, file URLs</criterion>
+    <criterion id="4">Data retention policy visible: "Data is retained indefinitely while your account is active"</criterion>
+    <criterion id="5">Account deletion option with multi-step confirmation</criterion>
+    <criterion id="6">Account deletion cascades to all user data (soft delete)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Tech Spec - Epic 5: Search, Discovery &amp; Data Management</title>
+        <section>Story 5.5: Data Backup and Recovery Information</section>
+        <snippet>Defines acceptance criteria for backup policy display, full JSON export, data retention policy, and account deletion with cascade.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Ditto Epics</title>
+        <section>Epic 5: Search, Discovery &amp; Data Management</section>
+        <snippet>Story 5.5 original definition: Data backup info, JSON export with all user data, account deletion with soft delete cascade.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Ditto Architecture Document</title>
+        <section>Database Schema, Security Architecture</section>
+        <snippet>Soft delete pattern using deleted_at column on all tables. JWT authentication with auth middleware. Export endpoints at /api/export/.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-4-data-export-applications-and-interviews-to-csv.md</path>
+        <title>Previous Story - Data Export</title>
+        <section>Dev Agent Record</section>
+        <snippet>Contains export handler patterns, route registration, blob download service, and settings page structure to extend.</snippet>
+      </doc>
+      <doc>
+        <path>ditto-design.pen</path>
+        <title>Ditto Design File</title>
+        <section>Modal/DeleteAccount (ID: dXWwj)</section>
+        <snippet>Pre-designed delete account modal with warning box, confirmation input ("DELETE MY ACCOUNT"), and action buttons. Use this design reference for the DeleteAccountDialog component.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/internal/handlers/export.go</path>
+        <kind>handler</kind>
+        <symbol>ExportHandler, ExportApplications, ExportInterviews</symbol>
+        <lines>1-251</lines>
+        <reason>Existing export handler to extend with full JSON export endpoint. Contains CSV streaming pattern and response header setup.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/routes/export.go</path>
+        <kind>routes</kind>
+        <symbol>RegisterExportRoutes</symbol>
+        <lines>1-21</lines>
+        <reason>Export routes registration. Add /full endpoint here following existing pattern.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/handlers/user.go</path>
+        <kind>handler</kind>
+        <symbol>UserHandler</symbol>
+        <lines>1-11</lines>
+        <reason>Minimal user handler. Can be extended with account deletion endpoint, or create new account.go.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/app/(app)/settings/page.tsx</path>
+        <kind>page</kind>
+        <symbol>SettingsPage</symbol>
+        <lines>1-50</lines>
+        <reason>Settings page to extend with Data &amp; Privacy section and Danger Zone. Already has NotificationPreferences and Data Export sections.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/services/exportService.ts</path>
+        <kind>service</kind>
+        <symbol>exportApplications, exportInterviews, downloadBlob</symbol>
+        <lines>1-81</lines>
+        <reason>Export service with blob download utility. Add exportFullBackup() method following same pattern.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/src/components/shared/ExportDialog/ExportDialog.tsx</path>
+        <kind>component</kind>
+        <symbol>ExportDialog</symbol>
+        <lines>1-177</lines>
+        <reason>Dialog component pattern with state management, toast notifications. Reference for DeleteAccountDialog implementation.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/repository/application_repository.go</path>
+        <kind>repository</kind>
+        <symbol>ApplicationRepository, GetApplicationsWithDetails</symbol>
+        <reason>Repository for fetching applications with details. Used by export handler, will be used for full JSON export.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/repository/interview_repository.go</path>
+        <kind>repository</kind>
+        <symbol>InterviewRepository</symbol>
+        <reason>Repository for fetching interviews. Needed for full JSON export with interview data.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/internal/repository/notification_repository.go</path>
+        <kind>repository</kind>
+        <symbol>NotificationRepository</symbol>
+        <reason>Repository for notifications. Must be soft-deleted during account deletion cascade.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <frontend>
+        <package name="next" version="14.2.15">React framework</package>
+        <package name="react" version="^18">UI library</package>
+        <package name="axios" version="^1.7.9">HTTP client for API calls</package>
+        <package name="sonner" version="^2.0.7">Toast notifications</package>
+        <package name="lucide-react" version="^0.452.0">Icon library</package>
+        <package name="@radix-ui/react-dialog" version="^1.1.2">Dialog component base</package>
+        <package name="@radix-ui/react-alert-dialog" version="^1.1.15">Alert dialog for destructive actions</package>
+        <package name="zod" version="^3.24.2">Schema validation</package>
+        <package name="react-hook-form" version="^7.54.2">Form handling</package>
+      </frontend>
+      <backend>
+        <package name="github.com/gin-gonic/gin" version="v1.10.1">HTTP framework</package>
+        <package name="github.com/jmoiron/sqlx" version="v1.4.0">Database access with transactions</package>
+        <package name="github.com/google/uuid" version="v1.6.0">UUID handling</package>
+        <package name="encoding/json" version="stdlib">JSON encoding for full export</package>
+      </backend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Follow existing export handler pattern in export.go for JSON export endpoint</constraint>
+    <constraint type="pattern">Use soft delete (deleted_at column) for all entity deletions per architecture.md</constraint>
+    <constraint type="pattern">Use database transaction for account deletion cascade to ensure atomicity</constraint>
+    <constraint type="pattern">Follow existing dialog component pattern (ExportDialog) for DeleteAccountDialog</constraint>
+    <constraint type="security">Validate user ownership before deletion using user_id from JWT token</constraint>
+    <constraint type="security">Revoke all active sessions/tokens after account deletion</constraint>
+    <constraint type="api">Use REST conventions: DELETE /api/users/account, GET /api/export/full</constraint>
+    <constraint type="ui">Match design file component Modal/DeleteAccount (ID: dXWwj) for deletion dialog</constraint>
+    <constraint type="ui">Use Card component for Data &amp; Privacy section consistent with existing settings layout</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/export/full</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/export/full -> JSON with Content-Disposition: attachment; filename=ditto-backup-{date}.json</signature>
+      <path>backend/internal/handlers/export.go</path>
+    </interface>
+    <interface>
+      <name>DELETE /api/users/account</name>
+      <kind>REST endpoint</kind>
+      <signature>DELETE /api/users/account -> 204 No Content (soft deletes all user data)</signature>
+      <path>backend/internal/handlers/user.go or account.go</path>
+    </interface>
+    <interface>
+      <name>exportFullBackup</name>
+      <kind>function signature</kind>
+      <signature>export async function exportFullBackup(): Promise&lt;void&gt;</signature>
+      <path>frontend/src/services/exportService.ts</path>
+    </interface>
+    <interface>
+      <name>DeleteAccountDialog</name>
+      <kind>React component</kind>
+      <signature>interface DeleteAccountDialogProps { open: boolean; onOpenChange: (open: boolean) => void; onConfirm: () => Promise&lt;void&gt;; }</signature>
+      <path>frontend/src/components/settings/DeleteAccountDialog.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Manual testing per existing project pattern. Focus on integration testing for export and deletion flows. Verify database state after operations.</standards>
+    <locations>
+      <location>Manual testing via browser at localhost:8080</location>
+      <location>Database verification via psql or database client</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2,4">Verify settings page displays backup policy text, retention policy, and informational content in Data &amp; Privacy section</idea>
+      <idea ac="3">Download full JSON backup and verify structure contains applications, interviews, assessments, and file URLs</idea>
+      <idea ac="3">Verify signed file URLs in JSON backup are accessible and expire after 1 hour</idea>
+      <idea ac="5">Test multi-step confirmation flow: warning displayed, confirmation phrase required, button disabled until phrase correct</idea>
+      <idea ac="5,6">After account deletion, verify user is logged out and redirected to login</idea>
+      <idea ac="6">Query database to verify all user data has deleted_at timestamp set (applications, interviews, assessments, files, notifications)</idea>
+      <idea ac="6">Verify deleted user cannot log back in with same credentials</idea>
+    </ideas>
+  </tests>
+</story-context>
