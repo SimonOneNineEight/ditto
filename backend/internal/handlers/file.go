@@ -24,15 +24,19 @@ const (
 var allowedFileTypes = map[string]bool{
 	"application/pdf": true,
 	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": true, // DOCX
-	"text/plain": true, // TXT
+	"text/plain":  true,                                                              // TXT
+	"image/png":   true,                                                              // PNG
+	"image/jpeg":  true,                                                              // JPEG/JPG
 }
 
 var assessmentAllowedFileTypes = map[string]bool{
 	"application/pdf": true,
 	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": true, // DOCX
-	"text/plain":              true,                                                  // TXT
-	"application/zip":         true,                                                  // ZIP
+	"text/plain":                true,                                                // TXT
+	"application/zip":           true,                                                // ZIP
 	"application/x-zip-compressed": true,                                             // ZIP (alternate MIME)
+	"image/png":                 true,                                                // PNG
+	"image/jpeg":                true,                                                // JPEG/JPG
 }
 
 type FileHandler struct {
@@ -117,7 +121,7 @@ func (h *FileHandler) GetPresignedUploadURL(c *gin.Context) {
 
 	if isAssessmentUpload {
 		if !assessmentAllowedFileTypes[req.FileType] {
-			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT, ZIP"))
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT, ZIP, PNG, JPG"))
 			return
 		}
 		if req.FileSize > MaxAssessmentFileSize {
@@ -126,7 +130,7 @@ func (h *FileHandler) GetPresignedUploadURL(c *gin.Context) {
 		}
 	} else {
 		if !allowedFileTypes[req.FileType] {
-			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT"))
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT, PNG, JPG"))
 			return
 		}
 		if req.FileSize > MaxFileSize {
@@ -406,7 +410,7 @@ func (h *FileHandler) ReplaceFile(c *gin.Context) {
 
 	if isAssessmentUpload {
 		if !assessmentAllowedFileTypes[req.FileType] {
-			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT, ZIP"))
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT, ZIP, PNG, JPG"))
 			return
 		}
 		if req.FileSize > MaxAssessmentFileSize {
@@ -415,7 +419,7 @@ func (h *FileHandler) ReplaceFile(c *gin.Context) {
 		}
 	} else {
 		if !allowedFileTypes[req.FileType] {
-			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT"))
+			HandleError(c, errors.New(errors.ErrorValidationFailed, "unsupported file type. Allowed: PDF, DOCX, TXT, PNG, JPG"))
 			return
 		}
 		if req.FileSize > MaxFileSize {
