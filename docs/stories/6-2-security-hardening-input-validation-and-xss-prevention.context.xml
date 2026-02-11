@@ -1,0 +1,210 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>2</storyId>
+    <title>Security Hardening - Input Validation and XSS Prevention</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-2-security-hardening-input-validation-and-xss-prevention.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>my data and account to be secure from common web vulnerabilities</iWant>
+    <soThat>I can trust ditto with my sensitive job search information</soThat>
+    <tasks>
+      <task n="1" ac="1,3,4">Install and Configure Security Dependencies
+        <subtask n="1.1">Add bluemonday to Go backend: go get github.com/microcosm-cc/bluemonday</subtask>
+        <subtask n="1.2">Add dompurify to frontend: npm install dompurify @types/dompurify</subtask>
+        <subtask n="1.3">Verify Zod is already installed (react-hook-form resolver)</subtask>
+      </task>
+      <task n="2" ac="4">Create Backend Sanitizer Service
+        <subtask n="2.1">Create backend/internal/services/sanitizer_service.go</subtask>
+        <subtask n="2.2">Implement SanitizeHTML using bluemonday UGCPolicy</subtask>
+        <subtask n="2.3">Configure allowed tags: p, br, strong, em, ul, ol, li, a</subtask>
+        <subtask n="2.4">Add unit tests for sanitizer service</subtask>
+      </task>
+      <task n="3" ac="4">Apply Sanitization to Rich Text Handlers
+        <subtask n="3.1">Sanitize in interview notes handler (POST/PUT)</subtask>
+        <subtask n="3.2">Sanitize in assessment notes fields</subtask>
+        <subtask n="3.3">Sanitize application description if rich text enabled</subtask>
+        <subtask n="3.4">Add sanitization to any other HTML handlers</subtask>
+      </task>
+      <task n="4" ac="3">Create Frontend DOMPurify Wrapper
+        <subtask n="4.1">Create frontend/src/lib/sanitizer.ts with DOMPurify config</subtask>
+        <subtask n="4.2">Configure allowed tags matching backend policy</subtask>
+        <subtask n="4.3">Export sanitizeHTML function</subtask>
+        <subtask n="4.4">Apply sanitization in RichTextEditor before rendering</subtask>
+      </task>
+      <task n="5" ac="3">Apply Frontend Sanitization to Rich Text Display
+        <subtask n="5.1">Sanitize in interview notes display components</subtask>
+        <subtask n="5.2">Sanitize in assessment notes display</subtask>
+        <subtask n="5.3">Sanitize all dangerouslySetInnerHTML usage</subtask>
+        <subtask n="5.4">Audit all dangerouslySetInnerHTML in codebase</subtask>
+      </task>
+      <task n="6" ac="7">Create CSRF Middleware
+        <subtask n="6.1">Create backend/internal/middleware/csrf.go</subtask>
+        <subtask n="6.2">Implement CSRF token generation</subtask>
+        <subtask n="6.3">Implement CSRF token validation on POST/PUT/DELETE</subtask>
+        <subtask n="6.4">Store token in X-CSRF-Token header</subtask>
+        <subtask n="6.5">Register middleware in main.go</subtask>
+      </task>
+      <task n="7" ac="7">Integrate CSRF Token in Frontend
+        <subtask n="7.1">Update axios client to read/store CSRF token</subtask>
+        <subtask n="7.2">Include CSRF token in POST/PUT/DELETE headers</subtask>
+        <subtask n="7.3">Add CSRF token refresh on 403 errors</subtask>
+        <subtask n="7.4">Test CSRF protection with form submissions</subtask>
+      </task>
+      <task n="8" ac="9">Create Security Headers Middleware
+        <subtask n="8.1">Create backend/internal/middleware/security_headers.go</subtask>
+        <subtask n="8.2">Set Content-Security-Policy header</subtask>
+        <subtask n="8.3">Set X-Frame-Options: DENY</subtask>
+        <subtask n="8.4">Set X-Content-Type-Options: nosniff</subtask>
+        <subtask n="8.5">Set X-XSS-Protection: 1; mode=block</subtask>
+        <subtask n="8.6">Set Referrer-Policy</subtask>
+        <subtask n="8.7">Register middleware in main.go</subtask>
+      </task>
+      <task n="9" ac="2,5">Audit and Enhance Server-Side Validation
+        <subtask n="9.1">Audit existing handler validation using Go validator</subtask>
+        <subtask n="9.2">Add missing validation tags (required, min, max, email, url)</subtask>
+        <subtask n="9.3">Verify parameterized queries (no string concat)</subtask>
+        <subtask n="9.4">Add validation error response format</subtask>
+      </task>
+      <task n="10" ac="6">Audit and Enhance File Upload Validation
+        <subtask n="10.1">Verify MIME type whitelist</subtask>
+        <subtask n="10.2">Verify file size limits (5MB/10MB)</subtask>
+        <subtask n="10.3">Add server-side MIME type validation</subtask>
+        <subtask n="10.4">Return clear error messages</subtask>
+      </task>
+      <task n="11" ac="8,10">HTTPS and Production Security
+        <subtask n="11.1">Verify HTTPS redirect middleware</subtask>
+        <subtask n="11.2">Add Strict-Transport-Security header</subtask>
+        <subtask n="11.3">Verify JWT over HTTPS only</subtask>
+        <subtask n="11.4">Verify cookies Secure and HttpOnly flags</subtask>
+        <subtask n="11.5">Document production HTTPS setup</subtask>
+      </task>
+      <task n="12" ac="all">Security Testing and Verification
+        <subtask n="12.1">Test XSS prevention with script injection</subtask>
+        <subtask n="12.2">Test CSRF protection</subtask>
+        <subtask n="12.3">Test file upload with disallowed types</subtask>
+        <subtask n="12.4">Verify security headers in responses</subtask>
+        <subtask n="12.5">Run basic security audit</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Client-side validation - All user input validated using Zod schemas</ac>
+    <ac id="2">Server-side validation - All user input validated using Go validator</ac>
+    <ac id="3">XSS prevention (frontend) - Rich text sanitized with DOMPurify before rendering</ac>
+    <ac id="4">XSS prevention (backend) - Rich text sanitized with bluemonday on write</ac>
+    <ac id="5">SQL injection prevention - All queries use parameterized statements</ac>
+    <ac id="6">File upload validation - Type (PDF,DOCX,TXT,ZIP,PNG,JPG) and size (5MB/10MB)</ac>
+    <ac id="7">CSRF protection - Token validation on POST/PUT/DELETE operations</ac>
+    <ac id="8">HTTPS enforcement - TLS 1.2+ in production</ac>
+    <ac id="9">Security headers - CSP, X-Frame-Options, X-Content-Type-Options</ac>
+    <ac id="10">No unencrypted credentials - No plaintext transmission of tokens</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-6.md" title="Epic 6 Technical Specification" section="Story 6.2: Security Hardening">
+        Defines security requirements including XSS prevention (DOMPurify + bluemonday), CSRF protection, security headers, input validation patterns, and HTTPS enforcement.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Document" section="Security Architecture">
+        Establishes security patterns: JWT auth, XSS prevention strategy (double sanitization), SQL injection prevention, file upload security, and HTTPS transport requirements.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Document" section="Rich Text Sanitization">
+        Specifies bluemonday on POST/PUT (write-time), DOMPurify before render (defense in depth), max 50KB per note field.
+      </doc>
+      <doc path="docs/stories/6-1-performance-optimization-page-load-and-api-response-times.md" title="Story 6.1 (Previous)" section="Dev Agent Record">
+        Contains middleware pattern learnings from slow_request.go implementation, main.go registration location (lines 37-38).
+      </doc>
+    </docs>
+    <code>
+      <file path="backend/internal/middleware/slow_request.go" kind="middleware" symbol="SlowRequestLogger" lines="1-39" reason="Reference pattern for creating new middleware (CSRF, security headers)"/>
+      <file path="backend/cmd/server/main.go" kind="entrypoint" symbol="main" lines="35-47" reason="Middleware registration location - GZIP and SlowRequestLogger already registered here"/>
+      <file path="backend/internal/handlers/interview_note.go" kind="handler" symbol="CreateOrUpdateNote" lines="33-94" reason="Primary handler that needs HTML sanitization for rich text content field"/>
+      <file path="backend/internal/handlers/file.go" kind="handler" symbol="GetPresignedUploadURL" lines="105-163" reason="File validation pattern - MIME type whitelist (allowedFileTypes map) and size limits already implemented"/>
+      <file path="frontend/src/lib/sanitizer.ts" kind="utility" symbol="sanitizeHtml" lines="1-10" reason="EXISTING DOMPurify wrapper - needs enhancement with allowed tags configuration"/>
+      <file path="frontend/src/lib/axios.ts" kind="utility" symbol="api" lines="1-48" reason="Axios client - needs CSRF token interceptor for state-changing requests"/>
+      <file path="frontend/src/components/interview-detail/notes-section.tsx" kind="component" symbol="NoteSection" lines="1-100" reason="Uses sanitizeHtml - verify correct usage with enhanced configuration"/>
+      <file path="frontend/src/components/interview-detail/feedback-section.tsx" kind="component" symbol="FeedbackSection" lines="1-50" reason="Uses dangerouslySetInnerHTML - needs sanitization"/>
+      <file path="frontend/src/components/global-search/GlobalSearch.tsx" kind="component" symbol="GlobalSearch" lines="*" reason="Uses dangerouslySetInnerHTML - needs sanitization audit"/>
+      <file path="backend/go.mod" kind="dependency" symbol="microcosm-cc/bluemonday" lines="23" reason="bluemonday v1.0.27 ALREADY installed - no action needed"/>
+      <file path="frontend/package.json" kind="dependency" symbol="dompurify" lines="43" reason="dompurify v3.3.1 ALREADY installed - no action needed"/>
+    </code>
+    <dependencies>
+      <backend>
+        <package name="github.com/microcosm-cc/bluemonday" version="v1.0.27" status="installed">HTML sanitizer for XSS prevention</package>
+        <package name="github.com/go-playground/validator/v10" version="v10.26.0" status="installed">Input validation</package>
+        <package name="github.com/gin-gonic/gin" version="v1.10.1" status="installed">Web framework with middleware support</package>
+      </backend>
+      <frontend>
+        <package name="dompurify" version="^3.3.1" status="installed">HTML sanitizer for XSS prevention</package>
+        <package name="zod" version="^3.24.2" status="installed">Schema validation</package>
+        <package name="react-hook-form" version="^7.54.2" status="installed">Form handling with validation</package>
+        <package name="@hookform/resolvers" version="^4.1.2" status="installed">Zod resolver for react-hook-form</package>
+        <package name="axios" version="^1.7.9" status="installed">HTTP client for CSRF token handling</package>
+      </frontend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern" source="architecture.md">Middleware follows Gin HandlerFunc pattern returning gin.HandlerFunc</constraint>
+    <constraint type="pattern" source="architecture.md">Security headers must be registered BEFORE route handlers in middleware chain</constraint>
+    <constraint type="pattern" source="architecture.md">CSRF tokens stored in X-CSRF-Token response header</constraint>
+    <constraint type="pattern" source="architecture.md">HTML sanitization on write (backend) AND render (frontend) - defense in depth</constraint>
+    <constraint type="pattern" source="architecture.md">Error responses use format: {error: string, code: string, details?: object}</constraint>
+    <constraint type="pattern" source="existing">Request structs use Go validator tags (binding:"required,oneof=...")</constraint>
+    <constraint type="pattern" source="existing">File uploads validate MIME type against whitelist map</constraint>
+    <constraint type="security" source="tech-spec">CSP must allow 'unsafe-inline' for shadcn/ui styles</constraint>
+    <constraint type="security" source="tech-spec">CSRF tokens only required for authenticated state-changing requests</constraint>
+    <constraint type="testing" source="dev-notes">Verify via curl/devtools after implementation</constraint>
+    <constraint type="testing" source="dev-notes">Run go build and npm run build to verify compilation</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="CSRF Middleware" kind="middleware" signature="func CSRFMiddleware() gin.HandlerFunc" path="backend/internal/middleware/csrf.go">
+      Generates CSRF token on GET requests (stored in X-CSRF-Token header), validates token on POST/PUT/DELETE
+    </interface>
+    <interface name="Security Headers Middleware" kind="middleware" signature="func SecurityHeaders() gin.HandlerFunc" path="backend/internal/middleware/security_headers.go">
+      Sets CSP, X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy headers
+    </interface>
+    <interface name="Sanitizer Service" kind="service" signature="type SanitizerService struct; func (s *SanitizerService) SanitizeHTML(input string) string" path="backend/internal/services/sanitizer_service.go">
+      Bluemonday-based HTML sanitizer with UGCPolicy, allowed tags: p, br, strong, em, ul, ol, li, a
+    </interface>
+    <interface name="Frontend sanitizeHTML" kind="utility" signature="export const sanitizeHTML = (html: string): string" path="frontend/src/lib/sanitizer.ts">
+      DOMPurify wrapper with ALLOWED_TAGS config matching backend policy
+    </interface>
+    <interface name="Axios CSRF Interceptor" kind="interceptor" signature="api.interceptors.request.use" path="frontend/src/lib/axios.ts">
+      Reads CSRF token from response headers, includes in state-changing request headers
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Backend uses Go testing package with testify for assertions. Tests located in same package as code (*_test.go).
+      Frontend uses manual testing via browser devtools and curl for API verification.
+      Security testing involves attempting XSS injection, CSRF token bypass, and file upload bypass.
+    </standards>
+    <locations>
+      <location>backend/internal/middleware/*_test.go</location>
+      <location>backend/internal/services/*_test.go</location>
+      <location>backend/internal/handlers/*_test.go</location>
+    </locations>
+    <ideas>
+      <test ac="3,4">XSS Prevention: POST script tag to interview notes, verify sanitized output</test>
+      <test ac="3,4">XSS Prevention: Verify sanitized HTML renders without script execution</test>
+      <test ac="7">CSRF: POST without X-CSRF-Token header returns 403</test>
+      <test ac="7">CSRF: Valid token allows POST/PUT/DELETE</test>
+      <test ac="7">CSRF: GET requests return new CSRF token in header</test>
+      <test ac="9">Security Headers: curl -I API endpoint shows all required headers</test>
+      <test ac="6">File Upload: POST .exe file returns validation error</test>
+      <test ac="6">File Upload: POST 15MB file returns size limit error</test>
+      <test ac="2">Validation: POST with missing required fields returns 400 with field details</test>
+      <test ac="5">SQL Injection: Verify all queries use parameterized statements (code review)</test>
+    </ideas>
+  </tests>
+</story-context>

@@ -97,14 +97,14 @@ development_status:
   5-1-global-search-backend-infrastructure: done
   5-2-global-search-ui-with-grouped-results: done
   5-3-advanced-application-filtering-and-sorting: done
-  5-4-data-export-applications-and-interviews-to-csv: backlog
-  5-5-data-backup-and-recovery-information: backlog
-  epic-5-retrospective: optional
+  5-4-data-export-applications-and-interviews-to-csv: done
+  5-5-data-backup-and-recovery-information: done
+  epic-5-retrospective: done
 
   # Epic 6: Polish, Performance & Production Readiness
-  epic-6: backlog
-  6-1-performance-optimization-page-load-and-api-response-times: backlog
-  6-2-security-hardening-input-validation-and-xss-prevention: backlog
+  epic-6: contexted
+  6-1-performance-optimization-page-load-and-api-response-times: done
+  6-2-security-hardening-input-validation-and-xss-prevention: done
   6-3-responsive-design-mobile-and-tablet-support: backlog
   6-4-accessibility-improvements-keyboard-navigation-and-screen-readers: backlog
   6-5-error-handling-and-user-feedback: backlog
