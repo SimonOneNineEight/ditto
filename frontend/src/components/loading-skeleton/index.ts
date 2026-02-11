@@ -6,4 +6,6 @@ export {
     UpcomingItemSkeleton,
     DashboardStatsSkeleton,
     ApplicationListSkeleton,
+    InterviewDetailSkeleton,
+    AssessmentDetailSkeleton,
 } from './LoadingSkeleton';

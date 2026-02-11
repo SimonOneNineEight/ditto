@@ -8,8 +8,8 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
+import { AssessmentDetailSkeleton } from '@/components/loading-skeleton';
 import PageHeader from '@/components/page-header/page-header';
 import { getCountdownInfo } from '@/components/assessment-list';
 import {
@@ -25,19 +25,6 @@ import { getApplication, type ApplicationWithDetails } from '@/services/applicat
 import { AssessmentStatusSelect } from '@/components/assessment-status-select';
 import { SubmissionFormModal } from '@/components/submission-form';
 import { SubmissionList } from '@/components/submission-list';
-
-function LoadingSkeleton() {
-    return (
-        <div className="flex flex-col p-6 w-full gap-6">
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-6 w-48" />
-            <div className="space-y-6">
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-48 w-full" />
-            </div>
-        </div>
-    );
-}
 
 const AssessmentDetailPage = () => {
     const params = useParams();
@@ -124,7 +111,7 @@ const AssessmentDetailPage = () => {
         }
     };
 
-    if (loading) return <LoadingSkeleton />;
+    if (loading) return <AssessmentDetailSkeleton />;
 
     if (error || !assessment) {
         return (

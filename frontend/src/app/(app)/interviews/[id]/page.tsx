@@ -10,8 +10,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { InterviewDetailSkeleton } from '@/components/loading-skeleton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -68,14 +68,6 @@ const editFormSchema = z.object({
 });
 
 type EditFormData = z.infer<typeof editFormSchema>;
-
-const InterviewDetailSkeleton = () => (
-    <div className="space-y-4">
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-16 w-full" />
-    </div>
-);
 
 const InterviewDetailPage = () => {
     const params = useParams();
