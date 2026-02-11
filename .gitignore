@@ -4,6 +4,9 @@
 # Binaries
 backend/server
 
+# Next.js
+.next/
+
 # MCP config (user-specific)
 .mcp.json
 
