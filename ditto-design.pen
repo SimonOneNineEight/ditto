@@ -7314,6 +7314,584 @@
                   ]
                 }
               ]
+            },
+            {
+              "type": "text",
+              "id": "uoj4l",
+              "name": "exportDialogLabel",
+              "fill": "$--muted-foreground",
+              "content": "EXPORT DIALOG",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "500",
+              "letterSpacing": 0.08
+            },
+            {
+              "type": "frame",
+              "id": "gGS0C",
+              "name": "exportDialogRow",
+              "gap": 32,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "WdW5L",
+                  "name": "Modal/Export",
+                  "reusable": true,
+                  "clip": true,
+                  "width": 420,
+                  "fill": "$--card",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$--border"
+                  },
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "hvOy2",
+                      "name": "modalHeader",
+                      "width": "fill_container",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": {
+                          "bottom": 1
+                        },
+                        "fill": "$--border"
+                      },
+                      "padding": [
+                        16,
+                        20
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "wlrgN",
+                          "name": "titleGroup",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "4x0UO",
+                              "name": "titleIcon",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "file-spreadsheet",
+                              "iconFontFamily": "lucide",
+                              "fill": "$--foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "4iij7",
+                              "name": "titleText",
+                              "fill": "$--foreground",
+                              "content": "Export Data",
+                              "fontFamily": "Inter",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "icon_font",
+                          "id": "9XoKp",
+                          "name": "closeIcon",
+                          "width": 18,
+                          "height": 18,
+                          "iconFontName": "x",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--muted-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "qBWuK",
+                      "name": "modalBody",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 24,
+                      "padding": 20,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "hUcOv",
+                          "name": "desc",
+                          "fill": "$--muted-foreground",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Export your job search data to CSV format for analysis or backup.",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "QmnwN",
+                          "name": "typeSection",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "t9WjS",
+                              "name": "typeLabel",
+                              "fill": "$--foreground",
+                              "content": "Export Type",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "id": "0UedE",
+                              "type": "ref",
+                              "ref": "ybbk8",
+                              "width": "fill_container",
+                              "name": "typeSelect",
+                              "descendants": {
+                                "Mqq7M": {
+                                  "content": "Applications Only"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "lV8gP",
+                          "name": "filterToggleRow",
+                          "width": "fill_container",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$--border"
+                          },
+                          "padding": 16,
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "eQEHi",
+                              "name": "toggleLeft",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "YIm3r",
+                                  "name": "toggleLabel",
+                                  "fill": "$--foreground",
+                                  "content": "Include all data",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "B73JJ",
+                                  "name": "toggleDesc",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Ignore current filters and export everything",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "yVlA3",
+                              "type": "ref",
+                              "ref": "TpmJo",
+                              "name": "toggleSwitch",
+                              "descendants": {
+                                "3NMaV": {
+                                  "enabled": false
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "NERA0",
+                          "name": "infoBox",
+                          "width": "fill_container",
+                          "fill": "$--muted",
+                          "cornerRadius": 8,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "V70cT",
+                              "name": "infoText",
+                              "fill": "$--muted-foreground",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Export 3 of 24 records matching your filters",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hepIe",
+                      "name": "modalFooter",
+                      "width": "fill_container",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": {
+                          "top": 1
+                        },
+                        "fill": "$--border"
+                      },
+                      "gap": 12,
+                      "padding": [
+                        16,
+                        20
+                      ],
+                      "justifyContent": "end",
+                      "children": [
+                        {
+                          "id": "5DFTi",
+                          "type": "ref",
+                          "ref": "m9A9A",
+                          "name": "cancelBtn"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "V3llG",
+                          "name": "exportBtn",
+                          "fill": "$--primary",
+                          "cornerRadius": 4,
+                          "gap": 6,
+                          "padding": [
+                            8,
+                            16
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "iHh4F",
+                              "name": "exportIcon",
+                              "width": 14,
+                              "height": 14,
+                              "iconFontName": "download",
+                              "iconFontFamily": "lucide",
+                              "fill": "$--primary-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "fX3HY",
+                              "name": "exportText",
+                              "fill": "$--primary-foreground",
+                              "content": "Export",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "8Lmpc",
+              "name": "deleteDialogLabel",
+              "fill": "$--muted-foreground",
+              "content": "DELETE ACCOUNT DIALOG",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "500",
+              "letterSpacing": 0.08
+            },
+            {
+              "type": "frame",
+              "id": "C55UB",
+              "name": "deleteDialogRow",
+              "gap": 32,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "dXWwj",
+                  "name": "Modal/DeleteAccount",
+                  "reusable": true,
+                  "clip": true,
+                  "width": 420,
+                  "fill": "$--card",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$--destructive"
+                  },
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "5n4so",
+                      "name": "modalHeader",
+                      "width": "fill_container",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": {
+                          "bottom": 1
+                        },
+                        "fill": "$--border"
+                      },
+                      "padding": [
+                        16,
+                        20
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "1CaXW",
+                          "name": "titleGroup",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "uiwt7",
+                              "name": "titleIcon",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "triangle-alert",
+                              "iconFontFamily": "lucide",
+                              "fill": "$--destructive"
+                            },
+                            {
+                              "type": "text",
+                              "id": "YojOJ",
+                              "name": "titleText",
+                              "fill": "$--destructive",
+                              "content": "Delete Account",
+                              "fontFamily": "Inter",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "icon_font",
+                          "id": "HjEHn",
+                          "name": "closeIcon",
+                          "width": 18,
+                          "height": 18,
+                          "iconFontName": "x",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--muted-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "yQouM",
+                      "name": "modalBody",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 20,
+                      "padding": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "uQtBE",
+                          "name": "warningBox",
+                          "width": "fill_container",
+                          "fill": "#3a1c1c",
+                          "cornerRadius": 8,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": 16,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "NB8r8",
+                              "name": "warningTitle",
+                              "fill": "$--destructive",
+                              "content": "This action is permanent and cannot be undone.",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "fNxSd",
+                              "name": "warningText",
+                              "fill": "$--muted-foreground",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "All your data will be permanently deleted, including:",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "1UmcA",
+                              "name": "warningList",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "padding": [
+                                0,
+                                0,
+                                0,
+                                8
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "SIOHc",
+                                  "name": "item1",
+                                  "fill": "$--muted-foreground",
+                                  "content": "• Applications and job details",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "NpDQu",
+                                  "name": "item2",
+                                  "fill": "$--muted-foreground",
+                                  "content": "• Interviews, questions, and notes",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "XJrjR",
+                                  "name": "item3",
+                                  "fill": "$--muted-foreground",
+                                  "content": "• Assessments and submissions",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "FFyvf",
+                                  "name": "item4",
+                                  "fill": "$--muted-foreground",
+                                  "content": "• Uploaded files and documents",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "b8YpO",
+                          "name": "confirmSection",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "vqTmB",
+                              "name": "confirmLabel",
+                              "fill": "$--foreground",
+                              "content": "Type DELETE MY ACCOUNT to confirm",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "229E7",
+                              "name": "confirmInput",
+                              "width": "fill_container",
+                              "cornerRadius": 4,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$--border"
+                              },
+                              "padding": [
+                                8,
+                                12
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "E0ObG",
+                                  "name": "confirmPlaceholder",
+                                  "fill": "$--muted-foreground",
+                                  "content": "DELETE MY ACCOUNT",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ih1iG",
+                      "name": "modalFooter",
+                      "width": "fill_container",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": {
+                          "top": 1
+                        },
+                        "fill": "$--border"
+                      },
+                      "gap": 12,
+                      "padding": [
+                        16,
+                        20
+                      ],
+                      "justifyContent": "end",
+                      "children": [
+                        {
+                          "id": "FjULZ",
+                          "type": "ref",
+                          "ref": "m9A9A",
+                          "name": "cancelBtn"
+                        },
+                        {
+                          "id": "G8zcw",
+                          "type": "ref",
+                          "ref": "1nAFr",
+                          "name": "deleteBtn",
+                          "descendants": {
+                            "MIWhc": {
+                              "content": "Permanently Delete Account"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -14770,12 +15348,56 @@
                   "content": "Manage and track all your job applications"
                 },
                 "LS091": {
-                  "padding": 0,
+                  "type": "frame",
+                  "id": "Oa95Y",
+                  "name": "headerActions",
                   "fill": "transparent",
+                  "gap": 8,
+                  "alignItems": "center",
                   "children": [
                     {
                       "type": "frame",
-                      "id": "o0UoN",
+                      "id": "8QfAR",
+                      "name": "exportBtn",
+                      "cornerRadius": 4,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "gap": 6,
+                      "padding": [
+                        8,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "g1SKq",
+                          "name": "exportIcon1",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "download",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "ftR6v",
+                          "name": "exportText1",
+                          "fill": "$--foreground",
+                          "content": "Export",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RpyCR",
+                      "name": "addBtn",
                       "fill": "$--primary",
                       "cornerRadius": 4,
                       "gap": 6,
@@ -14787,7 +15409,8 @@
                       "children": [
                         {
                           "type": "icon_font",
-                          "id": "6hZ9R",
+                          "id": "1W9dW",
+                          "name": "addIcon1",
                           "width": 16,
                           "height": 16,
                           "iconFontName": "plus",
@@ -14796,7 +15419,8 @@
                         },
                         {
                           "type": "text",
-                          "id": "uSTrW",
+                          "id": "G7Dgw",
+                          "name": "addText1",
                           "fill": "$--primary-foreground",
                           "content": "Application",
                           "fontFamily": "Inter",
@@ -19080,7 +19704,7 @@
       "y": 0,
       "name": "Settings",
       "width": 1440,
-      "height": 980,
+      "height": 1280,
       "fill": "$--background",
       "children": [
         {
@@ -19715,6 +20339,261 @@
                               }
                             }
                           ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "aXRBS",
+              "name": "DataExportCard",
+              "width": "fill_container",
+              "fill": "$--card",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$--border"
+              },
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "JZ8Al",
+                  "name": "cardHeader",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "pvCOt",
+                      "name": "cardTitleRow",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "07SjC",
+                          "name": "cardIcon",
+                          "width": 18,
+                          "height": 18,
+                          "iconFontName": "shield",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "5aES1",
+                          "name": "cardTitle",
+                          "fill": "$--foreground",
+                          "content": "Data & Privacy",
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "lGBdj",
+                      "name": "cardDesc",
+                      "fill": "$--muted-foreground",
+                      "content": "Backup policies, data export, and retention information",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "wvy8B",
+                  "name": "infoSection",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "OJQXe",
+                      "name": "backupRow",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "d7u2v",
+                          "name": "backupIcon",
+                          "width": 16,
+                          "height": 16,
+                          "iconFontName": "cloud",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--muted-foreground"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "sOhTm",
+                          "name": "backupTextGroup",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Z8e8Q",
+                              "name": "backupLabel",
+                              "fill": "$--foreground",
+                              "content": "Automatic Backups",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "1W4Xq",
+                              "name": "backupDesc",
+                              "fill": "$--muted-foreground",
+                              "content": "Your data is automatically backed up daily at 2:00 AM UTC",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CCees",
+                      "name": "retentionRow",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "cHNw2",
+                          "name": "retentionIcon",
+                          "width": 16,
+                          "height": 16,
+                          "iconFontName": "database",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--muted-foreground"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Hsi2n",
+                          "name": "retentionTextGroup",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Px1Go",
+                              "name": "retentionLabel",
+                              "fill": "$--foreground",
+                              "content": "Data Retention",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "z7eBJ",
+                              "name": "retentionDesc",
+                              "fill": "$--muted-foreground",
+                              "content": "Your data is retained indefinitely while your account is active",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "DjLoT",
+                  "name": "exportBtnRow",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "swZVZ",
+                      "name": "csvBtn",
+                      "cornerRadius": 4,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "gap": 6,
+                      "padding": [
+                        8,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "8vxWJ",
+                          "name": "csvIcon",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "download",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "FTkpp",
+                          "name": "csvText",
+                          "fill": "$--foreground",
+                          "content": "Export CSV",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hGzBJ",
+                      "name": "jsonBtn",
+                      "fill": "$--primary",
+                      "cornerRadius": 4,
+                      "gap": 6,
+                      "padding": [
+                        8,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "ufzQ6",
+                          "name": "jsonIcon",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "hard-drive-download",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--primary-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "NZS00",
+                          "name": "jsonText",
+                          "fill": "$--primary-foreground",
+                          "content": "Download Full Backup (JSON)",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
                         }
                       ]
                     }
@@ -31370,11 +32249,11 @@
     {
       "type": "frame",
       "id": "X0iY9",
-      "x": 15400,
-      "y": 0,
+      "x": 13860,
+      "y": 1380,
       "name": "Settings - User Dropdown",
       "width": 1440,
-      "height": 900,
+      "height": 1280,
       "fill": "$--background",
       "layout": "none",
       "children": [
@@ -31385,7 +32264,7 @@
           "y": 0,
           "name": "Sidebar",
           "width": 248,
-          "height": 900,
+          "height": 1280,
           "fill": "$--card",
           "layout": "vertical",
           "justifyContent": "space_between",
@@ -31530,7 +32409,7 @@
           "y": 0,
           "name": "MainContent",
           "width": 1192,
-          "height": 900,
+          "height": 1280,
           "layout": "vertical",
           "gap": 24,
           "padding": 32,
@@ -31823,6 +32702,261 @@
             },
             {
               "type": "frame",
+              "id": "Iii7S",
+              "name": "dataCard",
+              "width": "fill_container",
+              "fill": "$--card",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$--border"
+              },
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Jjh84",
+                  "name": "cardHeader",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "D7GS0",
+                      "name": "cardTitleRow",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "4X4Ty",
+                          "name": "cardIcon",
+                          "width": 18,
+                          "height": 18,
+                          "iconFontName": "shield",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "QZwKV",
+                          "name": "cardTitle",
+                          "fill": "$--foreground",
+                          "content": "Data & Privacy",
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "UjXi8",
+                      "name": "cardDesc",
+                      "fill": "$--muted-foreground",
+                      "content": "Backup policies, data export, and retention information",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "N63Ql",
+                  "name": "infoSection",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "TiKdx",
+                      "name": "backupRow",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "cZ1QR",
+                          "name": "backupIcon",
+                          "width": 16,
+                          "height": 16,
+                          "iconFontName": "cloud",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--muted-foreground"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "k58dT",
+                          "name": "backupTextGroup",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "a7LWi",
+                              "name": "backupLabel",
+                              "fill": "$--foreground",
+                              "content": "Automatic Backups",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Ws9nz",
+                              "name": "backupDesc",
+                              "fill": "$--muted-foreground",
+                              "content": "Your data is automatically backed up daily at 2:00 AM UTC",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dztLc",
+                      "name": "retentionRow",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "27iJd",
+                          "name": "retentionIcon",
+                          "width": 16,
+                          "height": 16,
+                          "iconFontName": "database",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--muted-foreground"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "eTuVs",
+                          "name": "retentionTextGroup",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Q5g3Z",
+                              "name": "retentionLabel",
+                              "fill": "$--foreground",
+                              "content": "Data Retention",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "5Giru",
+                              "name": "retentionDesc",
+                              "fill": "$--muted-foreground",
+                              "content": "Your data is retained indefinitely while your account is active",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "qHCrR",
+                  "name": "exportBtnRow",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "cTIdJ",
+                      "name": "csvBtn",
+                      "cornerRadius": 4,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "gap": 6,
+                      "padding": [
+                        8,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "RlHnq",
+                          "name": "csvIcon",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "download",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "8T3Wg",
+                          "name": "csvText",
+                          "fill": "$--foreground",
+                          "content": "Export CSV",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "pALKq",
+                      "name": "jsonBtn",
+                      "fill": "$--primary",
+                      "cornerRadius": 4,
+                      "gap": 6,
+                      "padding": [
+                        8,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "RR8u7",
+                          "name": "jsonIcon",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "hard-drive-download",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--primary-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "xm2nU",
+                          "name": "jsonText",
+                          "fill": "$--primary-foreground",
+                          "content": "Download Full Backup (JSON)",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
               "id": "XuxnG",
               "name": "DangerZone",
               "width": "fill_container",
@@ -31906,8 +33040,10 @@
           "type": "ref",
           "ref": "BmHs8",
           "x": 256,
-          "y": 776,
-          "name": "userDropdown"
+          "y": 1156,
+          "name": "userDropdown",
+          "width": 216,
+          "height": "fit_content"
         }
       ]
     },
@@ -40790,12 +41926,56 @@
                   "content": "Manage and track all your job applications"
                 },
                 "LS091": {
-                  "padding": 0,
+                  "type": "frame",
+                  "id": "VcAQ9",
+                  "name": "headerActions",
                   "fill": "transparent",
+                  "gap": 8,
+                  "alignItems": "center",
                   "children": [
                     {
                       "type": "frame",
-                      "id": "FbdQe",
+                      "id": "r8g6h",
+                      "name": "exportBtn",
+                      "cornerRadius": 4,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "gap": 6,
+                      "padding": [
+                        8,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "V85HG",
+                          "name": "exportIcon2",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "download",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "6flJT",
+                          "name": "exportText2",
+                          "fill": "$--foreground",
+                          "content": "Export",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ezD1X",
+                      "name": "addBtn",
                       "fill": "$--primary",
                       "cornerRadius": 4,
                       "gap": 6,
@@ -40807,7 +41987,8 @@
                       "children": [
                         {
                           "type": "icon_font",
-                          "id": "6d2Ww",
+                          "id": "BWxXR",
+                          "name": "addIcon2",
                           "width": 16,
                           "height": 16,
                           "iconFontName": "plus",
@@ -40816,7 +41997,8 @@
                         },
                         {
                           "type": "text",
-                          "id": "pR5vX",
+                          "id": "d5kEH",
+                          "name": "addText2",
                           "fill": "$--primary-foreground",
                           "content": "Application",
                           "fontFamily": "Inter",
@@ -41131,6 +42313,1015 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "emU5v",
+      "x": 13860,
+      "y": 2760,
+      "name": "Settings - Delete Account",
+      "width": 1440,
+      "height": 1280,
+      "fill": "$--background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "jHXMF",
+          "x": 0,
+          "y": 0,
+          "name": "Sidebar",
+          "width": 248,
+          "height": 1280,
+          "fill": "$--card",
+          "layout": "vertical",
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "frame",
+              "id": "xdE4O",
+              "name": "SidebarTop",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                24,
+                12
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "G5Yen",
+                  "name": "Logo",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "padding": [
+                    12,
+                    8,
+                    20,
+                    8
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "HiNWM",
+                      "name": "logoText",
+                      "fill": "$--foreground",
+                      "content": "Ditto",
+                      "fontFamily": "Suez One",
+                      "fontSize": 36,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "id": "C31cr",
+                  "type": "ref",
+                  "ref": "7Qfum",
+                  "name": "searchTrigger"
+                },
+                {
+                  "type": "frame",
+                  "id": "cyxVc",
+                  "name": "NavItems",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "id": "c3qL1",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "dashNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "layout-dashboard"
+                        },
+                        "GXuyC": {
+                          "content": "Dashboard"
+                        }
+                      }
+                    },
+                    {
+                      "id": "nporg",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "appsNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "folder"
+                        },
+                        "GXuyC": {
+                          "content": "Applications"
+                        }
+                      }
+                    },
+                    {
+                      "id": "DeJp0",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "intNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "calendar"
+                        },
+                        "GXuyC": {
+                          "content": "Interviews"
+                        }
+                      }
+                    },
+                    {
+                      "id": "K5K1M",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "timeNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "clock-3"
+                        },
+                        "GXuyC": {
+                          "content": "Timeline"
+                        }
+                      }
+                    },
+                    {
+                      "id": "QGTr6",
+                      "type": "ref",
+                      "ref": "fhqxO",
+                      "name": "filesNav",
+                      "descendants": {
+                        "KphFm": {
+                          "iconFontName": "file"
+                        },
+                        "GXuyC": {
+                          "content": "Files"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "jsRDn",
+              "type": "ref",
+              "ref": "O5p9v",
+              "name": "sidebarUser"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "NcJjZ",
+          "x": 248,
+          "y": 0,
+          "name": "MainContent",
+          "width": 1192,
+          "height": 1280,
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 32,
+          "children": [
+            {
+              "type": "frame",
+              "id": "SyaT7",
+              "name": "pageHeader",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "o2mBT",
+                  "name": "title",
+                  "fill": "$--foreground",
+                  "content": "Settings",
+                  "fontFamily": "Inter",
+                  "fontSize": 28,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "gZYgL",
+                  "name": "subtitle",
+                  "fill": "$--muted-foreground",
+                  "content": "Manage your account and preferences",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "2TyaG",
+              "name": "ProfileCard",
+              "width": "fill_container",
+              "fill": "$--card",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$--border"
+              },
+              "layout": "vertical",
+              "gap": 20,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "i9gNy",
+                  "name": "profileTitle",
+                  "fill": "$--foreground",
+                  "content": "Profile",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "vSwKi",
+                  "name": "profileContent",
+                  "width": "fill_container",
+                  "gap": 20,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "024kv",
+                      "type": "ref",
+                      "ref": "FWT36",
+                      "name": "avatar"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "rJRv2",
+                      "name": "profileInfo",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "IgHLN",
+                          "name": "nameRow",
+                          "width": "fill_container",
+                          "gap": 16,
+                          "children": [
+                            {
+                              "id": "b1OmR",
+                              "type": "ref",
+                              "ref": "Zv7Kv",
+                              "width": "fill_container",
+                              "name": "nameInput",
+                              "descendants": {
+                                "57Ni0": {
+                                  "content": "FULL NAME"
+                                },
+                                "OFBLG": {
+                                  "content": "John Doe"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "9Ft9x",
+                          "name": "emailRow",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ICdFL",
+                              "name": "emailLabel",
+                              "fill": "$--muted-foreground",
+                              "content": "EMAIL",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "500",
+                              "letterSpacing": 0.05
+                            },
+                            {
+                              "type": "text",
+                              "id": "6ZENG",
+                              "name": "emailValue",
+                              "fill": "$--foreground",
+                              "content": "john@ditto.app",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "n6r5A",
+                  "type": "ref",
+                  "ref": "1fbnY",
+                  "name": "saveBtn",
+                  "descendants": {
+                    "zvprq": {
+                      "content": "Save Changes"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "o2rtx",
+              "name": "NotificationsCard",
+              "width": "fill_container",
+              "fill": "$--card",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$--border"
+              },
+              "layout": "vertical",
+              "gap": 20,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "st35w",
+                  "name": "notifTitle",
+                  "fill": "$--foreground",
+                  "content": "Notifications",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "3uYh9",
+                  "name": "notifSettings",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 20,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "f2k7X",
+                      "name": "intCatLabel",
+                      "fill": "$--foreground",
+                      "content": "Interview Reminders",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.05
+                    },
+                    {
+                      "type": "frame",
+                      "id": "d6l4x",
+                      "name": "intGroup",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "0e6MF",
+                          "name": "row1",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "4XcMf",
+                              "name": "row1Info",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "pa62u",
+                                  "name": "row1Title",
+                                  "fill": "$--foreground",
+                                  "content": "24 hours before",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "ycHXz",
+                                  "name": "row1Desc",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Get reminded one day before your interview",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "LqbW1",
+                              "type": "ref",
+                              "ref": "Mr7Yy",
+                              "name": "row1Toggle",
+                              "descendants": {
+                                "Iys00": {
+                                  "enabled": false
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fOTWR",
+                          "name": "row2",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "YxVdu",
+                              "name": "row2Info",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "wzkvR",
+                                  "name": "row2Title",
+                                  "fill": "$--foreground",
+                                  "content": "1 hour before",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "xW1wK",
+                                  "name": "row2Desc",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Get reminded one hour before your interview",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "mG1K4",
+                              "type": "ref",
+                              "ref": "Mr7Yy",
+                              "name": "row2Toggle",
+                              "descendants": {
+                                "Iys00": {
+                                  "enabled": false
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "rectangle",
+                      "id": "LkQ0j",
+                      "name": "divider",
+                      "fill": "$--border",
+                      "width": "fill_container",
+                      "height": 1
+                    },
+                    {
+                      "type": "text",
+                      "id": "lqkqF",
+                      "name": "assCatLabel",
+                      "fill": "$--foreground",
+                      "content": "Assessment Deadline Reminders",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.05
+                    },
+                    {
+                      "type": "frame",
+                      "id": "5XRYm",
+                      "name": "assGroup",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "upsMs",
+                          "name": "row3",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "fLyLw",
+                              "name": "row3Info",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "QC7cC",
+                                  "name": "row3Title",
+                                  "fill": "$--foreground",
+                                  "content": "3 days before deadline",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "HgCYm",
+                                  "name": "row3Desc",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Get reminded 3 days before an assessment is due",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "kQu5z",
+                              "type": "ref",
+                              "ref": "Mr7Yy",
+                              "name": "row3Toggle",
+                              "descendants": {
+                                "Iys00": {
+                                  "enabled": false
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "MLxKv",
+                          "name": "row4",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "SLFt3",
+                              "name": "row4Info",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "gKLJG",
+                                  "name": "row4Title",
+                                  "fill": "$--foreground",
+                                  "content": "1 day before deadline",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "HMdDG",
+                                  "name": "row4Desc",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Get reminded 1 day before an assessment is due",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "rFhpX",
+                              "type": "ref",
+                              "ref": "Mr7Yy",
+                              "name": "row4Toggle",
+                              "descendants": {
+                                "Iys00": {
+                                  "enabled": false
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "yUHiy",
+                          "name": "row5",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "oeKaN",
+                              "name": "row5Info",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Vkn4W",
+                                  "name": "row5Title",
+                                  "fill": "$--foreground",
+                                  "content": "1 hour before deadline",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "rlgt7",
+                                  "name": "row5Desc",
+                                  "fill": "$--muted-foreground",
+                                  "content": "Get reminded 1 hour before an assessment is due",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "64OnM",
+                              "type": "ref",
+                              "ref": "TpmJo",
+                              "name": "row5Toggle",
+                              "descendants": {
+                                "3NMaV": {
+                                  "enabled": false
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Dqz5u",
+              "name": "DataExportCard",
+              "width": "fill_container",
+              "fill": "$--card",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$--border"
+              },
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ky8eJ",
+                  "name": "cardHeader",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "t5Lfc",
+                      "name": "cardTitleRow",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "8xNbf",
+                          "name": "cardIcon",
+                          "width": 18,
+                          "height": 18,
+                          "iconFontName": "shield",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "BrcUb",
+                          "name": "cardTitle",
+                          "fill": "$--foreground",
+                          "content": "Data & Privacy",
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "4oRnn",
+                      "name": "cardDesc",
+                      "fill": "$--muted-foreground",
+                      "content": "Backup policies, data export, and retention information",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "GLbsA",
+                  "name": "infoSection",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "00UAN",
+                      "name": "backupRow",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "WDbxU",
+                          "name": "backupIcon",
+                          "width": 16,
+                          "height": 16,
+                          "iconFontName": "cloud",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--muted-foreground"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "8GfsJ",
+                          "name": "backupTextGroup",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "16ISH",
+                              "name": "backupLabel",
+                              "fill": "$--foreground",
+                              "content": "Automatic Backups",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "wNHx8",
+                              "name": "backupDesc",
+                              "fill": "$--muted-foreground",
+                              "content": "Your data is automatically backed up daily at 2:00 AM UTC",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "tY6M3",
+                      "name": "retentionRow",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "NNODu",
+                          "name": "retentionIcon",
+                          "width": 16,
+                          "height": 16,
+                          "iconFontName": "database",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--muted-foreground"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "VZlya",
+                          "name": "retentionTextGroup",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "DW87Z",
+                              "name": "retentionLabel",
+                              "fill": "$--foreground",
+                              "content": "Data Retention",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "EkQgh",
+                              "name": "retentionDesc",
+                              "fill": "$--muted-foreground",
+                              "content": "Your data is retained indefinitely while your account is active",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "jVmZm",
+                  "name": "exportBtnRow",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "93HHh",
+                      "name": "csvBtn",
+                      "cornerRadius": 4,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border"
+                      },
+                      "gap": 6,
+                      "padding": [
+                        8,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "sVFFP",
+                          "name": "csvIcon",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "download",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "pH318",
+                          "name": "csvText",
+                          "fill": "$--foreground",
+                          "content": "Export CSV",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "czcDv",
+                      "name": "jsonBtn",
+                      "fill": "$--primary",
+                      "cornerRadius": 4,
+                      "gap": 6,
+                      "padding": [
+                        8,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "q1OoW",
+                          "name": "jsonIcon",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "hard-drive-download",
+                          "iconFontFamily": "lucide",
+                          "fill": "$--primary-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Ah6zt",
+                          "name": "jsonText",
+                          "fill": "$--primary-foreground",
+                          "content": "Download Full Backup (JSON)",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "w6wgJ",
+              "name": "DangerZone",
+              "width": "fill_container",
+              "fill": "$--card",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$--destructive"
+              },
+              "layout": "vertical",
+              "gap": 20,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "568pt",
+                  "name": "dangerTitle",
+                  "fill": "$--destructive",
+                  "content": "Danger Zone",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "kAvuV",
+                  "name": "dangerRow",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "AOcp2",
+                      "name": "dangerInfo",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TFojt",
+                          "name": "dangerText",
+                          "fill": "$--foreground",
+                          "content": "Delete account",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "edo1Y",
+                          "name": "dangerDesc",
+                          "fill": "$--muted-foreground",
+                          "content": "Permanently delete your account and all data",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "DY9pj",
+                      "type": "ref",
+                      "ref": "1nAFr",
+                      "name": "deleteBtn",
+                      "descendants": {
+                        "MIWhc": {
+                          "content": "Delete Account"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Zw5tZ",
+          "x": 0,
+          "y": 0,
+          "name": "modalOverlay",
+          "width": 1440,
+          "height": 1280,
+          "fill": "#000000AA"
+        },
+        {
+          "id": "znEd6",
+          "type": "ref",
+          "ref": "dXWwj",
+          "x": 510,
+          "y": 340,
+          "name": "dialogRef"
         }
       ]
     }
