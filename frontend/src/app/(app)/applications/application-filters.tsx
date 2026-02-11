@@ -162,28 +162,30 @@ export function ApplicationFilters({
                 {/* Multi-select status filter */}
                 <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
                     <PopoverTrigger asChild>
-                        <button
-                            className="flex items-center gap-2 w-[160px] h-auto text-sm border-0 border-b border-border bg-transparent px-0 py-1 text-left"
+                        <Button
+                            variant="ghost"
+                            className="flex items-center gap-2 w-[160px] h-auto text-sm border-0 border-b border-border rounded-none px-0 py-1 justify-between hover:bg-transparent"
                         >
                             <span className={cn(
-                                "flex-1 truncate",
+                                "flex-1 truncate text-left",
                                 selectedStatusIds.length === 0 && "text-muted-foreground"
                             )}>
                                 {getSelectedStatusLabel()}
                             </span>
                             <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                        </button>
+                        </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[200px] p-2" align="start">
                         <div className="space-y-1">
                             {(statuses || []).map((status) => {
                                 const isSelected = selectedStatusIds.includes(status.id);
                                 return (
-                                    <button
+                                    <Button
                                         key={status.id}
+                                        variant="ghost"
                                         onClick={() => handleStatusToggle(status.id)}
                                         className={cn(
-                                            "flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded-sm hover:bg-muted",
+                                            "flex items-center gap-2 w-full px-2 py-1.5 h-auto text-sm justify-start",
                                             isSelected && "bg-muted"
                                         )}
                                     >
@@ -194,7 +196,7 @@ export function ApplicationFilters({
                                             {isSelected && <Check className="h-3 w-3" />}
                                         </div>
                                         <span>{status.name}</span>
-                                    </button>
+                                    </Button>
                                 );
                             })}
                         </div>
@@ -219,9 +221,10 @@ export function ApplicationFilters({
                 </div>
 
                 {/* Has interviews checkbox */}
-                <button
+                <Button
+                    variant="ghost"
                     onClick={() => handleHasInterviewsChange(!currentFilters.has_interviews)}
-                    className="flex items-center gap-2 text-sm"
+                    className="flex items-center gap-2 text-sm h-auto px-2 py-1"
                 >
                     <div className={cn(
                         "flex h-4 w-4 items-center justify-center rounded-sm border",
@@ -232,12 +235,13 @@ export function ApplicationFilters({
                         {currentFilters.has_interviews && <Check className="h-3 w-3" />}
                     </div>
                     <span className="text-muted-foreground">Has Interviews</span>
-                </button>
+                </Button>
 
                 {/* Has assessments checkbox */}
-                <button
+                <Button
+                    variant="ghost"
                     onClick={() => handleHasAssessmentsChange(!currentFilters.has_assessments)}
-                    className="flex items-center gap-2 text-sm"
+                    className="flex items-center gap-2 text-sm h-auto px-2 py-1"
                 >
                     <div className={cn(
                         "flex h-4 w-4 items-center justify-center rounded-sm border",
@@ -248,7 +252,7 @@ export function ApplicationFilters({
                         {currentFilters.has_assessments && <Check className="h-3 w-3" />}
                     </div>
                     <span className="text-muted-foreground">Has Assessments</span>
-                </button>
+                </Button>
 
             </div>
 
@@ -266,90 +270,105 @@ export function ApplicationFilters({
                 {selectedStatusIds.map((statusId) => (
                     <Badge key={statusId} variant="secondary" className="gap-1 pr-1 rounded-full">
                         Status: {getStatusName(statusId)}
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => removeStatusFilter(statusId)}
-                            className="ml-1 rounded-full hover:bg-muted p-0.5"
+                            className="ml-1 h-4 w-4 p-0 hover:bg-muted rounded-full"
                         >
                             <X className="h-3 w-3" />
-                        </button>
+                        </Button>
                     </Badge>
                 ))}
                 {currentFilters.company_name && (
                     <Badge variant="secondary" className="gap-1 pr-1 rounded-full">
                         Company: {currentFilters.company_name}
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => removeFilter('company_name')}
-                            className="ml-1 rounded-full hover:bg-muted p-0.5"
+                            className="ml-1 h-4 w-4 p-0 hover:bg-muted rounded-full"
                         >
                             <X className="h-3 w-3" />
-                        </button>
+                        </Button>
                     </Badge>
                 )}
                 {currentFilters.date_from && currentFilters.date_to && (
                     <Badge variant="secondary" className="gap-1 pr-1 rounded-full">
                         {currentFilters.date_from} – {currentFilters.date_to}
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => {
                                 removeFilter('date_from');
                                 removeFilter('date_to');
                             }}
-                            className="ml-1 rounded-full hover:bg-muted p-0.5"
+                            className="ml-1 h-4 w-4 p-0 hover:bg-muted rounded-full"
                         >
                             <X className="h-3 w-3" />
-                        </button>
+                        </Button>
                     </Badge>
                 )}
                 {currentFilters.date_from && !currentFilters.date_to && (
                     <Badge variant="secondary" className="gap-1 pr-1 rounded-full">
                         From: {currentFilters.date_from}
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => removeFilter('date_from')}
-                            className="ml-1 rounded-full hover:bg-muted p-0.5"
+                            className="ml-1 h-4 w-4 p-0 hover:bg-muted rounded-full"
                         >
                             <X className="h-3 w-3" />
-                        </button>
+                        </Button>
                     </Badge>
                 )}
                 {currentFilters.date_to && !currentFilters.date_from && (
                     <Badge variant="secondary" className="gap-1 pr-1 rounded-full">
                         Until: {currentFilters.date_to}
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => removeFilter('date_to')}
-                            className="ml-1 rounded-full hover:bg-muted p-0.5"
+                            className="ml-1 h-4 w-4 p-0 hover:bg-muted rounded-full"
                         >
                             <X className="h-3 w-3" />
-                        </button>
+                        </Button>
                     </Badge>
                 )}
                 {currentFilters.has_interviews && (
                     <Badge variant="secondary" className="gap-1 pr-1 rounded-full">
                         Has Interviews
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => removeFilter('has_interviews')}
-                            className="ml-1 rounded-full hover:bg-muted p-0.5"
+                            className="ml-1 h-4 w-4 p-0 hover:bg-muted rounded-full"
                         >
                             <X className="h-3 w-3" />
-                        </button>
+                        </Button>
                     </Badge>
                 )}
                 {currentFilters.has_assessments && (
                     <Badge variant="secondary" className="gap-1 pr-1 rounded-full">
                         Has Assessments
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => removeFilter('has_assessments')}
-                            className="ml-1 rounded-full hover:bg-muted p-0.5"
+                            className="ml-1 h-4 w-4 p-0 hover:bg-muted rounded-full"
                         >
                             <X className="h-3 w-3" />
-                        </button>
+                        </Button>
                     </Badge>
                 )}
                 {hasActiveFilters && (
-                    <button
+                    <Button
+                        variant="link"
                         onClick={onClear}
-                        className="text-sm font-medium text-primary hover:underline"
+                        className="text-sm font-medium h-auto p-0"
                     >
                         Clear all
-                    </button>
+                    </Button>
                 )}
             </div>
 

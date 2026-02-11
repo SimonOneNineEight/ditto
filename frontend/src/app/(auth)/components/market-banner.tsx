@@ -1,5 +1,12 @@
 import React from 'react';
-import { Briefcase, CircleCheck } from 'lucide-react';
+import { CircleCheck } from 'lucide-react';
+import { Suez_One } from 'next/font/google';
+
+const suezOne = Suez_One({
+    weight: '400',
+    subsets: ['latin'],
+    display: 'swap',
+});
 
 type Props = {
     variant: 'login' | 'register';
@@ -32,10 +39,7 @@ const MarketBanner = ({ variant }: Props) => {
                 `,
             }}
         >
-            <div className="flex items-center gap-3">
-                <Briefcase className="h-12 w-12 text-blue-500" />
-                <span className="text-[44px] font-bold">Ditto</span>
-            </div>
+            <span className={`${suezOne.className} text-[44px]`}>Ditto</span>
 
             <p className="text-[24px] font-medium text-center max-w-[400px] text-white/90">
                 Your job search command center
