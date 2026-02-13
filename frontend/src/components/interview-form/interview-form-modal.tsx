@@ -10,6 +10,7 @@ import {
     Dialog,
     DialogContent,
     DialogHeader,
+    DialogBody,
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
@@ -115,116 +116,118 @@ export const InterviewFormModal = ({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Add Interview</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-muted-foreground">Round (auto)</Label>
-                        <div className="flex items-center rounded-md bg-muted px-3.5 py-3 text-sm font-medium text-muted-foreground">
-                            Round {nextRoundNumber}
+                <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 sm:block">
+                    <DialogHeader>
+                        <DialogTitle>Add Interview</DialogTitle>
+                    </DialogHeader>
+                    <DialogBody className="space-y-4">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">Round (auto)</Label>
+                            <div className="flex items-center rounded-md bg-muted px-3.5 py-3 text-sm font-medium text-muted-foreground">
+                                Round {nextRoundNumber}
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-muted-foreground">Interview Type</Label>
-                        <Controller
-                            name="interview_type"
-                            control={control}
-                            render={({ field }) => (
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value ?? ''}
-                                    disabled={isSubmitting}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {INTERVIEW_TYPES.map((type) => (
-                                            <SelectItem
-                                                key={type.value}
-                                                value={type.value}
-                                            >
-                                                {type.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
-                        {errors.interview_type && (
-                            <p className="text-sm text-destructive">
-                                {errors.interview_type.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="flex gap-3">
-                        <div className="flex-1 space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">Date</Label>
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">Interview Type</Label>
                             <Controller
-                                name="scheduled_date"
+                                name="interview_type"
                                 control={control}
                                 render={({ field }) => (
-                                    <DatePicker
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        className="w-full"
-                                    />
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value ?? ''}
+                                        disabled={isSubmitting}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {INTERVIEW_TYPES.map((type) => (
+                                                <SelectItem
+                                                    key={type.value}
+                                                    value={type.value}
+                                                >
+                                                    {type.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 )}
                             />
-                            {errors.scheduled_date && (
+                            {errors.interview_type && (
                                 <p className="text-sm text-destructive">
-                                    {errors.scheduled_date.message}
+                                    {errors.interview_type.message}
                                 </p>
                             )}
                         </div>
 
-                        <div className="flex-1 space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">Time</Label>
+                        <div className="flex gap-3">
+                            <div className="flex-1 space-y-1.5">
+                                <Label className="text-xs font-medium text-muted-foreground">Date</Label>
+                                <Controller
+                                    name="scheduled_date"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <DatePicker
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            className="w-full"
+                                        />
+                                    )}
+                                />
+                                {errors.scheduled_date && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.scheduled_date.message}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="flex-1 space-y-1.5">
+                                <Label className="text-xs font-medium text-muted-foreground">Time</Label>
+                                <Controller
+                                    name="scheduled_time"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <TimePicker
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            disabled={isSubmitting}
+                                        />
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">Duration</Label>
                             <Controller
-                                name="scheduled_time"
+                                name="duration_minutes"
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker
-                                        value={field.value}
-                                        onChange={field.onChange}
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value ?? ''}
                                         disabled={isSubmitting}
-                                    />
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select duration" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {DURATION_OPTIONS.map((opt) => (
+                                                <SelectItem
+                                                    key={opt.value}
+                                                    value={opt.value}
+                                                >
+                                                    {opt.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 )}
                             />
                         </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-muted-foreground">Duration</Label>
-                        <Controller
-                            name="duration_minutes"
-                            control={control}
-                            render={({ field }) => (
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value ?? ''}
-                                    disabled={isSubmitting}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select duration" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {DURATION_OPTIONS.map((opt) => (
-                                            <SelectItem
-                                                key={opt.value}
-                                                value={opt.value}
-                                            >
-                                                {opt.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
-                    </div>
+                    </DialogBody>
 
                     <DialogFooter>
                         <Button

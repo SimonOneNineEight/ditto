@@ -178,7 +178,7 @@ export const columns: (ColumnDef<InterviewListItem, unknown> & {
             );
         },
         meta: {
-            className: 'w-[10%]',
+            className: 'w-[10%] hidden lg:table-cell',
         },
     },
     {
@@ -209,7 +209,7 @@ export const columns: (ColumnDef<InterviewListItem, unknown> & {
             );
         },
         meta: {
-            className: 'w-[8%]',
+            className: 'w-[8%] hidden lg:table-cell',
         },
     },
 ];

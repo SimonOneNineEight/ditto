@@ -37,7 +37,7 @@ export function InterviewTable({ columns, data }: DataTableProps) {
     return (
         <div className="w-full overflow-hidden rounded-lg">
             <div className="overflow-x-auto w-full">
-                <Table className="table-fixed min-w-[768px] w-full">
+                <Table className="table-fixed min-w-[600px] lg:min-w-[768px] w-full">
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
@@ -87,7 +87,15 @@ export function InterviewTable({ columns, data }: DataTableProps) {
                                     )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
+                                        <TableCell
+                                            key={cell.id}
+                                            className={
+                                                (
+                                                    cell.column.columnDef
+                                                        .meta as ColumnMeta
+                                                )?.className
+                                            }
+                                        >
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()

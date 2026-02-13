@@ -9,6 +9,7 @@ import { AddInterviewerForm } from './add-interviewer-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 import {
     Interviewer,
@@ -33,6 +34,7 @@ export const InterviewersSection = ({
     interviewId,
     onUpdate,
 }: InterviewersSectionProps) => {
+    const isMobile = useIsMobile();
     const [isAddFormOpen, setIsAddFormOpen] = useState(false);
     const [editing, setEditing] = useState<EditingState | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Interviewer | null>(null);
@@ -107,6 +109,7 @@ export const InterviewersSection = ({
                 title="Interviewers"
                 isEmpty={isEmpty}
                 onAdd={handleAddInterviewer}
+                defaultOpen={isMobile ? false : undefined}
                 emptyState={{
                     message: 'No interviewers added yet',
                     actionLabel: 'Add Interviewer',
@@ -188,7 +191,7 @@ export const InterviewersSection = ({
                                             </>
                                         )}
                                     </div>
-                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                         <Button
                                             variant="ghost"
                                             size="icon"

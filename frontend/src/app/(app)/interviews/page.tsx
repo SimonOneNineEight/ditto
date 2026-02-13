@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { Calendar, Loader2, Plus } from 'lucide-react';
 import { startOfDay, parseISO } from 'date-fns';
 
@@ -11,6 +10,7 @@ import { columns } from './interview-table/columns';
 import { PageHeader } from '@/components/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { FAB } from '@/components/ui/fab';
 import {
     listInterviews,
     InterviewListItem,
@@ -20,7 +20,10 @@ import {
     NeedsFeedbackSection,
     FilterBar,
     filterNeedsFeedback,
+    InterviewCardList,
 } from '@/components/interview-list';
+import { ApplicationSelectorDialog } from '@/components/application-selector';
+import { InterviewFormModal } from '@/components/interview-form/interview-form-modal';
 
 const InterviewsPageSkeleton = () => (
     <div className="space-y-6">
@@ -66,6 +69,9 @@ const InterviewPageContent = () => {
     const [allInterviews, setAllInterviews] = useState<InterviewListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showAppSelector, setShowAppSelector] = useState(false);
+    const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
+    const [showInterviewModal, setShowInterviewModal] = useState(false);
 
     const currentFilter = (searchParams.get('filter') as InterviewFilter) || 'all';
 
@@ -83,23 +89,39 @@ const InterviewPageContent = () => {
         [router, searchParams]
     );
 
-    useEffect(() => {
-        const fetchInterviews = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const data = await listInterviews();
-                setAllInterviews(data.interviews);
-            } catch (err) {
-                console.error('Failed to fetch interviews:', err);
-                setError('Failed to load interviews');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchInterviews();
+    const fetchInterviews = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await listInterviews();
+            setAllInterviews(data.interviews);
+        } catch (err) {
+            console.error('Failed to fetch interviews:', err);
+            setError('Failed to load interviews');
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchInterviews();
+    }, [fetchInterviews]);
+
+    const handleAddInterview = () => {
+        setShowAppSelector(true);
+    };
+
+    const handleAppSelected = (applicationId: string) => {
+        setSelectedAppId(applicationId);
+        setShowAppSelector(false);
+        setShowInterviewModal(true);
+    };
+
+    const handleInterviewCreated = () => {
+        setShowInterviewModal(false);
+        setSelectedAppId(null);
+        fetchInterviews();
+    };
 
     const filteredInterviews = useMemo(
         () => applyClientFilter(allInterviews, currentFilter),
@@ -146,12 +168,15 @@ const InterviewPageContent = () => {
                 subtitle="Manage all your upcoming and past interviews"
                 actions={
                     hasInterviews ? (
-                        <Link href="/applications">
-                            <Button variant="default" size="sm">
-                                <Plus size={16} className="mr-1" />
-                                Interview
-                            </Button>
-                        </Link>
+                        <Button
+                            variant="default"
+                            size="sm"
+                            onClick={handleAddInterview}
+                            className="hidden md:flex"
+                        >
+                            <Plus size={16} className="mr-1" />
+                            Interview
+                        </Button>
                     ) : undefined
                 }
             />
@@ -165,12 +190,10 @@ const InterviewPageContent = () => {
                     <p className="text-sm text-muted-foreground text-center max-w-[280px]">
                         Schedule your first interview to start tracking your progress.
                     </p>
-                    <Link href="/applications">
-                        <Button variant="default">
-                            <Plus size={16} className="mr-1" />
-                            Interview
-                        </Button>
-                    </Link>
+                    <Button variant="default" onClick={handleAddInterview}>
+                        <Plus size={16} className="mr-1" />
+                        Interview
+                    </Button>
                 </div>
             ) : (
                 <div className="space-y-6">
@@ -182,18 +205,51 @@ const InterviewPageContent = () => {
                             onFilterChange={handleFilterChange}
                             totalCount={mainTableInterviews.length}
                         />
-                        {mainTableInterviews.length > 0 ? (
-                            <InterviewTable
-                                columns={columns}
-                                data={mainTableInterviews}
-                            />
-                        ) : (
-                            <div className="text-center py-8 text-muted-foreground">
-                                No interviews match the current filter
-                            </div>
-                        )}
+                        {/* Mobile: Card view */}
+                        <div className="sm:hidden">
+                            <InterviewCardList interviews={mainTableInterviews} />
+                        </div>
+                        {/* Tablet/Desktop: Table view */}
+                        <div className="hidden sm:block">
+                            {mainTableInterviews.length > 0 ? (
+                                <InterviewTable
+                                    columns={columns}
+                                    data={mainTableInterviews}
+                                />
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    No interviews match the current filter
+                                </div>
+                            )}
+                        </div>
                     </section>
                 </div>
+            )}
+
+            {/* Mobile FAB */}
+            {hasInterviews && (
+                <FAB
+                    className="fixed bottom-4 right-4 z-50 md:hidden"
+                    aria-label="Add new interview"
+                    onClick={handleAddInterview}
+                >
+                    <Plus className="h-6 w-6" />
+                </FAB>
+            )}
+
+            <ApplicationSelectorDialog
+                open={showAppSelector}
+                onOpenChange={setShowAppSelector}
+                onSelect={handleAppSelected}
+            />
+
+            {selectedAppId && (
+                <InterviewFormModal
+                    applicationId={selectedAppId}
+                    open={showInterviewModal}
+                    onOpenChange={setShowInterviewModal}
+                    onSuccess={handleInterviewCreated}
+                />
             )}
         </>
     );

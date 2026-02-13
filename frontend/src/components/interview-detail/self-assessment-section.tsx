@@ -233,7 +233,7 @@ export const SelfAssessmentSection = ({
                             type="button"
                             onClick={() => handleConfidenceLevelChange(level)}
                             className={cn(
-                                'h-8 w-8 rounded text-sm font-medium transition-colors',
+                                'h-10 w-10 sm:h-8 sm:w-8 rounded text-sm font-medium transition-colors',
                                 confidenceLevel === level
                                     ? 'bg-accent text-accent-foreground'
                                     : 'bg-muted text-muted-foreground hover:bg-muted/80'

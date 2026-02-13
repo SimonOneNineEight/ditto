@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { format, parseISO, differenceInDays, startOfDay } from 'date-fns';
@@ -46,12 +46,38 @@ function StatusBadge({ status }: { status: FeedbackStatus }) {
     );
 }
 
+const STORAGE_KEY = 'ditto-needs-feedback-expanded';
+const MOBILE_BREAKPOINT = 640;
+
+function getInitialExpandedState(): boolean {
+    if (typeof window === 'undefined') return true;
+
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored !== null) {
+        return stored === 'true';
+    }
+
+    return window.innerWidth >= MOBILE_BREAKPOINT;
+}
+
 export function NeedsFeedbackSection({ interviews }: NeedsFeedbackSectionProps) {
     const [isExpanded, setIsExpanded] = useState(true);
+    const [isInitialized, setIsInitialized] = useState(false);
+
+    useEffect(() => {
+        setIsExpanded(getInitialExpandedState());
+        setIsInitialized(true);
+    }, []);
+
+    const handleToggle = () => {
+        const newState = !isExpanded;
+        setIsExpanded(newState);
+        localStorage.setItem(STORAGE_KEY, String(newState));
+    };
 
     const needsFeedbackInterviews = filterNeedsFeedback(interviews);
 
-    if (needsFeedbackInterviews.length === 0) {
+    if (needsFeedbackInterviews.length === 0 || !isInitialized) {
         return null;
     }
 
@@ -66,7 +92,7 @@ export function NeedsFeedbackSection({ interviews }: NeedsFeedbackSectionProps) 
     return (
         <div className="rounded-lg overflow-hidden">
             <button
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={handleToggle}
                 className="w-full flex items-center gap-3 p-4 bg-accent-muted rounded-t-lg"
             >
                 {isExpanded ? (
@@ -90,44 +116,70 @@ export function NeedsFeedbackSection({ interviews }: NeedsFeedbackSectionProps) 
                         const isLast = index === needsFeedbackInterviews.length - 1;
 
                         return (
-                            <div
+                            <Link
                                 key={interview.id}
+                                href={`/interviews/${interview.id}`}
                                 className={cn(
-                                    'flex items-center justify-between p-4 bg-card gap-3',
+                                    'block p-4 bg-card hover:bg-accent/50 transition-colors',
                                     !isLast && 'border-b border-border',
                                     isLast && 'rounded-b-lg'
                                 )}
                             >
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                    <span className="w-[100px] text-sm font-medium truncate">
-                                        {interview.company_name}
-                                    </span>
-                                    <span className="flex-1 text-sm truncate">
+                                {/* Mobile Layout */}
+                                <div className="sm:hidden space-y-1.5">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="text-sm font-medium truncate">
+                                            {interview.company_name}
+                                        </span>
+                                        <StatusBadge status={status} />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground truncate">
                                         {interview.job_title}
-                                    </span>
-                                    <span className="w-[70px] text-[13px] text-muted-foreground">
-                                        Round {interview.round_number}
-                                    </span>
-                                    <span className="w-[90px]">
-                                        <Badge variant={interview.interview_type as 'phone_screen' | 'technical' | 'behavioral' | 'onsite' | 'panel' | 'other'}>
+                                    </p>
+                                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                        <span>Round {interview.round_number}</span>
+                                        <span>·</span>
+                                        <Badge
+                                            variant={interview.interview_type as 'phone_screen' | 'technical' | 'behavioral' | 'onsite' | 'panel' | 'other'}
+                                            className="text-[10px] px-1.5 py-0"
+                                        >
                                             {getInterviewTypeShortLabel(interview.interview_type)}
                                         </Badge>
-                                    </span>
-                                    <span className="w-[100px] text-[13px] text-muted-foreground">
-                                        {formatDate(interview.scheduled_date)}
-                                    </span>
-                                    <span className="w-[90px]">
-                                        <StatusBadge status={status} />
-                                    </span>
+                                        <span>·</span>
+                                        <span>{formatDate(interview.scheduled_date)}</span>
+                                    </div>
                                 </div>
-                                <Link
-                                    href={`/interviews/${interview.id}`}
-                                    className="flex items-center gap-1 text-[13px] font-medium text-primary hover:underline"
-                                >
-                                    <Plus className="h-3.5 w-3.5" />
-                                    Feedback
-                                </Link>
-                            </div>
+
+                                {/* Tablet/Desktop Layout */}
+                                <div className="hidden sm:flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                        <span className="w-[100px] text-sm font-medium truncate">
+                                            {interview.company_name}
+                                        </span>
+                                        <span className="flex-1 text-sm truncate">
+                                            {interview.job_title}
+                                        </span>
+                                        <span className="w-[70px] text-[13px] text-muted-foreground">
+                                            Round {interview.round_number}
+                                        </span>
+                                        <span className="w-[90px]">
+                                            <Badge variant={interview.interview_type as 'phone_screen' | 'technical' | 'behavioral' | 'onsite' | 'panel' | 'other'}>
+                                                {getInterviewTypeShortLabel(interview.interview_type)}
+                                            </Badge>
+                                        </span>
+                                        <span className="w-[100px] text-[13px] text-muted-foreground">
+                                            {formatDate(interview.scheduled_date)}
+                                        </span>
+                                        <span className="w-[90px]">
+                                            <StatusBadge status={status} />
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-[13px] font-medium text-primary">
+                                        <Plus className="h-3.5 w-3.5" />
+                                        Feedback
+                                    </div>
+                                </div>
+                            </Link>
                         );
                     })}
                 </div>

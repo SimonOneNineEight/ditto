@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Pencil, Calendar, Clock, Timer, Plus, Trash2 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { ArrowLeft, Calendar, X, Building2, MoreVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,15 +27,19 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { PageHeader } from '@/components/page-header';
 import {
-    InterviewersSection,
-    QuestionsSection,
-    NoteSection,
-    CollapsibleSection,
-    InterviewRoundsPanel,
-    SelfAssessmentSection,
-    getSelfAssessmentSummary,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+    DetailsCard,
+    InterviewersCard,
+    QuestionsCard,
+    NotesCard,
+    SelfAssessmentCard,
+    DocumentsCard,
 } from '@/components/interview-detail';
 import {
     getInterviewWithContext,
@@ -47,8 +50,9 @@ import {
     getInterviewTypeLabel,
 } from '@/services/interview-service';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
-import { DocumentsSection } from '@/components/file-upload';
-import { InterviewFormModal } from '@/components/interview-form/interview-form-modal';
+import Link from 'next/link';
+import { InterviewRoundsPanel } from '@/components/interview-detail/interview-rounds-panel';
+import { InterviewRoundsStrip } from '@/components/interview-detail/interview-rounds-strip';
 
 const editFormSchema = z.object({
     interview_type: z.enum([
@@ -69,6 +73,19 @@ const editFormSchema = z.object({
 
 type EditFormData = z.infer<typeof editFormSchema>;
 
+const getInterviewTypeBadgeVariant = (type: string) => {
+    switch (type) {
+        case 'phone_screen':
+            return 'default';
+        case 'technical':
+            return 'secondary';
+        case 'behavioral':
+            return 'outline';
+        default:
+            return 'secondary';
+    }
+};
+
 const InterviewDetailPage = () => {
     const params = useParams();
     const router = useRouter();
@@ -78,7 +95,6 @@ const InterviewDetailPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [isAddRoundOpen, setIsAddRoundOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -119,7 +135,8 @@ const InterviewDetailPage = () => {
         if (!data) return;
         const interview = data.current_interview.interview;
         reset({
-            interview_type: interview.interview_type as EditFormData['interview_type'],
+            interview_type:
+                interview.interview_type as EditFormData['interview_type'],
             scheduled_date: interview.scheduled_date.split('T')[0],
             scheduled_time: interview.scheduled_time || '',
             duration_minutes: interview.duration_minutes || undefined,
@@ -159,45 +176,33 @@ const InterviewDetailPage = () => {
         }
     };
 
-    const formatDate = (dateStr: string) => {
-        try {
-            return format(parseISO(dateStr), 'MMM d, yyyy');
-        } catch {
-            return dateStr;
-        }
-    };
-
-    const formatTime = (timeStr?: string) => {
-        if (!timeStr) return null;
-        try {
-            const [hours, minutes] = timeStr.split(':');
-            const date = new Date();
-            date.setHours(parseInt(hours), parseInt(minutes));
-            return format(date, 'h:mm a');
-        } catch {
-            return timeStr;
-        }
-    };
-
     if (loading) {
         return (
-            <>
-                <PageHeader
-                    title="Loading..."
-                    breadcrumbs={[{ label: 'Interviews', href: '/interviews' }]}
-                />
+            <div className="space-y-6">
+                <div className="text-sm text-muted-foreground">
+                    <Link
+                        href="/interviews"
+                        className="hover:text-foreground transition-colors"
+                    >
+                        Interviews
+                    </Link>
+                </div>
                 <InterviewDetailSkeleton />
-            </>
+            </div>
         );
     }
 
     if (error || !data) {
         return (
-            <>
-                <PageHeader
-                    title="Interview Not Found"
-                    breadcrumbs={[{ label: 'Interviews', href: '/interviews' }]}
-                />
+            <div className="space-y-6">
+                <div className="text-sm text-muted-foreground">
+                    <Link
+                        href="/interviews"
+                        className="hover:text-foreground transition-colors"
+                    >
+                        Interviews
+                    </Link>
+                </div>
                 <div className="flex flex-col items-center justify-center py-12">
                     <p className="text-muted-foreground mb-4">
                         {error || 'Interview not found'}
@@ -210,141 +215,172 @@ const InterviewDetailPage = () => {
                         Back to Interviews
                     </Button>
                 </div>
-            </>
+            </div>
         );
     }
 
-    const { interview, application, interviewers, questions, notes } = data.current_interview;
-    const { all_rounds } = data;
+    const { interview, application, interviewers, questions, notes } =
+        data.current_interview;
+    const allRounds = data.all_rounds;
 
     return (
-        <>
-            <PageHeader
-                title={`${application.company_name} - Round ${interview.round_number}`}
-                subtitle={application.job_title}
-                breadcrumbs={[{ label: 'Interviews', href: '/interviews' }]}
-                actions={
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => router.back()}
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleEditOpen}
-                        >
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Edit
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsDeleteOpen(true)}
-                        >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                        </Button>
-                        <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => setIsAddRoundOpen(true)}
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Round
-                        </Button>
-                    </div>
-                }
-            />
-
-            <div className="flex flex-wrap items-center gap-4 mb-6 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4" />
-                    <span>{formatDate(interview.scheduled_date)}</span>
-                </div>
-                {interview.scheduled_time && (
-                    <div className="flex items-center gap-1.5">
-                        <Clock className="h-4 w-4" />
-                        <span>{formatTime(interview.scheduled_time)}</span>
-                    </div>
-                )}
-                {interview.duration_minutes && (
-                    <div className="flex items-center gap-1.5">
-                        <Timer className="h-4 w-4" />
-                        <span>{interview.duration_minutes} min</span>
-                    </div>
-                )}
-                <Badge variant="secondary">
-                    {getInterviewTypeLabel(interview.interview_type)}
-                </Badge>
+        <div className="space-y-6">
+            {/* Breadcrumb */}
+            <div className="text-sm text-muted-foreground">
+                <Link
+                    href="/interviews"
+                    className="hover:text-foreground transition-colors"
+                >
+                    Interviews
+                </Link>
             </div>
 
-            <div className={all_rounds.length > 1 ? "flex flex-col lg:flex-row gap-6" : ""}>
-                <div className={all_rounds.length > 1 ? "lg:w-[70%] space-y-4" : "space-y-4"}>
-                    <InterviewersSection
+            {/* Header Section */}
+            <div className="flex items-start justify-between gap-4">
+                <div className="space-y-2 sm:space-y-3 min-w-0 flex-1">
+                    {/* Title Row */}
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-3 flex-wrap">
+                        <h1 className="text-lg sm:text-2xl lg:text-[28px] font-semibold text-foreground">
+                            {getInterviewTypeLabel(interview.interview_type)} Interview - Round{' '}
+                            {interview.round_number}
+                        </h1>
+                        <Badge
+                            variant={getInterviewTypeBadgeVariant(interview.interview_type)}
+                            className="hidden sm:inline-flex"
+                        >
+                            {getInterviewTypeLabel(interview.interview_type)}
+                        </Badge>
+                    </div>
+
+                    {/* Company Row */}
+                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                        <Building2 className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">
+                            {application.company_name} - {application.job_title}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Action Buttons - Desktop/Tablet */}
+                <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleEditOpen}
+                        className="h-9 w-9"
+                    >
+                        <Calendar className="h-[18px] w-[18px] text-muted-foreground" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsDeleteOpen(true)}
+                        className="h-9 w-9"
+                    >
+                        <X className="h-[18px] w-[18px] text-muted-foreground" />
+                    </Button>
+                </div>
+
+                {/* Action Menu - Mobile only */}
+                <div className="sm:hidden flex-shrink-0">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={handleEditOpen}>
+                                <Calendar className="h-4 w-4 mr-2" />
+                                Edit Interview
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => setIsDeleteOpen(true)}
+                                className="text-destructive focus:text-destructive"
+                            >
+                                <X className="h-4 w-4 mr-2" />
+                                Delete Interview
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+
+            {/* Rounds Strip - Tablet only (768px - 1024px) */}
+            <div className="hidden sm:block lg:hidden">
+                <InterviewRoundsStrip
+                    rounds={allRounds}
+                    currentRoundId={interviewId}
+                    applicationId={interview.application_id}
+                    variant="tablet"
+                />
+            </div>
+
+            {/* Rounds Strip - Mobile only (< 640px) */}
+            <div className="sm:hidden">
+                <InterviewRoundsStrip
+                    rounds={allRounds}
+                    currentRoundId={interviewId}
+                    applicationId={interview.application_id}
+                    variant="mobile"
+                />
+            </div>
+
+            {/* Content - 2 Column Layout on Desktop, Single Column on Tablet/Mobile */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+                {/* Left Column - Main Content */}
+                <div className="space-y-6">
+                    <DetailsCard interview={interview} />
+
+                    <InterviewersCard
                         interviewers={interviewers}
                         interviewId={interviewId}
                         onUpdate={fetchInterview}
                     />
 
-                    <QuestionsSection
+                    <QuestionsCard
                         questions={questions}
                         interviewId={interviewId}
                         onUpdate={fetchInterview}
                     />
 
-                    <NoteSection
+                    <NotesCard
                         notes={notes}
                         interviewId={interviewId}
                         onUpdate={fetchInterview}
                     />
 
-                    <CollapsibleSection
-                        title={
-                            getSelfAssessmentSummary(interview)
-                                ? `Self-Assessment (${getSelfAssessmentSummary(interview)})`
-                                : 'Self-Assessment'
-                        }
-                        defaultOpen={false}
-                    >
-                        <SelfAssessmentSection
-                            interview={interview}
-                            onUpdate={fetchInterview}
-                        />
-                    </CollapsibleSection>
+                    <SelfAssessmentCard
+                        interview={interview}
+                        onUpdate={fetchInterview}
+                    />
 
-                    <CollapsibleSection title="Documents" defaultOpen={false}>
-                        <DocumentsSection
+                    {/* Documents Card - Mobile/Tablet only (in main flow) */}
+                    <div className="lg:hidden">
+                        <DocumentsCard
                             applicationId={interview.application_id}
                             interviewId={interviewId}
                         />
-                    </CollapsibleSection>
+                    </div>
                 </div>
 
-                {all_rounds.length > 1 && (
-                    <div className="lg:w-[30%]">
-                        <InterviewRoundsPanel
-                            rounds={all_rounds}
-                            currentRoundId={interview.id}
-                        />
-                    </div>
-                )}
+                {/* Right Column - Desktop only */}
+                <div className="hidden lg:block space-y-6">
+                    <InterviewRoundsPanel
+                        rounds={allRounds}
+                        currentRoundId={interviewId}
+                        applicationId={interview.application_id}
+                        onUpdate={fetchInterview}
+                    />
+
+                    <DocumentsCard
+                        applicationId={interview.application_id}
+                        interviewId={interviewId}
+                    />
+                </div>
             </div>
 
-            <InterviewFormModal
-                applicationId={interview.application_id}
-                open={isAddRoundOpen}
-                onOpenChange={setIsAddRoundOpen}
-                currentInterviewCount={all_rounds.length}
-                onSuccess={(newInterview) => {
-                    router.push(`/interviews/${newInterview.id}`);
-                }}
-            />
-
+            {/* Edit Dialog */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -446,7 +482,7 @@ const InterviewDetailPage = () => {
                 description="Are you sure you want to delete this interview? This action cannot be undone and all associated notes, questions, and interviewers will be permanently removed."
                 isDeleting={isDeleting}
             />
-        </>
+        </div>
     );
 };
 

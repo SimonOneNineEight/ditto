@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { History, Check, Plus } from 'lucide-react';
-import { format, parseISO, startOfDay } from 'date-fns';
+import { History, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,7 +29,7 @@ import {
 } from '@/components/ui/select';
 import {
     createInterview,
-    getInterviewTypeLabel,
+    getInterviewTypeShortLabel,
     INTERVIEW_TYPES,
     type RoundSummary,
 } from '@/services/interview-service';
@@ -54,14 +53,19 @@ const addRoundSchema = z.object({
 
 type AddRoundFormData = z.infer<typeof addRoundSchema>;
 
-interface InterviewRoundsPanelProps {
+interface InterviewRoundsStripProps {
     rounds: RoundSummary[];
     currentRoundId: string;
     applicationId: string;
-    onUpdate?: () => void;
+    variant?: 'tablet' | 'mobile';
 }
 
-export function InterviewRoundsPanel({ rounds, currentRoundId, applicationId }: InterviewRoundsPanelProps) {
+export function InterviewRoundsStrip({
+    rounds,
+    currentRoundId,
+    applicationId,
+    variant = 'tablet'
+}: InterviewRoundsStripProps) {
     const router = useRouter();
     const [isAddOpen, setIsAddOpen] = useState(false);
 
@@ -109,97 +113,65 @@ export function InterviewRoundsPanel({ rounds, currentRoundId, applicationId }: 
         setIsAddOpen(true);
     };
 
-    const formatDate = (dateStr: string) => {
-        try {
-            return format(parseISO(dateStr), 'MMM d');
-        } catch {
-            return dateStr;
-        }
-    };
-
-    const isCompleted = (dateStr: string) => {
-        try {
-            const scheduledDate = startOfDay(parseISO(dateStr));
-            const today = startOfDay(new Date());
-            return scheduledDate < today;
-        } catch {
-            return false;
-        }
-    };
+    const isMobile = variant === 'mobile';
 
     return (
         <>
-        <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                    <History className="h-4 w-4" />
-                    <span className="text-sm font-semibold">
-                        Interview Rounds
-                    </span>
+        <div className={cn(
+            "flex items-center gap-2 flex-wrap",
+            isMobile ? "gap-1.5" : "gap-2"
+        )}>
+            {!isMobile && (
+                <div className="flex items-center gap-1.5 text-muted-foreground mr-1">
+                    <History className="h-3.5 w-3.5" />
+                    <span className="text-xs font-semibold">Rounds:</span>
                 </div>
-                <button
-                    onClick={handleAddOpen}
-                    className="flex items-center gap-1 text-primary text-sm font-medium hover:opacity-80 transition-opacity"
-                >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span>Add Round</span>
-                </button>
-            </div>
+            )}
 
-            <div className="space-y-1">
-                {rounds.map((round) => {
-                    const isCurrent = round.id === currentRoundId;
-                    const completed = isCompleted(round.scheduled_date);
+            {rounds.map((round) => {
+                const isCurrent = round.id === currentRoundId;
+                const label = isMobile
+                    ? `R${round.round_number}`
+                    : `Round ${round.round_number} - ${getInterviewTypeShortLabel(round.interview_type)}`;
 
-                    if (isCurrent) {
-                        return (
-                            <div
-                                key={round.id}
-                                className="flex items-start gap-3 px-3 py-2 rounded-md border border-primary bg-primary/5"
-                            >
-                                <div className="mt-0.5 h-4 w-4 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
-                                </div>
-                                <div className="min-w-0">
-                                    <div className="text-sm font-medium">
-                                        Round {round.round_number} - {getInterviewTypeLabel(round.interview_type)}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                        {formatDate(round.scheduled_date)} · Viewing
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    }
-
+                if (isCurrent) {
                     return (
-                        <Link
+                        <div
                             key={round.id}
-                            href={`/interviews/${round.id}`}
-                            className="flex items-start gap-3 px-3 py-2 rounded-md hover:bg-muted/50 transition-colors"
-                        >
-                            {completed ? (
-                                <div className="mt-0.5 h-4 w-4 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                                    <Check className="h-2.5 w-2.5 text-primary-foreground" />
-                                </div>
-                            ) : (
-                                <div className="mt-0.5 h-4 w-4 rounded-full border-2 border-border flex-shrink-0" />
+                            className={cn(
+                                "rounded-md border border-primary bg-primary/10",
+                                isMobile ? "px-2 py-1 text-[10px]" : "px-2.5 py-1 text-[11px]"
                             )}
-                            <div className="min-w-0">
-                                <div className={cn(
-                                    "text-sm",
-                                    completed ? "text-muted-foreground" : "text-muted-foreground"
-                                )}>
-                                    Round {round.round_number} - {getInterviewTypeLabel(round.interview_type)}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                    {formatDate(round.scheduled_date)}
-                                </div>
-                            </div>
-                        </Link>
+                        >
+                            <span className="text-primary font-semibold">{label}</span>
+                        </div>
                     );
-                })}
-            </div>
+                }
+
+                return (
+                    <Link
+                        key={round.id}
+                        href={`/interviews/${round.id}`}
+                        className={cn(
+                            "rounded-md border border-border bg-transparent hover:bg-muted/50 transition-colors",
+                            isMobile ? "px-2 py-1 text-[10px]" : "px-2.5 py-1 text-[11px]"
+                        )}
+                    >
+                        <span className="text-muted-foreground font-medium">{label}</span>
+                    </Link>
+                );
+            })}
+
+            <button
+                onClick={handleAddOpen}
+                className={cn(
+                    "flex items-center gap-1 rounded-md border border-primary hover:bg-primary/10 transition-colors",
+                    isMobile ? "px-2 py-1 text-[10px]" : "px-2.5 py-1 text-[11px]"
+                )}
+            >
+                <Plus className={cn(isMobile ? "h-2.5 w-2.5" : "h-3 w-3", "text-primary")} />
+                <span className="text-primary font-medium">Add</span>
+            </button>
         </div>
 
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>

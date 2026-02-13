@@ -18,6 +18,7 @@ import { AddQuestionForm } from './add-question-form';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 import {
     InterviewQuestion,
@@ -45,6 +46,7 @@ export const QuestionsSection = ({
     interviewId,
     onUpdate,
 }: QuestionsSectionProps) => {
+    const isMobile = useIsMobile();
     const [isAddFormOpen, setIsAddFormOpen] = useState(false);
     const [editing, setEditing] = useState<EditingState | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<InterviewQuestion | null>(
@@ -247,6 +249,7 @@ export const QuestionsSection = ({
                 title="Questions & Answers"
                 isEmpty={isEmpty}
                 onAdd={handleAddQuestion}
+                defaultOpen={isMobile ? false : undefined}
                 emptyState={{
                     message: 'No questions recorded yet',
                     actionLabel: 'Add Question',
@@ -358,7 +361,7 @@ export const QuestionsSection = ({
                                             </div>
                                         )}
                                     </div>
-                                    <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex flex-col gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                         {sortedQuestions.length > 1 && (
                                             <>
                                                 <Button
