@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,7 +10,7 @@ import Link from 'next/link';
 import MarketBanner from '../components/market-banner';
 import { AUTH_INPUT_CLASS } from '../components/auth-styles';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import OAuthButtons from '../components/oauth-buttons';
 
 const loginSchema = z.object({
@@ -20,14 +20,24 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-const LoginPage = () => {
+const LoginForm = () => {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm<LoginFormData>({ resolver: zodResolver(loginSchema) });
     const [error, setError] = useState('');
+
+    const urlError = searchParams.get('error');
+    const callbackUrl = searchParams.get('callbackUrl') || '/';
+
+    useEffect(() => {
+        if (urlError === 'SessionExpired') {
+            setError('Your session has expired. Please sign in again.');
+        }
+    }, [urlError]);
 
     const onSubmit = async (data: LoginFormData) => {
         const result = await signIn('credentials', {
@@ -39,15 +49,12 @@ const LoginPage = () => {
         if (result?.error) {
             setError('Invalid email or password');
         } else {
-            router.push('/');
+            router.push(callbackUrl);
         }
     };
 
     return (
-        <>
-            <MarketBanner variant="login" />
-            <div className="flex-1 flex items-center justify-center py-[60px] px-8 lg:px-[120px]">
-                <div className="w-full max-w-[400px] flex flex-col gap-6">
+        <div className="w-full max-w-[400px] flex flex-col gap-6">
                     <div>
                         <h1 className="text-[28px] font-semibold">
                             Welcome back
@@ -126,6 +133,17 @@ const LoginPage = () => {
                         </Link>
                     </p>
                 </div>
+    );
+};
+
+const LoginPage = () => {
+    return (
+        <>
+            <MarketBanner variant="login" />
+            <div className="flex-1 flex items-center justify-center py-[60px] px-8 lg:px-[120px]">
+                <Suspense fallback={<div className="w-full max-w-[400px] h-[400px]" />}>
+                    <LoginForm />
+                </Suspense>
             </div>
         </>
     );
