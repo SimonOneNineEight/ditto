@@ -26,7 +26,8 @@ export function TimelineDateGroup({ group, items }: TimelineDateGroupProps) {
         <div className="flex flex-col gap-3">
             <h3
                 className={cn(
-                    'text-sm font-semibold',
+                    'text-sm font-semibold py-2 -my-2 sm:py-0 sm:my-0',
+                    'sm:static sticky top-0 bg-background z-10',
                     group === 'overdue'
                         ? 'text-destructive'
                         : 'text-muted-foreground'

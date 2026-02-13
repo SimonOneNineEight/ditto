@@ -27,7 +27,7 @@ export function TimelineItem({ item }: TimelineItemProps) {
         <Link
             href={item.link}
             className={cn(
-                'flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors',
+                'flex items-start sm:items-center gap-3 sm:gap-4 rounded-lg border border-border bg-card p-3 sm:p-4 transition-colors',
                 'hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
             )}
             aria-label={`${item.title} at ${item.company_name} - ${item.countdown.text}`}
@@ -44,7 +44,7 @@ export function TimelineItem({ item }: TimelineItemProps) {
             </div>
 
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <span
                         className={cn(
                             'rounded px-1.5 py-0.5 text-[10px] font-medium uppercase',
@@ -59,17 +59,28 @@ export function TimelineItem({ item }: TimelineItemProps) {
                         {item.company_name}
                     </span>
                 </div>
-                <span className="truncate text-sm font-semibold">
+                <span className="text-sm font-semibold line-clamp-2 sm:truncate">
                     {item.title}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                    {formattedDate}
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground">
+                        {formattedDate}
+                    </span>
+                    <span
+                        className={cn(
+                            'sm:hidden shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium',
+                            badgeStyles[urgency]
+                        )}
+                        aria-label={`Due ${item.countdown.text}`}
+                    >
+                        {item.countdown.text}
+                    </span>
+                </div>
             </div>
 
             <span
                 className={cn(
-                    'shrink-0 rounded-full px-3 py-1 text-xs font-medium',
+                    'hidden sm:inline-flex shrink-0 rounded-full px-3 py-1 text-xs font-medium',
                     badgeStyles[urgency]
                 )}
                 aria-label={`Due ${item.countdown.text}`}

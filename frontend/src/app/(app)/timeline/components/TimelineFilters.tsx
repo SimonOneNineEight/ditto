@@ -5,16 +5,17 @@ import type { TimelineFilterType, TimelineRangeFilter } from '@/types/timeline';
 
 interface FilterChipProps {
     label: string;
+    shortLabel?: string;
     active: boolean;
     onClick: () => void;
 }
 
-function FilterChip({ label, active, onClick }: FilterChipProps) {
+function FilterChip({ label, shortLabel, active, onClick }: FilterChipProps) {
     return (
         <button
             onClick={onClick}
             className={cn(
-                'rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
+                'rounded-full px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 active
                     ? 'bg-primary text-primary-foreground'
@@ -23,7 +24,8 @@ function FilterChip({ label, active, onClick }: FilterChipProps) {
             aria-label={`Filter by ${label}`}
             aria-pressed={active}
         >
-            {label}
+            <span className="sm:hidden">{shortLabel || label}</span>
+            <span className="hidden sm:inline">{label}</span>
         </button>
     );
 }
@@ -34,11 +36,11 @@ const typeFilters: { value: TimelineFilterType; label: string }[] = [
     { value: 'assessments', label: 'Assessments' },
 ];
 
-const rangeFilters: { value: TimelineRangeFilter; label: string }[] = [
-    { value: 'today', label: 'Today' },
-    { value: 'week', label: 'This Week' },
-    { value: 'month', label: 'This Month' },
-    { value: 'all', label: 'All Upcoming' },
+const rangeFilters: { value: TimelineRangeFilter; label: string; shortLabel: string }[] = [
+    { value: 'today', label: 'Today', shortLabel: 'Today' },
+    { value: 'week', label: 'This Week', shortLabel: 'Week' },
+    { value: 'month', label: 'This Month', shortLabel: 'Month' },
+    { value: 'all', label: 'All Upcoming', shortLabel: 'All' },
 ];
 
 interface TimelineFiltersProps {
@@ -57,10 +59,10 @@ export function TimelineFilters({
     return (
         <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground w-12">
+                <span className="text-sm font-medium text-muted-foreground w-12 flex-shrink-0">
                     Type
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">
                     {typeFilters.map((filter) => (
                         <FilterChip
                             key={filter.value}
@@ -73,14 +75,15 @@ export function TimelineFilters({
             </div>
 
             <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground w-12">
+                <span className="text-sm font-medium text-muted-foreground w-12 flex-shrink-0">
                     Range
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">
                     {rangeFilters.map((filter) => (
                         <FilterChip
                             key={filter.value}
                             label={filter.label}
+                            shortLabel={filter.shortLabel}
                             active={rangeFilter === filter.value}
                             onClick={() => onRangeChange(filter.value)}
                         />

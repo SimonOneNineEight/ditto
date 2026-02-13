@@ -49,25 +49,27 @@ export function UpcomingWidget() {
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-4">
-                <span className="text-lg font-semibold">Upcoming</span>
-                {filters.map((filter) => (
-                    <button
-                        key={filter.value}
-                        onClick={() => setActiveFilter(filter.value)}
-                        className={cn(
-                            'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                            activeFilter === filter.value
-                                ? 'bg-primary text-primary-foreground'
-                                : 'border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                        )}
-                        aria-label={`Filter by ${filter.label}`}
-                        aria-pressed={activeFilter === filter.value}
-                    >
-                        {filter.label}
-                    </button>
-                ))}
+            <div className="flex flex-wrap items-center gap-2 md:gap-4">
+                <span className="text-lg font-semibold w-full sm:w-auto">Upcoming</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                    {filters.map((filter) => (
+                        <button
+                            key={filter.value}
+                            onClick={() => setActiveFilter(filter.value)}
+                            className={cn(
+                                'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+                                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                                activeFilter === filter.value
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                            )}
+                            aria-label={`Filter by ${filter.label}`}
+                            aria-pressed={activeFilter === filter.value}
+                        >
+                            {filter.label}
+                        </button>
+                    ))}
+                </div>
                 <Link
                     href="/timeline"
                     className="ml-auto text-sm text-primary hover:underline transition-colors"

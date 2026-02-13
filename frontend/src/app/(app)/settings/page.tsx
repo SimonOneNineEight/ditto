@@ -72,7 +72,7 @@ export default function SettingsPage() {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                             <Button
                                 variant="outline"
                                 onClick={() => setExportDialogOpen(true)}
@@ -107,7 +107,7 @@ export default function SettingsPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div className="space-y-0.5">
                                 <p className="font-medium text-sm">Delete account</p>
                                 <p className="text-xs text-muted-foreground">
@@ -117,6 +117,7 @@ export default function SettingsPage() {
                             <Button
                                 variant="destructive"
                                 onClick={() => setDeleteDialogOpen(true)}
+                                className="w-full sm:w-auto"
                             >
                                 Delete Account
                             </Button>

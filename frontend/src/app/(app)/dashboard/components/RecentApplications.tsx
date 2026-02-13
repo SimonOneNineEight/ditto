@@ -111,11 +111,11 @@ export function RecentApplications() {
                         <TableHeader>
                             <TableRow className="hover:bg-transparent">
                                 <TableHead>Company</TableHead>
-                                <TableHead>Position</TableHead>
+                                <TableHead className="hidden sm:table-cell">Position</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Location</TableHead>
-                                <TableHead>Applied</TableHead>
-                                <TableHead>Type</TableHead>
+                                <TableHead className="hidden md:table-cell">Location</TableHead>
+                                <TableHead className="hidden lg:table-cell">Applied</TableHead>
+                                <TableHead className="hidden lg:table-cell">Type</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -126,9 +126,12 @@ export function RecentApplications() {
                                     className="cursor-pointer"
                                 >
                                     <TableCell className="font-medium">
-                                        {app.company?.name || 'Unknown'}
+                                        <div>{app.company?.name || 'Unknown'}</div>
+                                        <div className="sm:hidden text-xs text-muted-foreground mt-0.5">
+                                            {app.job?.title || 'Unknown'}
+                                        </div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="hidden sm:table-cell">
                                         {app.job?.title || 'Unknown'}
                                     </TableCell>
                                     <TableCell>
@@ -136,13 +139,13 @@ export function RecentApplications() {
                                             {app.status?.name || 'Unknown'}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">
+                                    <TableCell className="hidden md:table-cell text-muted-foreground">
                                         {app.job?.location || '—'}
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">
+                                    <TableCell className="hidden lg:table-cell text-muted-foreground">
                                         {formatAppliedDate(app.applied_at)}
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">
+                                    <TableCell className="hidden lg:table-cell text-muted-foreground">
                                         {formatJobType(app.job?.job_type)}
                                     </TableCell>
                                 </TableRow>

@@ -2,16 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Briefcase, TrendingUp, Calendar, Trophy, AlertCircle, RefreshCw, Plus } from 'lucide-react';
+import { Briefcase, TrendingUp, Calendar, Trophy, AlertCircle, RefreshCw, Plus, FileText, CalendarPlus } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { StatCard } from '@/components/stat-card';
 import { Button } from '@/components/ui/button';
+import { FAB } from '@/components/ui/fab';
 import { DashboardStatsSkeleton } from '@/components/loading-skeleton';
 import { getStats, DashboardStats } from '@/services/dashboard-service';
 import { ApplicationSelectorDialog } from '@/components/application-selector';
 import { InterviewFormModal } from '@/components/interview-form/interview-form-modal';
 import { UpcomingWidget, RecentApplications } from './dashboard/components';
 import { NotificationCenter } from '@/components/notification-center';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function Dashboard() {
     const router = useRouter();
@@ -69,11 +76,15 @@ export default function Dashboard() {
     };
 
     const quickActions = (
-        <div className="flex items-center gap-3">
-            <NotificationCenter />
+        <div className="flex items-center gap-2 md:gap-3">
+            <div className="hidden md:block">
+                <NotificationCenter />
+            </div>
             <Button
                 onClick={handleAddInterview}
                 aria-label="Add new interview"
+                size="default"
+                className="hidden md:flex"
             >
                 <Plus className="mr-2 h-4 w-4" />
                 Interview
@@ -81,6 +92,8 @@ export default function Dashboard() {
             <Button
                 onClick={handleAddApplication}
                 aria-label="Add new application"
+                size="default"
+                className="hidden md:flex"
             >
                 <Plus className="mr-2 h-4 w-4" />
                 Application
@@ -134,7 +147,7 @@ export default function Dashboard() {
             {loading ? (
                 <DashboardStatsSkeleton count={4} />
             ) : (
-                <div className="flex gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 desktop:grid-cols-4 gap-4 md:gap-6">
                     <StatCard
                         label="Total Applications"
                         value={stats?.total_applications ?? 0}
@@ -163,9 +176,13 @@ export default function Dashboard() {
                 </div>
             )}
 
-            <UpcomingWidget />
+            <div className="mt-6 md:mt-8">
+                <UpcomingWidget />
+            </div>
 
-            <RecentApplications />
+            <div className="mt-6 md:mt-8">
+                <RecentApplications />
+            </div>
 
             <ApplicationSelectorDialog
                 open={showAppSelector}
@@ -181,6 +198,27 @@ export default function Dashboard() {
                     onSuccess={handleInterviewCreated}
                 />
             )}
+
+            {/* Mobile FAB with expandable options */}
+            <div className="fixed bottom-4 right-4 z-50 md:hidden">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <FAB aria-label="Create new item">
+                            <Plus className="h-6 w-6" />
+                        </FAB>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" sideOffset={8} className="w-48">
+                        <DropdownMenuItem onClick={handleAddApplication} className="py-3">
+                            <FileText className="mr-2 h-4 w-4" />
+                            New Application
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleAddInterview} className="py-3">
+                            <CalendarPlus className="mr-2 h-4 w-4" />
+                            New Interview
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
         </>
     );
 }
