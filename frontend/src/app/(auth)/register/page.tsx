@@ -84,6 +84,7 @@ const RegisterPage = () => {
                             </label>
                             <input
                                 id="name"
+                                autoComplete="name"
                                 {...register('name')}
                                 className={AUTH_INPUT_CLASS}
                             />
@@ -101,6 +102,8 @@ const RegisterPage = () => {
                             <input
                                 id="email"
                                 type="email"
+                                autoComplete="email"
+                                inputMode="email"
                                 {...register('email')}
                                 className={AUTH_INPUT_CLASS}
                             />
@@ -118,6 +121,7 @@ const RegisterPage = () => {
                             <input
                                 id="password"
                                 type="password"
+                                autoComplete="new-password"
                                 {...register('password')}
                                 className={AUTH_INPUT_CLASS}
                             />
@@ -135,6 +139,7 @@ const RegisterPage = () => {
                             <input
                                 id="confirmPassword"
                                 type="password"
+                                autoComplete="new-password"
                                 {...register('confirmPassword')}
                                 className={AUTH_INPUT_CLASS}
                             />
