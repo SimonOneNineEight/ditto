@@ -34,7 +34,7 @@ export function NotificationCenter() {
         <div ref={containerRef} className="relative">
             <NotificationBell unreadCount={unreadCount} onClick={handleOpen} />
             {isOpen && (
-                <div className="absolute right-0 top-full z-50 mt-2">
+                <div className="fixed inset-x-4 top-16 z-50 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2">
                     <NotificationDropdown
                         notifications={notifications}
                         onMarkAsRead={markAsRead}

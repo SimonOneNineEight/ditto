@@ -46,10 +46,10 @@ const PageHeader = ({ title, titleExtra, subtitle, breadcrumbs, actions }: PageH
                     </BreadcrumbList>
                 </Breadcrumb>
             )}
-            <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-[28px] font-semibold tracking-[-0.02em] leading-tight">{title}</h1>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col gap-2 sm:gap-3 min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                        <h1 className="text-xl sm:text-2xl lg:text-[28px] font-semibold tracking-[-0.02em] leading-tight">{title}</h1>
                         {titleExtra}
                     </div>
                     {subtitle && (
@@ -58,7 +58,7 @@ const PageHeader = ({ title, titleExtra, subtitle, breadcrumbs, actions }: PageH
                             : subtitle
                     )}
                 </div>
-                {actions && <div className="flex items-center gap-3">{actions}</div>}
+                {actions && <div className="flex items-center gap-3 flex-shrink-0">{actions}</div>}
             </div>
         </div>
     );

@@ -143,7 +143,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden p-0 w-[calc(100vw-2rem)] max-w-[560px] xl:max-w-[720px] gap-0 rounded-xl sm:w-full">
+      <DialogContent className="overflow-hidden p-0 gap-0 sm:rounded-xl sm:max-w-[560px] xl:max-w-[720px]">
         <Command className="rounded-xl" shouldFilter={false}>
           <CommandInput
             placeholder="Search applications, interviews, assessments..."
@@ -152,7 +152,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             className="h-12"
           />
 
-          <CommandList className="max-h-[300px] overflow-y-auto p-2">
+          <CommandList className="flex-1 sm:flex-none sm:max-h-[300px] overflow-y-auto p-2">
             {isLoading && (
               <div className="flex items-center justify-center py-10">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -181,7 +181,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             )}
           </CommandList>
 
-          <div className="flex items-center gap-4 px-4 py-2 border-t border-border">
+          {/* Keyboard hints - hidden on mobile (touch users) */}
+          <div className="hidden sm:flex items-center gap-4 px-4 py-2 border-t border-border">
             <div className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted rounded">
                 esc

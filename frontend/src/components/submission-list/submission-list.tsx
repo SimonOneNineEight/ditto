@@ -130,7 +130,7 @@ const SubmissionItem = ({ submission, onDeleted }: SubmissionItemProps) => {
                                             variant="ghost"
                                             size="icon-sm"
                                             onClick={() => setIsDeleteOpen(true)}
-                                            className="h-6 w-6"
+                                            className="h-8 w-8 sm:h-6 sm:w-6"
                                         >
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </Button>

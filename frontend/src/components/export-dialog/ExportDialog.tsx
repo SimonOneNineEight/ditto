@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogDescription,
   DialogFooter,
@@ -103,7 +104,7 @@ export function ExportDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <DialogBody className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="export-type">Export Type</Label>
             <Select
@@ -144,7 +145,7 @@ export function ExportDialog({
               {getExportDescription()}
             </p>
           </div>
-        </div>
+        </DialogBody>
 
         <DialogFooter>
           <Button

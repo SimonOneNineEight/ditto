@@ -64,7 +64,7 @@ export const RichTextEditor = ({
 
     return (
         <div className="border rounded-lg overflow-hidden">
-            <div className="flex flex-wrap gap-1 p-2 border-b bg-muted/50">
+            <div className="flex flex-wrap gap-1.5 sm:gap-1 p-2 border-b bg-muted/50">
                 <Toggle
                     size="sm"
                     pressed={editor.isActive('bold')}
@@ -101,7 +101,7 @@ export const RichTextEditor = ({
                 >
                     <Strikethrough className="h-4 w-4" />
                 </Toggle>
-                <div className="w-px h-6 bg-border mx-1" /> {/* Divider */}
+                <div className="hidden sm:block w-px h-6 bg-border mx-1" />
                 <Toggle
                     size="sm"
                     pressed={editor.isActive('bulletList')}
@@ -120,7 +120,7 @@ export const RichTextEditor = ({
                 >
                     <ListOrdered className="h-4 w-4" />
                 </Toggle>
-                <div className="w-px h-6 bg-border mx-1" /> {/* Divider */}
+                <div className="hidden sm:block w-px h-6 bg-border mx-1" />
                 <Toggle
                     size="sm"
                     pressed={editor.isActive('heading', { level: 1 })}
@@ -148,7 +148,7 @@ export const RichTextEditor = ({
                 >
                     <Heading3 className="h-4 w-4" />
                 </Toggle>
-                <div className="w-px h-6 bg-border mx-1" /> {/* Divider */}
+                <div className="hidden sm:block w-px h-6 bg-border mx-1" />
                 <Toggle
                     size="sm"
                     pressed={editor.isActive('blockquote')}

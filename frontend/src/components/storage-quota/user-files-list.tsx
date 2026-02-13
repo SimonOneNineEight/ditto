@@ -77,7 +77,7 @@ export function UserFilesList({ files, isLoading, onFileDeleted }: UserFilesList
                         </div>
                         <button
                             onClick={(e) => handleDeleteClick(file, e)}
-                            className="w-8 h-8 rounded-md flex items-center justify-center shrink-0 text-muted-foreground hover:text-destructive hover:bg-muted transition-colors"
+                            className="w-10 h-10 sm:w-8 sm:h-8 rounded-md flex items-center justify-center shrink-0 text-muted-foreground hover:text-destructive hover:bg-muted transition-colors"
                         >
                             <X className="h-4 w-4" />
                         </button>

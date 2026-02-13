@@ -43,7 +43,7 @@ export function NotificationDropdown({
 
     return (
         <div
-            className="w-[400px] rounded-lg border bg-card shadow-lg"
+            className="w-[calc(100vw-2rem)] sm:w-[400px] rounded-lg border bg-card shadow-lg"
             style={{ boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)' }}
             onKeyDown={handleKeyDown}
             role="dialog"

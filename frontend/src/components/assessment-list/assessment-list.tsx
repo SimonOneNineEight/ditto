@@ -155,17 +155,19 @@ export const AssessmentList = ({
                                 </h4>
 
                                 {/* Row 2: Meta info + Status */}
-                                <div className="flex items-center justify-between gap-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
                                     {/* Left: Type badge, date, countdown */}
-                                    <div className="flex items-center gap-2 text-xs min-w-0">
+                                    <div className="flex items-center gap-2 text-xs min-w-0 flex-wrap">
                                         <span
                                             className={`inline-flex items-center shrink-0 px-2 py-0.5 rounded-full font-medium border ${typeColor}`}
                                         >
                                             {getAssessmentTypeLabel(assessment.assessment_type)}
                                         </span>
-                                        <span className="text-muted-foreground">·</span>
-                                        <Calendar className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                                        <span className="text-muted-foreground">{formattedDate}</span>
+                                        <span className="hidden sm:inline text-muted-foreground">·</span>
+                                        <span className="flex items-center gap-1">
+                                            <Calendar className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                            <span className="text-muted-foreground">{formattedDate}</span>
+                                        </span>
                                         <span className="text-muted-foreground">·</span>
                                         <span
                                             className="font-medium shrink-0"
@@ -176,7 +178,7 @@ export const AssessmentList = ({
                                     </div>
 
                                     {/* Right: Status dropdown */}
-                                    <div onClick={(e) => e.stopPropagation()}>
+                                    <div onClick={(e) => e.stopPropagation()} className="self-start sm:self-auto">
                                         <AssessmentStatusSelect
                                             value={displayStatus}
                                             onChange={(newStatus) =>

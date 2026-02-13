@@ -10,6 +10,7 @@ import {
     Dialog,
     DialogContent,
     DialogHeader,
+    DialogBody,
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
@@ -110,108 +111,110 @@ export const AssessmentFormModal = ({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Add Assessment</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-muted-foreground">
-                            Assessment Type
-                        </Label>
-                        <Controller
-                            name="assessment_type"
-                            control={control}
-                            render={({ field }) => (
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value ?? ''}
-                                    disabled={isSubmitting}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {ASSESSMENT_TYPE_OPTIONS.map((type) => (
-                                            <SelectItem
-                                                key={type.value}
-                                                value={type.value}
-                                            >
-                                                {type.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+            <DialogContent className="sm:max-w-md">
+                <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 sm:block">
+                    <DialogHeader>
+                        <DialogTitle>Add Assessment</DialogTitle>
+                    </DialogHeader>
+                    <DialogBody className="space-y-4">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">
+                                Assessment Type
+                            </Label>
+                            <Controller
+                                name="assessment_type"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value ?? ''}
+                                        disabled={isSubmitting}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {ASSESSMENT_TYPE_OPTIONS.map((type) => (
+                                                <SelectItem
+                                                    key={type.value}
+                                                    value={type.value}
+                                                >
+                                                    {type.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.assessment_type && (
+                                <p className="text-sm text-destructive">
+                                    {errors.assessment_type.message}
+                                </p>
                             )}
-                        />
-                        {errors.assessment_type && (
-                            <p className="text-sm text-destructive">
-                                {errors.assessment_type.message}
-                            </p>
-                        )}
-                    </div>
+                        </div>
 
-                    <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-muted-foreground">
-                            Title
-                        </Label>
-                        <Input
-                            {...register('title')}
-                            placeholder="e.g., Backend API Challenge"
-                            disabled={isSubmitting}
-                        />
-                        {errors.title && (
-                            <p className="text-sm text-destructive">
-                                {errors.title.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-muted-foreground">
-                            Due Date
-                        </Label>
-                        <Controller
-                            name="due_date"
-                            control={control}
-                            render={({ field }) => (
-                                <DatePicker
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    className="w-full"
-                                />
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">
+                                Title
+                            </Label>
+                            <Input
+                                {...register('title')}
+                                placeholder="e.g., Backend API Challenge"
+                                disabled={isSubmitting}
+                            />
+                            {errors.title && (
+                                <p className="text-sm text-destructive">
+                                    {errors.title.message}
+                                </p>
                             )}
-                        />
-                        {errors.due_date && (
-                            <p className="text-sm text-destructive">
-                                {errors.due_date.message}
-                            </p>
-                        )}
-                    </div>
+                        </div>
 
-                    <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-muted-foreground">
-                            Instructions (optional)
-                        </Label>
-                        <Textarea
-                            {...register('instructions')}
-                            placeholder="Enter any instructions or requirements..."
-                            rows={3}
-                            disabled={isSubmitting}
-                        />
-                    </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">
+                                Due Date
+                            </Label>
+                            <Controller
+                                name="due_date"
+                                control={control}
+                                render={({ field }) => (
+                                    <DatePicker
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        className="w-full"
+                                    />
+                                )}
+                            />
+                            {errors.due_date && (
+                                <p className="text-sm text-destructive">
+                                    {errors.due_date.message}
+                                </p>
+                            )}
+                        </div>
 
-                    <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-muted-foreground">
-                            Requirements (optional)
-                        </Label>
-                        <Textarea
-                            {...register('requirements')}
-                            placeholder="Technical requirements, constraints, etc..."
-                            rows={3}
-                            disabled={isSubmitting}
-                        />
-                    </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">
+                                Instructions (optional)
+                            </Label>
+                            <Textarea
+                                {...register('instructions')}
+                                placeholder="Enter any instructions or requirements..."
+                                rows={3}
+                                disabled={isSubmitting}
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">
+                                Requirements (optional)
+                            </Label>
+                            <Textarea
+                                {...register('requirements')}
+                                placeholder="Technical requirements, constraints, etc..."
+                                rows={3}
+                                disabled={isSubmitting}
+                            />
+                        </div>
+                    </DialogBody>
 
                     <DialogFooter>
                         <Button
