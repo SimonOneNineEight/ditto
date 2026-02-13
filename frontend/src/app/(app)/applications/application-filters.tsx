@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, X, ChevronDown, Check } from 'lucide-react';
+import { Search, X, ChevronDown, Check, SlidersHorizontal } from 'lucide-react';
 import { format, parse } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,11 +12,28 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetFooter,
+} from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import {
     type ApplicationStatus,
     type ApplicationFilters as Filters,
+    type SortColumn,
+    type SortOrder,
 } from '@/services/application-service';
+
+const SORT_OPTIONS: { value: SortColumn; label: string }[] = [
+    { value: 'applied_at', label: 'Applied Date' },
+    { value: 'updated_at', label: 'Last Updated' },
+    { value: 'company', label: 'Company' },
+    { value: 'position', label: 'Position' },
+    { value: 'status', label: 'Status' },
+];
 
 interface ApplicationFiltersProps {
     statuses: ApplicationStatus[];
@@ -39,6 +56,14 @@ export function ApplicationFilters({
 }: ApplicationFiltersProps) {
     const [companyInput, setCompanyInput] = useState(currentFilters.company_name || '');
     const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
+    const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+    const activeFilterCount = [
+        currentFilters.status_ids?.length ? 1 : 0,
+        currentFilters.date_from || currentFilters.date_to ? 1 : 0,
+        currentFilters.has_interviews ? 1 : 0,
+        currentFilters.has_assessments ? 1 : 0,
+    ].reduce((a, b) => a + b, 0);
 
     useEffect(() => {
         setCompanyInput(currentFilters.company_name || '');
@@ -146,7 +171,188 @@ export function ApplicationFilters({
 
     return (
         <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
+            {/* Mobile: Compact search + filter button */}
+            <div className="md:hidden">
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5 border-b border-border py-1 flex-1">
+                        <Search className="h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="text"
+                            placeholder="Search company..."
+                            value={companyInput}
+                            onChange={(e) => setCompanyInput(e.target.value)}
+                            className="border-0 p-0 h-auto flex-1"
+                        />
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setMobileFilterOpen(true)}
+                        className="relative flex-shrink-0"
+                    >
+                        <SlidersHorizontal className="h-4 w-4" />
+                        <span className="ml-1.5">Filters</span>
+                        {activeFilterCount > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                                {activeFilterCount}
+                            </span>
+                        )}
+                    </Button>
+                </div>
+
+                {/* Mobile Filter Sheet */}
+                <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+                    <SheetContent side="bottom" className="h-[85vh] rounded-t-xl">
+                        <SheetHeader className="pb-4 border-b">
+                            <SheetTitle>Filters</SheetTitle>
+                        </SheetHeader>
+
+                        <div className="flex-1 overflow-y-auto py-4 space-y-6">
+                            {/* Status filter */}
+                            <div className="space-y-3">
+                                <label className="text-sm font-medium">Status</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {(statuses || []).map((status) => {
+                                        const isSelected = selectedStatusIds.includes(status.id);
+                                        return (
+                                            <Button
+                                                key={status.id}
+                                                variant={isSelected ? "default" : "outline"}
+                                                size="sm"
+                                                onClick={() => handleStatusToggle(status.id)}
+                                                className="rounded-full"
+                                            >
+                                                {status.name}
+                                            </Button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Date range */}
+                            <div className="space-y-3">
+                                <label className="text-sm font-medium">Date Range</label>
+                                <div className="flex items-center gap-2">
+                                    <DatePicker
+                                        value={parseDateString(currentFilters.date_from)}
+                                        onChange={handleDateFromChange}
+                                        placeholder="From"
+                                        className="flex-1"
+                                    />
+                                    <span className="text-muted-foreground text-sm">to</span>
+                                    <DatePicker
+                                        value={parseDateString(currentFilters.date_to)}
+                                        onChange={handleDateToChange}
+                                        placeholder="To"
+                                        className="flex-1"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Toggle filters */}
+                            <div className="space-y-3">
+                                <label className="text-sm font-medium">Activity</label>
+                                <div className="space-y-2">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => handleHasInterviewsChange(!currentFilters.has_interviews)}
+                                        className="flex items-center gap-3 w-full justify-start h-12 px-3"
+                                    >
+                                        <div className={cn(
+                                            "flex h-5 w-5 items-center justify-center rounded border-2",
+                                            currentFilters.has_interviews
+                                                ? "bg-primary border-primary text-primary-foreground"
+                                                : "border-muted-foreground"
+                                        )}>
+                                            {currentFilters.has_interviews && <Check className="h-3.5 w-3.5" />}
+                                        </div>
+                                        <span>Has Interviews</span>
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => handleHasAssessmentsChange(!currentFilters.has_assessments)}
+                                        className="flex items-center gap-3 w-full justify-start h-12 px-3"
+                                    >
+                                        <div className={cn(
+                                            "flex h-5 w-5 items-center justify-center rounded border-2",
+                                            currentFilters.has_assessments
+                                                ? "bg-primary border-primary text-primary-foreground"
+                                                : "border-muted-foreground"
+                                        )}>
+                                            {currentFilters.has_assessments && <Check className="h-3.5 w-3.5" />}
+                                        </div>
+                                        <span>Has Assessments</span>
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Sort options */}
+                            <div className="space-y-3">
+                                <label className="text-sm font-medium">Sort By</label>
+                                <div className="space-y-1">
+                                    {SORT_OPTIONS.map((option) => {
+                                        const isSelected = currentFilters.sort_by === option.value;
+                                        const isAsc = isSelected && currentFilters.sort_order === 'asc';
+                                        return (
+                                            <Button
+                                                key={option.value}
+                                                variant="ghost"
+                                                onClick={() => {
+                                                    let newOrder: SortOrder = 'desc';
+                                                    if (isSelected) {
+                                                        newOrder = currentFilters.sort_order === 'desc' ? 'asc' : 'desc';
+                                                    }
+                                                    onFilterChange({
+                                                        ...currentFilters,
+                                                        sort_by: option.value,
+                                                        sort_order: newOrder,
+                                                    });
+                                                }}
+                                                className={cn(
+                                                    "flex items-center justify-between w-full h-12 px-3",
+                                                    isSelected && "bg-muted"
+                                                )}
+                                            >
+                                                <span>{option.label}</span>
+                                                {isSelected && (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {isAsc ? '↑ Oldest first' : '↓ Newest first'}
+                                                    </span>
+                                                )}
+                                            </Button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        <SheetFooter className="border-t pt-4">
+                            <div className="flex gap-3 w-full">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        onClear();
+                                        setMobileFilterOpen(false);
+                                    }}
+                                    className="flex-1"
+                                    disabled={!hasActiveFilters}
+                                >
+                                    Clear All
+                                </Button>
+                                <Button
+                                    onClick={() => setMobileFilterOpen(false)}
+                                    className="flex-1"
+                                >
+                                    Apply Filters
+                                </Button>
+                            </div>
+                        </SheetFooter>
+                    </SheetContent>
+                </Sheet>
+            </div>
+
+            {/* Desktop: Full filter bar */}
+            <div className="hidden md:flex flex-wrap items-center gap-3">
                 {/* Company search */}
                 <div className="flex items-center gap-2.5 w-[200px] border-b border-border py-1">
                     <Search className="h-4 w-4 text-muted-foreground" />

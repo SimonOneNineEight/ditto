@@ -8,6 +8,7 @@ import { createColumns } from './application-table/columns';
 import { ApplicationFilters } from './application-filters';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
+import { FAB } from '@/components/ui/fab';
 import { Plus, Download } from 'lucide-react';
 import { ExportDialog } from '@/components/export-dialog';
 import {
@@ -210,11 +211,12 @@ const ApplicationPageContent = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => setExportDialogOpen(true)}
+                            className="hidden md:flex"
                         >
                             <Download className="h-4 w-4 mr-1" />
                             Export
                         </Button>
-                        <Link href="/applications/new">
+                        <Link href="/applications/new" className="hidden md:block">
                             <Button size="sm">
                                 <Plus className="h-4 w-4 mr-1" />
                                 Application
@@ -264,6 +266,16 @@ const ApplicationPageContent = () => {
                 totalFiltered={total}
                 totalAll={unfilteredTotal}
             />
+
+            {/* Mobile FAB */}
+            <Link href="/applications/new" className="md:hidden">
+                <FAB
+                    className="fixed bottom-4 right-4 z-50"
+                    aria-label="Add new application"
+                >
+                    <Plus className="h-6 w-6" />
+                </FAB>
+            </Link>
         </>
     );
 };

@@ -7,6 +7,7 @@ import {
     Dialog,
     DialogContent,
     DialogHeader,
+    DialogBody,
     DialogTitle,
     DialogDescription,
 } from '@/components/ui/dialog';
@@ -86,74 +87,76 @@ export const ApplicationSelectorDialog = ({
                     </DialogDescription>
                 </DialogHeader>
 
-                {loading ? (
-                    <div className="space-y-3 py-4">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-14 w-full" />
-                        <Skeleton className="h-14 w-full" />
-                        <Skeleton className="h-14 w-full" />
-                    </div>
-                ) : error ? (
-                    <div className="flex flex-col items-center justify-center gap-4 py-8">
-                        <p className="text-sm text-muted-foreground">{error}</p>
-                        <Button variant="outline" size="sm" onClick={fetchApplications}>
-                            Try Again
-                        </Button>
-                    </div>
-                ) : applications.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-4 py-8 text-center">
-                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
-                            <Briefcase className="h-6 w-6 text-muted-foreground" />
+                <DialogBody>
+                    {loading ? (
+                        <div className="space-y-3">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-14 w-full" />
+                            <Skeleton className="h-14 w-full" />
+                            <Skeleton className="h-14 w-full" />
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-sm font-medium">No applications yet</p>
-                            <p className="text-sm text-muted-foreground">
-                                Create an application first to schedule an interview
-                            </p>
+                    ) : error ? (
+                        <div className="flex flex-col items-center justify-center gap-4 py-8">
+                            <p className="text-sm text-muted-foreground">{error}</p>
+                            <Button variant="outline" size="sm" onClick={fetchApplications}>
+                                Try Again
+                            </Button>
                         </div>
-                    </div>
-                ) : (
-                    <div className="space-y-3">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search applications..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9"
-                                autoFocus
-                            />
-                        </div>
-
-                        <div className="max-h-[300px] overflow-y-auto space-y-1">
-                            {filteredApplications.length === 0 ? (
-                                <p className="text-sm text-muted-foreground text-center py-4">
-                                    No applications match your search
+                    ) : applications.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center gap-4 py-8 text-center">
+                            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
+                                <Briefcase className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-sm font-medium">No applications yet</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Create an application first to schedule an interview
                                 </p>
-                            ) : (
-                                filteredApplications.map((app) => (
-                                    <button
-                                        key={app.id}
-                                        onClick={() => handleSelect(app.id)}
-                                        className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-accent text-left transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                    >
-                                        <div className="flex items-center justify-center w-10 h-10 rounded-md bg-muted flex-shrink-0">
-                                            <Building2 className="h-5 w-5 text-muted-foreground" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium truncate">
-                                                {app.job?.title || 'Untitled Position'}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground truncate">
-                                                {app.company?.name || 'Unknown Company'}
-                                            </p>
-                                        </div>
-                                    </button>
-                                ))
-                            )}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    ) : (
+                        <div className="space-y-3">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search applications..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pl-9"
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                {filteredApplications.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground text-center py-4">
+                                        No applications match your search
+                                    </p>
+                                ) : (
+                                    filteredApplications.map((app) => (
+                                        <button
+                                            key={app.id}
+                                            onClick={() => handleSelect(app.id)}
+                                            className="w-full flex items-center gap-3 p-2.5 rounded-md hover:bg-accent text-left transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                        >
+                                            <div className="flex items-center justify-center w-9 h-9 rounded-md bg-muted flex-shrink-0">
+                                                <Building2 className="h-4 w-4 text-muted-foreground" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium truncate">
+                                                    {app.job?.title || 'Untitled Position'}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                                    {app.company?.name || 'Unknown Company'}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </DialogBody>
             </DialogContent>
         </Dialog>
     );

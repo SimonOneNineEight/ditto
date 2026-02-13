@@ -314,6 +314,7 @@ const ApplicationForm = ({
                     <Input
                         placeholder="$0"
                         type="number"
+                        inputMode="decimal"
                         className="border-0 px-0 h-auto py-1 shadow-none focus-visible:ring-0"
                         {...register('minSalary')}
                     />
@@ -323,6 +324,7 @@ const ApplicationForm = ({
                     <Input
                         placeholder="$0"
                         type="number"
+                        inputMode="decimal"
                         className="border-0 px-0 h-auto py-1 shadow-none focus-visible:ring-0"
                         {...register('maxSalary')}
                     />
@@ -351,6 +353,8 @@ const ApplicationForm = ({
             <FormField
                 label="Source URL"
                 placeholder="https://"
+                inputMode="url"
+                autoComplete="url"
                 highlight={highlightedFields.has('sourceUrl')}
                 {...register('sourceUrl')}
             />
@@ -384,15 +388,15 @@ const ApplicationForm = ({
             </FormFieldWrapper>
 
             <FormFieldWrapper>
-                <FormLabel>Attachments</FormLabel>
+                <FormLabel className="mb-2">Attachments</FormLabel>
                 <FileUpload onFileSelect={setPendingFile} />
             </FormFieldWrapper>
 
-            <div className="flex justify-end items-center gap-3 mt-12 pt-6">
-                <Button type="button" variant="ghost" onClick={handleCancel}>
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end items-stretch sm:items-center gap-3 mt-12 pt-6">
+                <Button type="button" variant="ghost" onClick={handleCancel} className="w-full sm:w-auto">
                     Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                     {isSubmitting
                         ? mode === 'edit'
                             ? 'Updating...'

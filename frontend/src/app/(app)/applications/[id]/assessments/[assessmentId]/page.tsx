@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Trash2, Plus, Calendar, Pencil, Building2 } from 'lucide-react';
+import { Trash2, Plus, Calendar, Pencil, Building2, MoreVertical } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -10,7 +10,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 import { AssessmentDetailSkeleton } from '@/components/loading-skeleton';
-import PageHeader from '@/components/page-header/page-header';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import Link from 'next/link';
 import { getCountdownInfo } from '@/components/assessment-list';
 import {
     getAssessmentDetails,
@@ -132,60 +145,105 @@ const AssessmentDetailPage = () => {
     const countdown = getCountdownInfo(assessment.due_date, assessment.status);
 
     return (
-        <div className="flex flex-col p-8 w-full">
-            <PageHeader
-                title={assessment.title}
-                subtitle={
-                    application && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <Building2 className="h-4 w-4" />
-                            <span className="text-sm">
+        <div className="flex flex-col py-4 sm:py-6 w-full gap-4 sm:gap-6">
+            {/* Breadcrumb */}
+            <Breadcrumb>
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link href="/applications">Applications</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link href={`/applications/${applicationId}`}>
+                                {application?.company?.name || 'Application'}
+                            </Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                        <span className="text-muted-foreground">Assessment</span>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
+
+            {/* Header Section */}
+            <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1.5 sm:space-y-2 min-w-0 flex-1">
+                    {/* Title */}
+                    <h1 className="text-xl sm:text-2xl lg:text-[28px] font-semibold text-foreground">
+                        {assessment.title}
+                    </h1>
+
+                    {/* Company Row */}
+                    {application && (
+                        <div className="flex items-center gap-1.5 sm:gap-2 text-muted-foreground">
+                            <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="text-sm truncate">
                                 {application.company?.name} - {application.job?.title}
                             </span>
                         </div>
-                    )
-                }
-                breadcrumbs={[
-                    { label: 'Applications', href: '/applications' },
-                    {
-                        label: application?.company?.name || 'Application',
-                        href: `/applications/${applicationId}`,
-                    },
-                    { label: 'Assessment' },
-                ]}
-                actions={
-                    <>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => router.push(`/applications/${applicationId}`)}
-                        >
-                            <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => setIsDeleteOpen(true)}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </>
-                }
-            />
+                    )}
+                </div>
 
-            <div className="flex flex-col gap-6">
+                {/* Action Buttons - Desktop/Tablet */}
+                <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => router.push(`/applications/${applicationId}`)}
+                    >
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setIsDeleteOpen(true)}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+
+                {/* Action Menu - Mobile only */}
+                <div className="sm:hidden flex-shrink-0">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => router.push(`/applications/${applicationId}`)}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit Assessment
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => setIsDeleteOpen(true)}
+                                className="text-destructive focus:text-destructive"
+                            >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete Assessment
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-4 sm:gap-6">
                 {/* Assessment Details Card */}
                 <Card>
                     <CardHeader className="pb-4">
                         <CardTitle className="text-base">Assessment Details</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-3 sm:gap-4">
                             {/* Row 1: Due Date | Assessment Type */}
-                            <div className="flex gap-6">
-                                <div className="flex flex-col gap-1 flex-1">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
+                                <div className="flex flex-col gap-1">
                                     <span className="text-xs font-medium text-muted-foreground">Due Date</span>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 flex-wrap">
                                         <Calendar className="h-4 w-4" />
                                         <span className="text-sm">
                                             {format(parseISO(assessment.due_date), 'MMMM d, yyyy')}
@@ -198,7 +256,7 @@ const AssessmentDetailPage = () => {
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex flex-col gap-1 flex-1">
+                                <div className="flex flex-col gap-1">
                                     <span className="text-xs font-medium text-muted-foreground">Assessment Type</span>
                                     <span className="text-sm">
                                         {getAssessmentTypeLabel(assessment.assessment_type)}
@@ -206,18 +264,16 @@ const AssessmentDetailPage = () => {
                                 </div>
                             </div>
                             {/* Row 2: Status */}
-                            <div className="flex gap-6">
-                                <div className="flex flex-col gap-1 flex-1">
-                                    <span className="text-xs font-medium text-muted-foreground">Status</span>
-                                    <div>
-                                        <AssessmentStatusSelect
-                                            value={assessment.status}
-                                            onChange={handleStatusChange}
-                                            onSubmittedSelect={handleSubmittedSelect}
-                                            disabled={isUpdatingStatus}
-                                            variant="badge"
-                                        />
-                                    </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-xs font-medium text-muted-foreground">Status</span>
+                                <div>
+                                    <AssessmentStatusSelect
+                                        value={assessment.status}
+                                        onChange={handleStatusChange}
+                                        onSubmittedSelect={handleSubmittedSelect}
+                                        disabled={isUpdatingStatus}
+                                        variant="badge"
+                                    />
                                 </div>
                             </div>
                         </div>

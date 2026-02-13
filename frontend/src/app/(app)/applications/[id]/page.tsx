@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, Pencil, Trash2, ChevronDown, ChevronUp, Plus } from 'lucide-react';
+import { Building2, Pencil, Trash2, ChevronDown, ChevronUp, Plus, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -12,7 +12,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
-import PageHeader from '@/components/page-header/page-header';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+} from '@/components/ui/breadcrumb';
 import {
     getApplication,
     deleteApplication,
@@ -133,15 +144,15 @@ function getEventDotColor(event: TimelineEvent): string {
 
 function LoadingSkeleton() {
     return (
-        <div className="flex flex-col p-6 w-full gap-6">
+        <div className="flex flex-col py-4 sm:py-6 w-full gap-4 sm:gap-6">
             <Skeleton className="h-8 w-64" />
             <Skeleton className="h-6 w-48" />
-            <div className="flex gap-6">
-                <div className="flex-1 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 sm:gap-6">
+                <div className="space-y-4 sm:space-y-6">
                     <Skeleton className="h-48 w-full" />
                     <Skeleton className="h-32 w-full" />
                 </div>
-                <Skeleton className="h-64 w-[320px]" />
+                <Skeleton className="h-64 w-full" />
             </div>
         </div>
     );
@@ -237,48 +248,103 @@ const ApplicationPage = () => {
     const timeline = buildTimeline(app, interviews, assessments);
 
     return (
-        <div className="flex flex-col p-8 w-full">
-            <PageHeader
-                title={positionTitle}
-                titleExtra={statusName ? <Badge variant={statusVariant}>{statusName}</Badge> : undefined}
-                subtitle={app.company?.name ? (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <Building2 className="h-4 w-4" />
-                        <span className="text-base">{app.company.name}</span>
-                    </div>
-                ) : undefined}
-                breadcrumbs={[{ label: 'Applications', href: '/applications' }]}
-                actions={
-                    <>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => router.push(`/applications/${applicationId}/edit`)}
-                        >
-                            <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => setIsDeleteOpen(true)}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </>
-                }
-            />
+        <div className="flex flex-col py-4 sm:py-6 w-full gap-4 sm:gap-6">
+            {/* Breadcrumb */}
+            <Breadcrumb>
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link href="/applications">Applications</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
 
-            {/* Two-column layout */}
-            <div className="flex gap-6">
-                {/* Left column */}
-                <div className="flex-1 flex flex-col gap-6">
+            {/* Header Section */}
+            <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1.5 sm:space-y-2 min-w-0 flex-1">
+                    {/* Title Row */}
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-3 flex-wrap">
+                        <h1 className="text-xl sm:text-2xl lg:text-[28px] font-semibold text-foreground">
+                            {positionTitle}
+                        </h1>
+                        {statusName && (
+                            <Badge variant={statusVariant} className="hidden sm:inline-flex">
+                                {statusName}
+                            </Badge>
+                        )}
+                    </div>
+
+                    {/* Company Row */}
+                    {app.company?.name && (
+                        <div className="flex items-center gap-1.5 sm:gap-2 text-muted-foreground">
+                            <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="text-sm sm:text-base truncate">{app.company.name}</span>
+                        </div>
+                    )}
+
+                    {/* Status badge - mobile only (shown inline with title on desktop) */}
+                    {statusName && (
+                        <Badge variant={statusVariant} className="sm:hidden w-fit">
+                            {statusName}
+                        </Badge>
+                    )}
+                </div>
+
+                {/* Action Buttons - Desktop/Tablet */}
+                <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => router.push(`/applications/${applicationId}/edit`)}
+                    >
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setIsDeleteOpen(true)}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+
+                {/* Action Menu - Mobile only */}
+                <div className="sm:hidden flex-shrink-0">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => router.push(`/applications/${applicationId}/edit`)}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit Application
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => setIsDeleteOpen(true)}
+                                className="text-destructive focus:text-destructive"
+                            >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete Application
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+
+            {/* Two-column layout - stacked on mobile/tablet, side-by-side on desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 sm:gap-6">
+                {/* Main content column */}
+                <div className="flex flex-col gap-4 sm:gap-6">
                     {/* Application Details card */}
                     <Card>
                         <CardHeader className="pb-4">
                             <CardTitle className="text-base">Application Details</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                                 <div className="flex flex-col gap-1">
                                     <span className="text-xs font-medium text-muted-foreground">Applied Date</span>
                                     <span className="text-sm">
@@ -418,8 +484,8 @@ const ApplicationPage = () => {
                     </Card>
                 </div>
 
-                {/* Right column */}
-                <div className="w-[320px] flex-shrink-0">
+                {/* Timeline column - full width on mobile/tablet, fixed width on desktop */}
+                <div className="w-full">
                     <Card>
                         <CardHeader className="pb-4">
                             <CardTitle className="text-base">Timeline</CardTitle>
