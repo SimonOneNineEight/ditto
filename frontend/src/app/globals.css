@@ -3,6 +3,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+    /* Custom breakpoints aligned with design: mobile (<768), tablet (768-1439), desktop (1440+) */
+    --breakpoint-desktop: 90rem; /* 1440px - full sidebar, multi-column layouts */
+
     --color-background: hsl(var(--background));
     --color-foreground: hsl(var(--foreground));
 
