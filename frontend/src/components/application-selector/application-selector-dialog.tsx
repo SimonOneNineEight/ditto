@@ -46,7 +46,7 @@ export const ApplicationSelectorDialog = ({
             setLoading(true);
             setError(null);
             const response = await getApplications({ limit: 1000 });
-            setApplications(response.applications);
+            setApplications(response.applications || []);
         } catch {
             setError('Failed to load applications');
         } finally {
