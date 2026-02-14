@@ -6,6 +6,7 @@ import AppSidebar from '@/components/sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import LayoutWrapper from '@/components/layout-wrapper';
 import { Toaster } from '@/components/ui/sonner';
+import { ResponsiveHeader } from '@/components/layout';
 import { AuthGuard } from '@/components/auth-guard';
 
 const geistSans = localFont({
@@ -47,7 +48,10 @@ export default function RootLayout({
                 >
                     <SidebarProvider>
                         <AppSidebar />
-                        <SidebarInset className="max-w-full min-w-0 ">
+                        <SidebarInset className="max-w-full min-w-0">
+                            <div className="desktop:hidden px-4 pt-4">
+                                <ResponsiveHeader />
+                            </div>
                             <Navbar />
                             <AuthGuard>
                                 <LayoutWrapper>{children}</LayoutWrapper>
