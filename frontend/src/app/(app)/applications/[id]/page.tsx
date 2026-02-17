@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, Pencil, Trash2, ChevronDown, ChevronUp, Plus, MoreVertical } from 'lucide-react';
+import { Building2, Pencil, Trash2, ChevronDown, ChevronUp, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
+import { sanitizeHtml } from '@/lib/sanitizer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -294,14 +295,14 @@ const ApplicationPage = () => {
                 {/* Action Buttons - Desktop/Tablet */}
                 <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
                         onClick={() => router.push(`/applications/${applicationId}/edit`)}
                     >
                         <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
                         onClick={() => setIsDeleteOpen(true)}
                     >
@@ -409,14 +410,16 @@ const ApplicationPage = () => {
                             {!app.job?.job_description ? (
                                 <p className="text-sm text-muted-foreground/60 italic">No job description provided</p>
                             ) : isJdExpanded ? (
-                                <p className="text-sm leading-normal text-muted-foreground whitespace-pre-line">
-                                    {app.job.job_description}
-                                </p>
+                                <div
+                                    className="prose prose-sm prose-invert max-w-none text-muted-foreground"
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(app.job.job_description) }}
+                                />
                             ) : (
                                 <div className="relative max-h-[80px] overflow-hidden">
-                                    <p className="text-sm leading-normal text-muted-foreground whitespace-pre-line">
-                                        {app.job.job_description}
-                                    </p>
+                                    <div
+                                        className="prose prose-sm prose-invert max-w-none text-muted-foreground"
+                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(app.job.job_description) }}
+                                    />
                                     <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent" />
                                 </div>
                             )}
@@ -442,14 +445,16 @@ const ApplicationPage = () => {
                             {!app.notes ? (
                                 <p className="text-sm text-muted-foreground/60 italic">No notes provided</p>
                             ) : isNotesExpanded ? (
-                                <p className="text-sm leading-normal text-muted-foreground whitespace-pre-line">
-                                    {app.notes}
-                                </p>
+                                <div
+                                    className="prose prose-sm prose-invert max-w-none text-muted-foreground"
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(app.notes) }}
+                                />
                             ) : (
                                 <div className="relative max-h-[80px] overflow-hidden">
-                                    <p className="text-sm leading-normal text-muted-foreground whitespace-pre-line">
-                                        {app.notes}
-                                    </p>
+                                    <div
+                                        className="prose prose-sm prose-invert max-w-none text-muted-foreground"
+                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(app.notes) }}
+                                    />
                                     <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent" />
                                 </div>
                             )}
@@ -458,16 +463,15 @@ const ApplicationPage = () => {
 
                     {/* Assessments card */}
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 md:p-5 pb-4">
                             <CardTitle className="text-base">Assessments</CardTitle>
                             {assessments.length > 0 && (
-                                <Button size="sm" onClick={() => setIsAssessmentModalOpen(true)}>
-                                    <Plus className="h-4 w-4 mr-1" />
-                                    Assessment
+                                <Button variant="ghost-primary" size="sm" onClick={() => setIsAssessmentModalOpen(true)}>
+                                    + Add Assessment
                                 </Button>
                             )}
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-4 md:p-5 pt-0 md:pt-0">
                             <AssessmentList
                                 assessments={assessments}
                                 applicationId={applicationId}

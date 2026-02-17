@@ -27,6 +27,7 @@ interface DataTableProps {
     columns: ColumnDef<ApplicationWithDetails>[];
     data: ApplicationWithDetails[];
     total: number;
+    unfilteredTotal?: number;
     page: number;
     limit: number;
     hasActiveFilters: boolean;
@@ -37,6 +38,7 @@ export function ApplicationTable({
     columns,
     data,
     total,
+    unfilteredTotal,
     page,
     limit,
     hasActiveFilters,
@@ -59,7 +61,7 @@ export function ApplicationTable({
     const renderPagination = () => (
         <div className="flex items-center justify-between px-4 md:px-5 py-3 border-t border-border">
             <span className="text-[13px] text-muted-foreground">
-                {startItem}-{endItem} of {total}
+                Showing {total}{unfilteredTotal !== undefined && unfilteredTotal !== total ? ` of ${unfilteredTotal}` : ''} applications
             </span>
             {totalPages > 1 && (
                 <div className="flex items-center gap-2">
@@ -111,8 +113,8 @@ export function ApplicationTable({
 
     if (isMobile) {
         return (
-            <div className="rounded-lg border border-border overflow-hidden">
-                <div className="flex flex-col gap-2 p-3">
+            <div className="overflow-hidden">
+                <div className="flex flex-col gap-2">
                     {data.map((application) => (
                         <MobileAppCard key={application.id} application={application} />
                     ))}

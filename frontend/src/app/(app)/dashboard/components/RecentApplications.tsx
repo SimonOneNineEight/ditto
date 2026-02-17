@@ -107,12 +107,12 @@ export function RecentApplications() {
             )}
 
             {!loading && !error && applications.length > 0 && (
-                <Table>
+                <Table className="table-fixed">
                         <TableHeader>
                             <TableRow className="hover:bg-transparent">
-                                <TableHead>Company</TableHead>
-                                <TableHead className="hidden sm:table-cell">Position</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead className="w-full sm:w-[30%] lg:w-[20%]">Company</TableHead>
+                                <TableHead className="hidden sm:table-cell sm:w-[40%] lg:w-[30%]">Position</TableHead>
+                                <TableHead className="w-[80px] sm:w-[100px]">Status</TableHead>
                                 <TableHead className="hidden md:table-cell">Location</TableHead>
                                 <TableHead className="hidden lg:table-cell">Applied</TableHead>
                                 <TableHead className="hidden lg:table-cell">Type</TableHead>
@@ -126,13 +126,13 @@ export function RecentApplications() {
                                     className="cursor-pointer"
                                 >
                                     <TableCell className="font-medium">
-                                        <div>{app.company?.name || 'Unknown'}</div>
-                                        <div className="sm:hidden text-xs text-muted-foreground mt-0.5">
+                                        <div className="truncate">{app.company?.name || 'Unknown'}</div>
+                                        <div className="sm:hidden text-xs text-muted-foreground mt-0.5 truncate">
                                             {app.job?.title || 'Unknown'}
                                         </div>
                                     </TableCell>
                                     <TableCell className="hidden sm:table-cell">
-                                        {app.job?.title || 'Unknown'}
+                                        <div className="truncate">{app.job?.title || 'Unknown'}</div>
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant={getStatusVariant(app.status?.name || '')}>

@@ -16,10 +16,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import dynamic from 'next/dynamic';
 import UrlImport from './url-import';
 import FormField from './form-field';
 import CompanyAutocomplete from './company-autocomplete';
 import { FormLabel, FormFieldWrapper } from './form-label';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const RichTextEditor = dynamic(
+    () => import('@/components/rich-text-editor').then((mod) => ({ default: mod.RichTextEditor })),
+    { loading: () => <Skeleton className="h-[150px] w-full rounded-lg" />, ssr: false }
+);
 import { FileUpload } from '@/components/file-upload';
 import {
     getPresignedUploadUrl,
@@ -233,7 +240,7 @@ const ApplicationForm = ({
                 );
             }
 
-            router.push('/applications');
+            router.push(mode === 'edit' ? `/applications/${applicationId}` : '/applications');
         } catch {
             toast.error(
                 mode === 'edit'
@@ -244,7 +251,7 @@ const ApplicationForm = ({
     };
 
     const handleCancel = () => {
-        router.push('/applications');
+        router.push(mode === 'edit' ? `/applications/${applicationId}` : '/applications');
     };
 
     return (
@@ -331,24 +338,39 @@ const ApplicationForm = ({
                 </FormFieldWrapper>
             </div>
 
-            <FormField
-                label="Description"
-                multiline
-                rows={5}
-                className="min-h-[120px]"
-                placeholder="Paste or enter the job description..."
-                highlight={highlightedFields.has('description')}
-                {...register('description')}
-            />
+            <FormFieldWrapper>
+                <FormLabel>Description</FormLabel>
+                <div className="mt-2">
+                    <Controller
+                        name="description"
+                        control={control}
+                        render={({ field }) => (
+                            <RichTextEditor
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                placeholder="Paste or enter the job description..."
+                            />
+                        )}
+                    />
+                </div>
+            </FormFieldWrapper>
 
-            <FormField
-                label="Notes"
-                multiline
-                rows={4}
-                className="min-h-[100px]"
-                placeholder="Add any personal notes about this application..."
-                {...register('notes')}
-            />
+            <FormFieldWrapper>
+                <FormLabel>Notes</FormLabel>
+                <div className="mt-2">
+                    <Controller
+                        name="notes"
+                        control={control}
+                        render={({ field }) => (
+                            <RichTextEditor
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                placeholder="Add any personal notes about this application..."
+                            />
+                        )}
+                    />
+                </div>
+            </FormFieldWrapper>
 
             <FormField
                 label="Source URL"

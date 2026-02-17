@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Trash2, Plus, Calendar, Pencil, Building2, MoreVertical } from 'lucide-react';
+import { Trash2, Plus, Calendar, Building2, MoreVertical } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -191,14 +191,7 @@ const AssessmentDetailPage = () => {
                 {/* Action Buttons - Desktop/Tablet */}
                 <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
                     <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => router.push(`/applications/${applicationId}`)}
-                    >
-                        <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
                         onClick={() => setIsDeleteOpen(true)}
                     >
@@ -215,10 +208,6 @@ const AssessmentDetailPage = () => {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => router.push(`/applications/${applicationId}`)}>
-                                <Pencil className="h-4 w-4 mr-2" />
-                                Edit Assessment
-                            </DropdownMenuItem>
                             <DropdownMenuItem
                                 onClick={() => setIsDeleteOpen(true)}
                                 className="text-destructive focus:text-destructive"

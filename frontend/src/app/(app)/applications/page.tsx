@@ -165,7 +165,7 @@ const ApplicationPageContent = () => {
         }
     }, [deleteId, getFiltersFromURL, fetchApplications]);
 
-    const currentFilters = getFiltersFromURL();
+    const currentFilters = useMemo(() => getFiltersFromURL(), [searchParams]);
     const hasActiveFilters = !!(
         currentFilters.status_id ||
         (currentFilters.status_ids && currentFilters.status_ids.length > 0) ||
@@ -234,6 +234,7 @@ const ApplicationPageContent = () => {
                 total={unfilteredTotal}
                 filteredCount={total}
             />
+            <div className="mt-3">
             {loading ? (
                 <div className="rounded-lg border">
                     <ApplicationListSkeleton count={8} />
@@ -243,12 +244,14 @@ const ApplicationPageContent = () => {
                     columns={columns}
                     data={applications}
                     total={total}
+                    unfilteredTotal={unfilteredTotal}
                     page={page}
                     limit={limit}
                     hasActiveFilters={hasActiveFilters}
                     onPageChange={handlePageChange}
                 />
             )}
+            </div>
 
             <DeleteConfirmDialog
                 open={!!deleteId}
@@ -270,7 +273,7 @@ const ApplicationPageContent = () => {
             {/* Mobile FAB */}
             <Link href="/applications/new" className="md:hidden">
                 <FAB
-                    className="fixed bottom-4 right-4 z-50"
+                    className="fixed bottom-4 right-4 z-40"
                     aria-label="Add new application"
                 >
                     <Plus className="h-6 w-6" />

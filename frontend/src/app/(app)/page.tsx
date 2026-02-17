@@ -76,15 +76,15 @@ export default function Dashboard() {
     };
 
     const quickActions = (
-        <div className="flex items-center gap-2 md:gap-3">
-            <div className="hidden md:block">
+        <div className="flex items-center gap-2 desktop:gap-3">
+            <div className="hidden desktop:block">
                 <NotificationCenter />
             </div>
             <Button
                 onClick={handleAddInterview}
                 aria-label="Add new interview"
                 size="default"
-                className="hidden md:flex"
+                className="hidden desktop:flex"
             >
                 <Plus className="mr-2 h-4 w-4" />
                 Interview
@@ -93,7 +93,7 @@ export default function Dashboard() {
                 onClick={handleAddApplication}
                 aria-label="Add new application"
                 size="default"
-                className="hidden md:flex"
+                className="hidden desktop:flex"
             >
                 <Plus className="mr-2 h-4 w-4" />
                 Application
@@ -147,7 +147,7 @@ export default function Dashboard() {
             {loading ? (
                 <DashboardStatsSkeleton count={4} />
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 desktop:grid-cols-4 gap-4 md:gap-6">
+                <div className="grid grid-cols-2 desktop:grid-cols-4 gap-4 desktop:gap-6">
                     <StatCard
                         label="Total Applications"
                         value={stats?.total_applications ?? 0}

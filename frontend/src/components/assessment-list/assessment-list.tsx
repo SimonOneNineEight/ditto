@@ -147,23 +147,48 @@ export const AssessmentList = ({
                         className="cursor-pointer hover:bg-muted/50 transition-colors"
                         onClick={() => handleCardClick(assessment.id)}
                     >
-                        <CardContent className="p-4">
+                        {/* Mobile/Tablet: compact single row */}
+                        <CardContent className="p-2.5 md:p-3 desktop:hidden">
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex flex-col gap-0.5 min-w-0">
+                                    <span className="text-xs font-medium truncate">
+                                        {assessment.title}
+                                    </span>
+                                    <span className="text-[11px] text-muted-foreground">
+                                        Due: {formattedDate}
+                                    </span>
+                                </div>
+                                <div onClick={(e) => e.stopPropagation()} className="shrink-0">
+                                    <AssessmentStatusSelect
+                                        value={displayStatus}
+                                        onChange={(newStatus) =>
+                                            handleStatusChange(
+                                                assessment.id,
+                                                newStatus,
+                                                assessment.status
+                                            )
+                                        }
+                                        disabled={updatingId === assessment.id}
+                                        variant="badge"
+                                    />
+                                </div>
+                            </div>
+                        </CardContent>
+
+                        {/* Desktop: full info layout */}
+                        <CardContent className="p-4 hidden desktop:block">
                             <div className="flex flex-col gap-2.5">
-                                {/* Row 1: Title */}
                                 <h4 className="text-sm font-medium truncate">
                                     {assessment.title}
                                 </h4>
-
-                                {/* Row 2: Meta info + Status */}
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-                                    {/* Left: Type badge, date, countdown */}
+                                <div className="flex items-center justify-between gap-3">
                                     <div className="flex items-center gap-2 text-xs min-w-0 flex-wrap">
                                         <span
                                             className={`inline-flex items-center shrink-0 px-2 py-0.5 rounded-full font-medium border ${typeColor}`}
                                         >
                                             {getAssessmentTypeLabel(assessment.assessment_type)}
                                         </span>
-                                        <span className="hidden sm:inline text-muted-foreground">·</span>
+                                        <span className="text-muted-foreground">·</span>
                                         <span className="flex items-center gap-1">
                                             <Calendar className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                                             <span className="text-muted-foreground">{formattedDate}</span>
@@ -176,9 +201,7 @@ export const AssessmentList = ({
                                             {countdown.text}
                                         </span>
                                     </div>
-
-                                    {/* Right: Status dropdown */}
-                                    <div onClick={(e) => e.stopPropagation()} className="self-start sm:self-auto">
+                                    <div onClick={(e) => e.stopPropagation()}>
                                         <AssessmentStatusSelect
                                             value={displayStatus}
                                             onChange={(newStatus) =>

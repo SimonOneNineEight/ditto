@@ -134,7 +134,7 @@ export function InterviewCardList({ interviews }: InterviewCardListProps) {
     }
 
     return (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
             {interviews.map((interview) => (
                 <InterviewCard key={interview.id} interview={interview} />
             ))}

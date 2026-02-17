@@ -11,6 +11,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogBody,
     DialogFooter,
 } from '@/components/ui/dialog';
 
@@ -173,7 +174,8 @@ export const SubmissionFormModal = ({
                 <DialogHeader>
                     <DialogTitle>Add Submission</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+                  <DialogBody className="space-y-4">
                     <div className="space-y-1.5">
                         <Label className="text-xs font-medium text-muted-foreground">
                             Submission Type
@@ -279,6 +281,7 @@ export const SubmissionFormModal = ({
                             />
                         </div>
                     )}
+                  </DialogBody>
 
                     <DialogFooter>
                         <Button

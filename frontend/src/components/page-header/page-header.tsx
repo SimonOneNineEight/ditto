@@ -25,7 +25,7 @@ export interface PageHeaderProps {
 
 const PageHeader = ({ title, titleExtra, subtitle, breadcrumbs, actions }: PageHeaderProps) => {
     return (
-        <div className="flex flex-col gap-6 mb-6">
+        <div className="flex flex-col gap-4 desktop:gap-6 mb-4 desktop:mb-6">
             {breadcrumbs && breadcrumbs.length > 0 && (
                 <Breadcrumb>
                     <BreadcrumbList>
@@ -46,15 +46,15 @@ const PageHeader = ({ title, titleExtra, subtitle, breadcrumbs, actions }: PageH
                     </BreadcrumbList>
                 </Breadcrumb>
             )}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex flex-col gap-2 sm:gap-3 min-w-0">
-                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                        <h1 className="text-xl sm:text-2xl lg:text-[28px] font-semibold tracking-[-0.02em] leading-tight">{title}</h1>
+            <div className="flex flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex flex-col gap-1 min-w-0">
+                    <div className="flex items-center gap-2 desktop:gap-3 flex-wrap">
+                        <h1 className="text-xl sm:text-2xl desktop:text-[28px] font-semibold tracking-[-0.02em] leading-tight">{title}</h1>
                         {titleExtra}
                     </div>
                     {subtitle && (
                         typeof subtitle === 'string'
-                            ? <p className="text-sm text-muted-foreground">{subtitle}</p>
+                            ? <p className="text-sm text-muted-foreground mt-0">{subtitle}</p>
                             : subtitle
                     )}
                 </div>
