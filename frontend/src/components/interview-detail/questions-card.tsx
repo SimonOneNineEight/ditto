@@ -241,12 +241,9 @@ export const QuestionsCard = ({
     };
 
     const headerAction = (
-        <button
-            onClick={handleAddQuestion}
-            className="text-sm text-primary hover:text-primary/80 font-medium"
-        >
-            + Add
-        </button>
+        <Button variant="ghost-primary" size="sm" onClick={handleAddQuestion}>
+            + Add Question
+        </Button>
     );
 
     return (
@@ -257,13 +254,7 @@ export const QuestionsCard = ({
             >
                 {sortedQuestions.length === 0 ? (
                     <div className="text-sm text-muted-foreground py-2">
-                        No questions recorded yet.{' '}
-                        <button
-                            onClick={handleAddQuestion}
-                            className="text-primary hover:underline"
-                        >
-                            Add one
-                        </button>
+                        No questions recorded yet.
                     </div>
                 ) : (
                     <div className="space-y-4">

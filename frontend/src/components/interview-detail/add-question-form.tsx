@@ -12,6 +12,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogBody,
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -130,91 +131,93 @@ export const AddQuestionForm = ({
                 <DialogHeader>
                     <DialogTitle>Add Question</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-6 max-h-[500px] overflow-y-auto">
-                        {fields.map((field, index) => (
-                            <div key={field.id} className="space-y-3">
-                                {fields.length > 1 && (
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-muted-foreground">
-                                            Question {index + 1}
-                                        </span>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
-                                            onClick={() => remove(index)}
-                                            disabled={isSubmitting}
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <DialogBody className="space-y-4">
+                        <div className="space-y-6 max-h-[500px] overflow-y-auto">
+                            {fields.map((field, index) => (
+                                <div key={field.id} className="space-y-3">
+                                    {fields.length > 1 && (
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-muted-foreground">
+                                                Question {index + 1}
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                                                onClick={() => remove(index)}
+                                                disabled={isSubmitting}
+                                            >
+                                                Remove
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-1.5">
+                                        <Label
+                                            htmlFor={`questions.${index}.question_text`}
+                                            className="text-sm text-muted-foreground"
                                         >
-                                            Remove
-                                        </Button>
+                                            Question *
+                                        </Label>
+                                        <Textarea
+                                            id={`questions.${index}.question_text`}
+                                            placeholder="What question were you asked?"
+                                            disabled={isSubmitting}
+                                            className="min-h-[80px] resize-none"
+                                            {...register(
+                                                `questions.${index}.question_text`
+                                            )}
+                                        />
+                                        {errors.questions?.[index]?.question_text && (
+                                            <p className="text-sm text-destructive">
+                                                {
+                                                    errors.questions[index]
+                                                        ?.question_text?.message
+                                                }
+                                            </p>
+                                        )}
                                     </div>
-                                )}
 
-                                <div className="space-y-1.5">
-                                    <Label
-                                        htmlFor={`questions.${index}.question_text`}
-                                        className="text-sm text-muted-foreground"
-                                    >
-                                        Question *
-                                    </Label>
-                                    <Textarea
-                                        id={`questions.${index}.question_text`}
-                                        placeholder="What question were you asked?"
-                                        disabled={isSubmitting}
-                                        className="min-h-[80px] resize-none"
-                                        {...register(
-                                            `questions.${index}.question_text`
+                                    <div className="space-y-1.5">
+                                        <Label
+                                            htmlFor={`questions.${index}.answer_text`}
+                                            className="text-sm text-muted-foreground"
+                                        >
+                                            Your Answer
+                                        </Label>
+                                        <Textarea
+                                            id={`questions.${index}.answer_text`}
+                                            placeholder="How did you answer? (optional)"
+                                            disabled={isSubmitting}
+                                            className="min-h-[100px] resize-none"
+                                            {...register(
+                                                `questions.${index}.answer_text`
+                                            )}
+                                        />
+                                    </div>
+
+                                    {fields.length > 1 &&
+                                        index < fields.length - 1 && (
+                                            <div className="border-b border-border/50 pt-3" />
                                         )}
-                                    />
-                                    {errors.questions?.[index]?.question_text && (
-                                        <p className="text-sm text-destructive">
-                                            {
-                                                errors.questions[index]
-                                                    ?.question_text?.message
-                                            }
-                                        </p>
-                                    )}
                                 </div>
+                            ))}
+                        </div>
 
-                                <div className="space-y-1.5">
-                                    <Label
-                                        htmlFor={`questions.${index}.answer_text`}
-                                        className="text-sm text-muted-foreground"
-                                    >
-                                        Your Answer
-                                    </Label>
-                                    <Textarea
-                                        id={`questions.${index}.answer_text`}
-                                        placeholder="How did you answer? (optional)"
-                                        disabled={isSubmitting}
-                                        className="min-h-[100px] resize-none"
-                                        {...register(
-                                            `questions.${index}.answer_text`
-                                        )}
-                                    />
-                                </div>
-
-                                {fields.length > 1 &&
-                                    index < fields.length - 1 && (
-                                        <div className="border-b border-border/50 pt-3" />
-                                    )}
-                            </div>
-                        ))}
-                    </div>
-
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={addAnother}
-                        disabled={isSubmitting}
-                        className="w-full text-muted-foreground hover:text-foreground"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Another Question
-                    </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={addAnother}
+                            disabled={isSubmitting}
+                            className="w-full text-muted-foreground hover:text-foreground"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Another Question
+                        </Button>
+                    </DialogBody>
 
                     <DialogFooter>
                         <Button

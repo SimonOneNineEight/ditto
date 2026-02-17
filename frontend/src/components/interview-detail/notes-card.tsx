@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useClickOutside } from '@/hooks/use-click-outside';
 import dynamic from 'next/dynamic';
 
 import { InterviewDetailCard } from './interview-detail-card';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -28,9 +30,9 @@ import { sanitizeHtml } from '@/lib/sanitizer';
 
 type TabType = 'preparation' | 'during' | 'reflection';
 
-const TABS: { id: TabType; label: string; noteType: NoteType }[] = [
+const TABS: { id: TabType; label: string; shortLabel?: string; noteType: NoteType }[] = [
     { id: 'preparation', label: 'Preparation', noteType: 'preparation' },
-    { id: 'during', label: 'During Interview', noteType: 'feedback' },
+    { id: 'during', label: 'During Interview', shortLabel: 'During', noteType: 'feedback' },
     { id: 'reflection', label: 'Reflection', noteType: 'reflection' },
 ];
 
@@ -49,6 +51,12 @@ export const NotesCard = ({
     const [isEditing, setIsEditing] = useState(false);
     const [editingContent, setEditingContent] = useState<string>('');
     const activeTabRef = useRef<TabType>('preparation');
+    const flushRef = useRef<(() => void) | null>(null);
+    const closeEditor = useCallback(() => {
+        flushRef.current?.();
+        setIsEditing(false);
+    }, []);
+    const editorWrapperRef = useClickOutside<HTMLDivElement>(closeEditor, isEditing);
 
     useEffect(() => {
         activeTabRef.current = activeTab;
@@ -77,9 +85,10 @@ export const NotesCard = ({
         [interviewId, onUpdate]
     );
 
-    const { status, lastSaved, retry } = useAutoSave(editingContent, saveNote, {
+    const { status, lastSaved, retry, flush } = useAutoSave(editingContent, saveNote, {
         enabled: isEditing,
     });
+    flushRef.current = flush;
 
     const startEditing = () => {
         const noteType = getCurrentNoteType();
@@ -89,6 +98,9 @@ export const NotesCard = ({
     };
 
     const handleTabChange = (tab: TabType) => {
+        if (isEditing) {
+            flush();
+        }
         setActiveTab(tab);
         setIsEditing(false);
         setEditingContent('');
@@ -104,8 +116,16 @@ export const NotesCard = ({
         : getNoteContent(currentNoteType);
     const isEmpty = !currentContent || currentContent === '<p></p>';
 
+    const headerAction = isEditing ? (
+        <AutoSaveIndicator
+            status={status}
+            lastSaved={lastSaved}
+            onRetry={retry}
+        />
+    ) : undefined;
+
     return (
-        <InterviewDetailCard title="Notes">
+        <InterviewDetailCard title="Notes" headerAction={headerAction}>
             <div className="space-y-4">
                 {/* Tabs */}
                 <div className="flex gap-1 border-b border-border">
@@ -120,7 +140,12 @@ export const NotesCard = ({
                                     : 'text-muted-foreground hover:text-foreground'
                             )}
                         >
-                            {tab.label}
+                            {tab.shortLabel ? (
+                                <>
+                                    <span className="sm:hidden">{tab.shortLabel}</span>
+                                    <span className="hidden sm:inline">{tab.label}</span>
+                                </>
+                            ) : tab.label}
                             {activeTab === tab.id && (
                                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                             )}
@@ -128,28 +153,28 @@ export const NotesCard = ({
                     ))}
                 </div>
 
-                {/* Auto-save indicator */}
-                {isEditing && (
-                    <div className="flex justify-end">
-                        <AutoSaveIndicator
-                            status={status}
-                            lastSaved={lastSaved}
-                            onRetry={retry}
-                        />
-                    </div>
-                )}
-
                 {/* Content */}
-                <div className="min-h-[120px]">
+                <div className="min-h-[230px]">
                     {isEditing ? (
-                        <RichTextEditor
-                            value={editingContent}
-                            onChange={handleContentChange}
-                            placeholder={`Add ${TABS.find((t) => t.id === activeTab)?.label.toLowerCase()} notes...`}
-                        />
+                        <div ref={editorWrapperRef} className="space-y-2">
+                            <RichTextEditor
+                                value={editingContent}
+                                onChange={handleContentChange}
+                                placeholder={`Add ${TABS.find((t) => t.id === activeTab)?.label.toLowerCase()} notes...`}
+                            />
+                            <div className="flex justify-end">
+                                <Button
+                                    variant="ghost-primary"
+                                    size="sm"
+                                    onClick={closeEditor}
+                                >
+                                    Done
+                                </Button>
+                            </div>
+                        </div>
                     ) : isEmpty ? (
                         <div
-                            className="text-sm text-muted-foreground cursor-pointer p-3 rounded-md border border-dashed border-border hover:border-muted-foreground transition-colors"
+                            className="text-sm text-muted-foreground cursor-pointer py-1 hover:text-foreground transition-colors"
                             onClick={startEditing}
                         >
                             Click to add{' '}

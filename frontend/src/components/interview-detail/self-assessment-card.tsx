@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { InterviewDetailCard } from './interview-detail-card';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
     Select,
     SelectContent,
@@ -14,7 +15,21 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { sanitizeHtml } from '@/lib/sanitizer';
+import { useClickOutside } from '@/hooks/use-click-outside';
+
+const RichTextEditor = dynamic(
+    () =>
+        import('@/components/rich-text-editor').then((mod) => ({
+            default: mod.RichTextEditor,
+        })),
+    {
+        loading: () => <Skeleton className="h-[120px] w-full rounded-lg" />,
+        ssr: false,
+    }
+);
 import {
     Interview,
     updateInterview,
@@ -49,6 +64,8 @@ const getConfidenceLabel = (level: number): string => {
     }
 };
 
+type EditingField = 'went_well' | 'could_improve' | null;
+
 interface SelfAssessmentCardProps {
     interview: Interview;
     onUpdate: () => void;
@@ -69,6 +86,15 @@ export const SelfAssessmentCard = ({
         interview.confidence_level
     );
     const [autoSaveStatus, setAutoSaveStatus] = useState<AutoSaveStatus>('idle');
+    const [editingField, setEditingField] = useState<EditingField>(null);
+
+    const performAutoSaveRef = useRef<(() => void) | null>(null);
+    const closeEditor = useCallback(() => {
+        performAutoSaveRef.current?.();
+        setEditingField(null);
+    }, []);
+    const wentWellEditorRef = useClickOutside<HTMLDivElement>(closeEditor, editingField === 'went_well');
+    const couldImproveEditorRef = useClickOutside<HTMLDivElement>(closeEditor, editingField === 'could_improve');
 
     const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedRef = useRef({
@@ -119,6 +145,7 @@ export const SelfAssessmentCard = ({
         hasChanges,
         onUpdate,
     ]);
+    performAutoSaveRef.current = performAutoSave;
 
     useEffect(() => {
         if (autoSaveTimerRef.current) {
@@ -162,6 +189,60 @@ export const SelfAssessmentCard = ({
             setAutoSaveStatus('error');
             toast.error('Failed to save confidence level');
         }
+    };
+
+    const isEmpty = (content: string) => !content || content === '<p></p>';
+
+    const renderRichField = (
+        field: 'went_well' | 'could_improve',
+        label: string,
+        value: string,
+        onChange: (val: string) => void,
+        placeholder: string,
+        ref: React.RefObject<HTMLDivElement | null>
+    ) => {
+        const isEditing = editingField === field;
+
+        return (
+            <div className="space-y-1.5">
+                <Label className="text-muted-foreground text-xs font-medium">
+                    {label}
+                </Label>
+                {isEditing ? (
+                    <div ref={ref} className="space-y-2">
+                        <RichTextEditor
+                            value={value}
+                            onChange={onChange}
+                            placeholder={placeholder}
+                        />
+                        <div className="flex justify-end">
+                            <Button
+                                variant="ghost-primary"
+                                size="sm"
+                                onClick={closeEditor}
+                            >
+                                Done
+                            </Button>
+                        </div>
+                    </div>
+                ) : isEmpty(value) ? (
+                    <div
+                        className="text-sm text-muted-foreground cursor-pointer py-1 hover:text-foreground transition-colors"
+                        onClick={() => setEditingField(field)}
+                    >
+                        {placeholder}
+                    </div>
+                ) : (
+                    <div
+                        className="prose prose-invert max-w-none text-sm cursor-pointer"
+                        dangerouslySetInnerHTML={{
+                            __html: sanitizeHtml(value),
+                        }}
+                        onClick={() => setEditingField(field)}
+                    />
+                )}
+            </div>
+        );
     };
 
     const headerAction = (
@@ -211,31 +292,23 @@ export const SelfAssessmentCard = ({
                     </Select>
                 </div>
 
-                {/* What went well */}
-                <div className="space-y-1.5">
-                    <Label className="text-muted-foreground text-xs font-medium">
-                        What went well
-                    </Label>
-                    <Textarea
-                        value={wentWell}
-                        onChange={(e) => setWentWell(e.target.value)}
-                        placeholder="What aspects of the interview went well?"
-                        className="min-h-[80px] resize-none"
-                    />
-                </div>
+                {renderRichField(
+                    'went_well',
+                    'What went well',
+                    wentWell,
+                    setWentWell,
+                    'What aspects of the interview went well?',
+                    wentWellEditorRef
+                )}
 
-                {/* What could improve */}
-                <div className="space-y-1.5">
-                    <Label className="text-muted-foreground text-xs font-medium">
-                        What could improve
-                    </Label>
-                    <Textarea
-                        value={couldImprove}
-                        onChange={(e) => setCouldImprove(e.target.value)}
-                        placeholder="What would you do differently?"
-                        className="min-h-[80px] resize-none"
-                    />
-                </div>
+                {renderRichField(
+                    'could_improve',
+                    'What could improve',
+                    couldImprove,
+                    setCouldImprove,
+                    'What would you do differently?',
+                    couldImproveEditorRef
+                )}
 
                 {/* Confidence Level */}
                 <div className="space-y-1.5">

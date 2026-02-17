@@ -18,7 +18,7 @@ export const InterviewDetailCard = ({
     return (
         <div
             className={cn(
-                'rounded-lg border border-border bg-card p-6 space-y-4',
+                'rounded-lg border border-border bg-card p-4 space-y-3 sm:p-5 sm:space-y-4 lg:p-6 lg:space-y-4',
                 className
             )}
         >

@@ -2,22 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Calendar, X, Building2, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Building2, MoreVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
+import { format, parseISO } from 'date-fns';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { InterviewDetailSkeleton } from '@/components/loading-skeleton';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
+import { TimePicker } from '@/components/ui/time-picker';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogBody,
     DialogFooter,
 } from '@/components/ui/dialog';
 import {
@@ -54,6 +58,15 @@ import Link from 'next/link';
 import { InterviewRoundsPanel } from '@/components/interview-detail/interview-rounds-panel';
 import { InterviewRoundsStrip } from '@/components/interview-detail/interview-rounds-strip';
 
+const DURATION_OPTIONS = [
+    { value: '15', label: '15 minutes' },
+    { value: '30', label: '30 minutes' },
+    { value: '45', label: '45 minutes' },
+    { value: '60', label: '60 minutes' },
+    { value: '90', label: '90 minutes' },
+    { value: '120', label: '120 minutes' },
+];
+
 const editFormSchema = z.object({
     interview_type: z.enum([
         'phone_screen',
@@ -63,12 +76,9 @@ const editFormSchema = z.object({
         'onsite',
         'other',
     ]),
-    scheduled_date: z.string().min(1, 'Date is required'),
+    scheduled_date: z.date({ required_error: 'Date is required' }),
     scheduled_time: z.string().optional(),
-    duration_minutes: z
-        .union([z.number().positive(), z.nan()])
-        .optional()
-        .transform((val) => (Number.isNaN(val) ? undefined : val)),
+    duration_minutes: z.string().optional(),
 });
 
 type EditFormData = z.infer<typeof editFormSchema>;
@@ -99,7 +109,6 @@ const InterviewDetailPage = () => {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const {
-        register,
         control,
         handleSubmit,
         reset,
@@ -111,7 +120,7 @@ const InterviewDetailPage = () => {
 
     const fetchInterview = async () => {
         try {
-            setLoading(true);
+            if (!data) setLoading(true);
             setError(null);
             const result = await getInterviewWithContext(interviewId);
             setData(result);
@@ -137,9 +146,11 @@ const InterviewDetailPage = () => {
         reset({
             interview_type:
                 interview.interview_type as EditFormData['interview_type'],
-            scheduled_date: interview.scheduled_date.split('T')[0],
+            scheduled_date: parseISO(interview.scheduled_date.split('T')[0]),
             scheduled_time: interview.scheduled_time || '',
-            duration_minutes: interview.duration_minutes || undefined,
+            duration_minutes: interview.duration_minutes
+                ? String(interview.duration_minutes)
+                : undefined,
         });
         setIsEditOpen(true);
     };
@@ -148,9 +159,11 @@ const InterviewDetailPage = () => {
         try {
             await updateInterview(interviewId, {
                 interview_type: formData.interview_type,
-                scheduled_date: formData.scheduled_date,
+                scheduled_date: format(formData.scheduled_date, 'yyyy-MM-dd'),
                 scheduled_time: formData.scheduled_time || undefined,
-                duration_minutes: formData.duration_minutes,
+                duration_minutes: formData.duration_minutes
+                    ? parseInt(formData.duration_minutes, 10)
+                    : undefined,
             });
             toast.success('Interview updated');
             setIsEditOpen(false);
@@ -267,17 +280,15 @@ const InterviewDetailPage = () => {
                         variant="ghost"
                         size="icon"
                         onClick={handleEditOpen}
-                        className="h-9 w-9"
                     >
-                        <Calendar className="h-[18px] w-[18px] text-muted-foreground" />
+                        <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsDeleteOpen(true)}
-                        className="h-9 w-9"
                     >
-                        <X className="h-[18px] w-[18px] text-muted-foreground" />
+                        <Trash2 className="h-4 w-4" />
                     </Button>
                 </div>
 
@@ -291,14 +302,14 @@ const InterviewDetailPage = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={handleEditOpen}>
-                                <Calendar className="h-4 w-4 mr-2" />
+                                <Pencil className="h-4 w-4 mr-2" />
                                 Edit Interview
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 onClick={() => setIsDeleteOpen(true)}
-                                className="text-destructive focus:text-destructive"
+                                variant="destructive"
                             >
-                                <X className="h-4 w-4 mr-2" />
+                                <Trash2 className="h-4 w-4 mr-2" />
                                 Delete Interview
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -388,10 +399,11 @@ const InterviewDetailPage = () => {
                     </DialogHeader>
                     <form
                         onSubmit={handleSubmit(onSubmit)}
-                        className="space-y-4"
+                        className="flex flex-col flex-1 overflow-hidden"
                     >
-                        <div className="space-y-2">
-                            <Label>Interview Type</Label>
+                      <DialogBody className="space-y-4">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">Interview Type</Label>
                             <Controller
                                 name="interview_type"
                                 control={control}
@@ -419,40 +431,72 @@ const InterviewDetailPage = () => {
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label>Scheduled Date</Label>
-                            <Input
-                                type="date"
-                                disabled={isSubmitting}
-                                {...register('scheduled_date')}
-                            />
-                            {errors.scheduled_date && (
-                                <p className="text-sm text-destructive">
-                                    {errors.scheduled_date.message}
-                                </p>
-                            )}
+                        <div className="flex gap-3">
+                            <div className="flex-1 space-y-1.5">
+                                <Label className="text-xs font-medium text-muted-foreground">Date</Label>
+                                <Controller
+                                    name="scheduled_date"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <DatePicker
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            className="w-full"
+                                        />
+                                    )}
+                                />
+                                {errors.scheduled_date && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.scheduled_date.message}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="flex-1 space-y-1.5">
+                                <Label className="text-xs font-medium text-muted-foreground">Time</Label>
+                                <Controller
+                                    name="scheduled_time"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <TimePicker
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            disabled={isSubmitting}
+                                        />
+                                    )}
+                                />
+                            </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label>Scheduled Time</Label>
-                            <Input
-                                type="time"
-                                disabled={isSubmitting}
-                                {...register('scheduled_time')}
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">Duration</Label>
+                            <Controller
+                                name="duration_minutes"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value ?? ''}
+                                        disabled={isSubmitting}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select duration" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {DURATION_OPTIONS.map((opt) => (
+                                                <SelectItem
+                                                    key={opt.value}
+                                                    value={opt.value}
+                                                >
+                                                    {opt.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
                             />
                         </div>
-
-                        <div className="space-y-2">
-                            <Label>Duration (minutes)</Label>
-                            <Input
-                                type="number"
-                                placeholder="60"
-                                disabled={isSubmitting}
-                                {...register('duration_minutes', {
-                                    valueAsNumber: true,
-                                })}
-                            />
-                        </div>
+                      </DialogBody>
 
                         <DialogFooter>
                             <Button

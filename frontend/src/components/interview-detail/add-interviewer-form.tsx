@@ -12,6 +12,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogBody,
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -130,84 +131,86 @@ export const AddInterviewerForm = ({
                 <DialogHeader>
                     <DialogTitle>Add Interviewer</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-6 max-h-[400px] overflow-y-auto">
-                        {fields.map((field, index) => (
-                            <div
-                                key={field.id}
-                                className="space-y-3"
-                            >
-                                {fields.length > 1 && (
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-muted-foreground">
-                                            Interviewer {index + 1}
-                                        </span>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
-                                            onClick={() => remove(index)}
-                                            disabled={isSubmitting}
-                                        >
-                                            Remove
-                                        </Button>
-                                    </div>
-                                )}
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <DialogBody className="space-y-4">
+                        <div className="space-y-6 max-h-[400px] overflow-y-auto">
+                            {fields.map((field, index) => (
+                                <div
+                                    key={field.id}
+                                    className="space-y-3"
+                                >
+                                    {fields.length > 1 && (
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-muted-foreground">
+                                                Interviewer {index + 1}
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                                                onClick={() => remove(index)}
+                                                disabled={isSubmitting}
+                                            >
+                                                Remove
+                                            </Button>
+                                        </div>
+                                    )}
 
-                                <div className="space-y-1.5">
-                                    <Label
-                                        htmlFor={`interviewers.${index}.name`}
-                                        className="text-sm text-muted-foreground"
-                                    >
-                                        Name *
-                                    </Label>
-                                    <Input
-                                        id={`interviewers.${index}.name`}
-                                        placeholder="e.g., John Smith"
-                                        disabled={isSubmitting}
-                                        {...register(`interviewers.${index}.name`)}
-                                    />
-                                    {errors.interviewers?.[index]?.name && (
-                                        <p className="text-sm text-destructive">
-                                            {errors.interviewers[index]?.name?.message}
-                                        </p>
+                                    <div className="space-y-1.5">
+                                        <Label
+                                            htmlFor={`interviewers.${index}.name`}
+                                            className="text-sm text-muted-foreground"
+                                        >
+                                            Name *
+                                        </Label>
+                                        <Input
+                                            id={`interviewers.${index}.name`}
+                                            placeholder="e.g., John Smith"
+                                            disabled={isSubmitting}
+                                            {...register(`interviewers.${index}.name`)}
+                                        />
+                                        {errors.interviewers?.[index]?.name && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.interviewers[index]?.name?.message}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <Label
+                                            htmlFor={`interviewers.${index}.role`}
+                                            className="text-sm text-muted-foreground"
+                                        >
+                                            Role
+                                        </Label>
+                                        <Input
+                                            id={`interviewers.${index}.role`}
+                                            placeholder="e.g., Engineering Manager"
+                                            disabled={isSubmitting}
+                                            {...register(`interviewers.${index}.role`)}
+                                        />
+                                    </div>
+
+                                    {fields.length > 1 && index < fields.length - 1 && (
+                                        <div className="border-b border-border/50 pt-3" />
                                     )}
                                 </div>
+                            ))}
+                        </div>
 
-                                <div className="space-y-1.5">
-                                    <Label
-                                        htmlFor={`interviewers.${index}.role`}
-                                        className="text-sm text-muted-foreground"
-                                    >
-                                        Role
-                                    </Label>
-                                    <Input
-                                        id={`interviewers.${index}.role`}
-                                        placeholder="e.g., Engineering Manager"
-                                        disabled={isSubmitting}
-                                        {...register(`interviewers.${index}.role`)}
-                                    />
-                                </div>
-
-                                {fields.length > 1 && index < fields.length - 1 && (
-                                    <div className="border-b border-border/50 pt-3" />
-                                )}
-                            </div>
-                        ))}
-                    </div>
-
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={addAnother}
-                        disabled={isSubmitting}
-                        className="w-full text-muted-foreground hover:text-foreground"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Another
-                    </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={addAnother}
+                            disabled={isSubmitting}
+                            className="w-full text-muted-foreground hover:text-foreground"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Another
+                        </Button>
+                    </DialogBody>
 
                     <DialogFooter>
                         <Button

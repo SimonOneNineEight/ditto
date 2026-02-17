@@ -100,12 +100,9 @@ export const InterviewersCard = ({
     };
 
     const headerAction = (
-        <button
-            onClick={handleAddInterviewer}
-            className="text-sm text-primary hover:text-primary/80 font-medium flex items-center gap-1"
-        >
+        <Button variant="ghost-primary" size="sm" onClick={handleAddInterviewer}>
             + Add Interviewer
-        </button>
+        </Button>
     );
 
     return (
@@ -113,13 +110,7 @@ export const InterviewersCard = ({
             <InterviewDetailCard title="Interviewers" headerAction={headerAction}>
                 {interviewers.length === 0 ? (
                     <div className="text-sm text-muted-foreground py-2">
-                        No interviewers added yet.{' '}
-                        <button
-                            onClick={handleAddInterviewer}
-                            className="text-primary hover:underline"
-                        >
-                            Add one
-                        </button>
+                        No interviewers added yet.
                     </div>
                 ) : (
                     <div className="space-y-3">

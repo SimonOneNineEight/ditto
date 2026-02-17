@@ -3,6 +3,7 @@ package handlers
 import (
 	"ditto-backend/internal/models"
 	"ditto-backend/internal/repository"
+	"ditto-backend/internal/services"
 	"ditto-backend/internal/utils"
 	"ditto-backend/pkg/errors"
 	"ditto-backend/pkg/response"
@@ -42,6 +43,7 @@ type InterviewHandler struct {
 	interviewQuestionRepo *repository.InterviewQuestionRepository
 	interviewNoteRepo     *repository.InterviewNoteRepository
 	dashboardRepo         *repository.DashboardRepository
+	sanitizer             *services.SanitizerService
 }
 
 func NewInterviewHandler(appState *utils.AppState) *InterviewHandler {
@@ -52,6 +54,7 @@ func NewInterviewHandler(appState *utils.AppState) *InterviewHandler {
 		interviewQuestionRepo: repository.NewInterviewQuestionRepository(appState.DB),
 		interviewNoteRepo:     repository.NewInterviewNoteRepository(appState.DB),
 		dashboardRepo:         repository.NewDashboardRepository(appState.DB),
+		sanitizer:             appState.Sanitizer,
 	}
 }
 
@@ -232,7 +235,7 @@ func (h *InterviewHandler) UpdateInterview(c *gin.Context) {
 		if *req.WentWell == "" {
 			updates["went_well"] = nil
 		} else {
-			updates["went_well"] = *req.WentWell
+			updates["went_well"] = h.sanitizer.SanitizeHTML(*req.WentWell)
 		}
 	}
 
@@ -240,7 +243,7 @@ func (h *InterviewHandler) UpdateInterview(c *gin.Context) {
 		if *req.CouldImprove == "" {
 			updates["could_improve"] = nil
 		} else {
-			updates["could_improve"] = *req.CouldImprove
+			updates["could_improve"] = h.sanitizer.SanitizeHTML(*req.CouldImprove)
 		}
 	}
 
