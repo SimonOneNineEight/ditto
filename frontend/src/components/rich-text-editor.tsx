@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
@@ -17,9 +17,39 @@ import {
     Heading2,
     Heading3,
     Quote,
+    Code,
+    type LucideIcon,
 } from 'lucide-react';
 import { Toggle } from '@/components/ui/toggle';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+
+interface ToolbarItem {
+    icon: LucideIcon;
+    action: (e: Editor) => void;
+    isActive: (e: Editor) => boolean;
+}
+
+const TOOLBAR: ToolbarItem[][] = [
+    [
+        { icon: Bold, action: (e) => e.chain().focus().toggleBold().run(), isActive: (e) => e.isActive('bold') },
+        { icon: Italic, action: (e) => e.chain().focus().toggleItalic().run(), isActive: (e) => e.isActive('italic') },
+        { icon: UnderlineIcon, action: (e) => e.chain().focus().toggleUnderline().run(), isActive: (e) => e.isActive('underline') },
+        { icon: Strikethrough, action: (e) => e.chain().focus().toggleStrike().run(), isActive: (e) => e.isActive('strike') },
+    ],
+    [
+        { icon: Heading1, action: (e) => e.chain().focus().toggleHeading({ level: 1 }).run(), isActive: (e) => e.isActive('heading', { level: 1 }) },
+        { icon: Heading2, action: (e) => e.chain().focus().toggleHeading({ level: 2 }).run(), isActive: (e) => e.isActive('heading', { level: 2 }) },
+        { icon: Heading3, action: (e) => e.chain().focus().toggleHeading({ level: 3 }).run(), isActive: (e) => e.isActive('heading', { level: 3 }) },
+    ],
+    [
+        { icon: List, action: (e) => e.chain().focus().toggleBulletList().run(), isActive: (e) => e.isActive('bulletList') },
+        { icon: ListOrdered, action: (e) => e.chain().focus().toggleOrderedList().run(), isActive: (e) => e.isActive('orderedList') },
+    ],
+    [
+        { icon: Quote, action: (e) => e.chain().focus().toggleBlockquote().run(), isActive: (e) => e.isActive('blockquote') },
+        { icon: Code, action: (e) => e.chain().focus().toggleCodeBlock().run(), isActive: (e) => e.isActive('codeBlock') },
+    ],
+];
 
 interface RichTextEditorProps {
     value: string;
@@ -34,6 +64,8 @@ export const RichTextEditor = ({
     placeholder,
     disabled,
 }: RichTextEditorProps) => {
+    const [, forceRender] = useState(0);
+
     const editor = useEditor({
         extensions: [
             StarterKit,
@@ -49,6 +81,7 @@ export const RichTextEditor = ({
         onUpdate: ({ editor }) => {
             const html = editor.getHTML();
             onChange(html);
+            forceRender((t) => t + 1);
         },
     });
 
@@ -63,105 +96,37 @@ export const RichTextEditor = ({
     }
 
     return (
-        <div className="border rounded-lg overflow-hidden">
-            <div className="flex flex-wrap gap-1.5 sm:gap-1 p-2 border-b bg-muted/50">
-                <Toggle
-                    size="sm"
-                    pressed={editor.isActive('bold')}
-                    onPressedChange={() =>
-                        editor.chain().focus().toggleBold().run()
-                    }
-                >
-                    <Bold className="h-4 w-4" />
-                </Toggle>
-                <Toggle
-                    size="sm"
-                    pressed={editor.isActive('italic')}
-                    onPressedChange={() =>
-                        editor.chain().focus().toggleItalic().run()
-                    }
-                >
-                    <Italic className="h-4 w-4" />
-                </Toggle>
-                <Toggle
-                    size="sm"
-                    pressed={editor.isActive('underline')}
-                    onPressedChange={() =>
-                        editor.chain().focus().toggleUnderline().run()
-                    }
-                >
-                    <UnderlineIcon className="h-4 w-4" />
-                </Toggle>
-                <Toggle
-                    size="sm"
-                    pressed={editor.isActive('strike')}
-                    onPressedChange={() =>
-                        editor.chain().focus().toggleStrike().run()
-                    }
-                >
-                    <Strikethrough className="h-4 w-4" />
-                </Toggle>
-                <div className="hidden sm:block w-px h-6 bg-border mx-1" />
-                <Toggle
-                    size="sm"
-                    pressed={editor.isActive('bulletList')}
-                    onPressedChange={() =>
-                        editor.chain().focus().toggleBulletList().run()
-                    }
-                >
-                    <List className="h-4 w-4" />
-                </Toggle>
-                <Toggle
-                    size="sm"
-                    pressed={editor.isActive('orderedList')}
-                    onPressedChange={() =>
-                        editor.chain().focus().toggleOrderedList().run()
-                    }
-                >
-                    <ListOrdered className="h-4 w-4" />
-                </Toggle>
-                <div className="hidden sm:block w-px h-6 bg-border mx-1" />
-                <Toggle
-                    size="sm"
-                    pressed={editor.isActive('heading', { level: 1 })}
-                    onPressedChange={() =>
-                        editor.chain().focus().toggleHeading({ level: 1 }).run()
-                    }
-                >
-                    <Heading1 className="h-4 w-4" />
-                </Toggle>
-                <Toggle
-                    size="sm"
-                    pressed={editor.isActive('heading', { level: 2 })}
-                    onPressedChange={() =>
-                        editor.chain().focus().toggleHeading({ level: 2 }).run()
-                    }
-                >
-                    <Heading2 className="h-4 w-4" />
-                </Toggle>
-                <Toggle
-                    size="sm"
-                    pressed={editor.isActive('heading', { level: 3 })}
-                    onPressedChange={() =>
-                        editor.chain().focus().toggleHeading({ level: 3 }).run()
-                    }
-                >
-                    <Heading3 className="h-4 w-4" />
-                </Toggle>
-                <div className="hidden sm:block w-px h-6 bg-border mx-1" />
-                <Toggle
-                    size="sm"
-                    pressed={editor.isActive('blockquote')}
-                    onPressedChange={() =>
-                        editor.chain().focus().toggleBlockquote().run()
-                    }
-                >
-                    <Quote className="h-4 w-4" />
-                </Toggle>
+        <div className="overflow-hidden">
+            <div
+                className="flex items-center gap-1 px-1 py-1 border-b"
+                onMouseDown={(e) => e.preventDefault()}
+            >
+                {TOOLBAR.map((group, gi) => (
+                    <div key={gi} className="flex items-center gap-1">
+                        {gi > 0 && <div className="w-px h-3 bg-border mx-1" />}
+                        {group.map((item, ii) => {
+                            const Icon = item.icon;
+                            return (
+                                <Toggle
+                                    key={ii}
+                                    size="sm"
+                                    className="h-5 w-5 min-w-0 p-0 rounded-sm text-muted-foreground"
+                                    pressed={item.isActive(editor)}
+                                    onPressedChange={() => {
+                                        item.action(editor);
+                                        forceRender((t) => t + 1);
+                                    }}
+                                >
+                                    <Icon className="h-3 w-3" />
+                                </Toggle>
+                            );
+                        })}
+                    </div>
+                ))}
             </div>
             <EditorContent
                 editor={editor}
-                className="prose prose-invert max-w-none p-4 min-h-[150px] focus:outline-none"
+                className="prose prose-invert max-w-none p-3 min-h-[150px] [&_.ProseMirror]:outline-none [&_.ProseMirror:focus]:outline-none"
             />
         </div>
     );

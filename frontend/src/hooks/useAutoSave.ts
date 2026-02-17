@@ -13,6 +13,7 @@ export interface UseAutoSaveReturn {
     status: AutoSaveStatus;
     lastSaved: Date | null;
     retry: () => void;
+    flush: () => void;
 }
 
 export const useAutoSave = <T>(
@@ -57,6 +58,14 @@ export const useAutoSave = <T>(
         performSave(pendingDataRef.current);
     }, [performSave]);
 
+    const flush = useCallback(() => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
+        }
+        performSave(pendingDataRef.current);
+    }, [performSave]);
+
     useEffect(() => {
         pendingDataRef.current = data;
     }, [data]);
@@ -94,5 +103,5 @@ export const useAutoSave = <T>(
         };
     }, []);
 
-    return { status, lastSaved, retry };
+    return { status, lastSaved, retry, flush };
 };
