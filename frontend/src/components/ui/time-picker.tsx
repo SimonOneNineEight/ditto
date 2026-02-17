@@ -41,6 +41,7 @@ interface TimePickerProps {
 
 function TimePicker({ value, onChange, placeholder = "Select time...", className, disabled }: TimePickerProps) {
   const [open, setOpen] = React.useState(false)
+  const clickedRef = React.useRef({ hour: false, minute: false, period: false })
 
   const parsed = value ? parse24h(value) : null
   const selectedHour = parsed?.hour ?? null
@@ -49,6 +50,19 @@ function TimePicker({ value, onChange, placeholder = "Select time...", className
 
   const handleSelect = (hour: number, minute: number, period: "AM" | "PM") => {
     onChange?.(to24h(hour, minute, period))
+  }
+
+  React.useEffect(() => {
+    if (!open) {
+      clickedRef.current = { hour: false, minute: false, period: false }
+    }
+  }, [open])
+
+  const maybeClose = () => {
+    const { hour, minute, period } = clickedRef.current
+    if (hour && minute && period) {
+      setOpen(false)
+    }
   }
 
   return (
@@ -86,7 +100,9 @@ function TimePicker({ value, onChange, placeholder = "Select time...", className
                       : "text-muted-foreground hover:text-foreground"
                   )}
                   onClick={() => {
+                    clickedRef.current.hour = true
                     handleSelect(h, selectedMinute ?? 0, selectedPeriod)
+                    maybeClose()
                   }}
                 >
                   {h}
@@ -107,7 +123,9 @@ function TimePicker({ value, onChange, placeholder = "Select time...", className
                       : "text-muted-foreground hover:text-foreground"
                   )}
                   onClick={() => {
+                    clickedRef.current.minute = true
                     handleSelect(selectedHour ?? 12, m, selectedPeriod)
+                    maybeClose()
                   }}
                 >
                   {String(m).padStart(2, "0")}
@@ -128,7 +146,9 @@ function TimePicker({ value, onChange, placeholder = "Select time...", className
                       : "text-muted-foreground hover:text-foreground"
                   )}
                   onClick={() => {
+                    clickedRef.current.period = true
                     handleSelect(selectedHour ?? 12, selectedMinute ?? 0, p)
+                    maybeClose()
                   }}
                 >
                   {p}
