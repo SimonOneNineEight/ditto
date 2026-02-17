@@ -1,6 +1,6 @@
 # Story 6.3: Responsive Design - Mobile and Tablet Support
 
-Status: drafted
+Status: in-progress
 
 ## Story
 
@@ -40,7 +40,7 @@ so that I can access my job search data from any device.
   - [x] 2.8 Avatar tap triggers `UserDropdown` (component BmHs8) - position anchored to avatar on mobile (full-width - 32px), on tablet (180px width, right-aligned)
 
 - [x] Task 3: Responsive Dashboard Page (AC: 1, 2, 3, 4)
-  - [x] 3.1 Convert dashboard stats grid to responsive: 1 col mobile, 2 col tablet, 4 col desktop
+  - [x] 3.1 Convert dashboard stats grid to responsive: 2 col mobile/tablet (2x2), 4 col desktop (4x1)
   - [x] 3.2 Stack quick actions vertically on mobile, horizontally on desktop
   - [x] 3.3 Make upcoming items widget full width on mobile, sidebar width on desktop
   - [x] 3.4 Test dashboard at all breakpoints
@@ -53,29 +53,29 @@ so that I can access my job search data from any device.
   - [x] 4.5 Hide less important columns on tablet, show all on desktop
   - [x] 4.6 Ensure horizontal scrolling avoided at all widths
 
-- [ ] Task 5: Responsive Application Detail Page (AC: 1, 2, 3, 4)
-  - [ ] 5.1 Stack application info sections vertically on mobile
-  - [ ] 5.2 File list displays as compact cards on mobile
-  - [ ] 5.3 Interview and assessment lists stack vertically on mobile
-  - [ ] 5.4 Action buttons remain compact/inline on mobile (not full-width per design)
+- [x] Task 5: Responsive Application Detail Page (AC: 1, 2, 3, 4)
+  - [x] 5.1 Stack application info sections vertically on mobile
+  - [x] 5.2 File list displays as compact cards on mobile
+  - [x] 5.3 Interview and assessment lists stack vertically on mobile
+  - [x] 5.4 Action buttons remain compact/inline on mobile (not full-width per design)
 
-- [ ] Task 6: Responsive Interview Detail Page (AC: 1, 2, 3, 4, 7)
-  - [ ] 6.1 Convert 70/30 desktop grid to stacked layout on mobile
-  - [ ] 6.2 Replace context sidebar with horizontal scrollable `PrevRoundsStrip` for previous round badges (not tabs)
-  - [ ] 6.3 Simplify rich text editor toolbar on mobile (essential formatting only)
-  - [ ] 6.4 Collapse question sections by default on mobile to reduce scroll
-  - [ ] 6.5 Ensure interviewer list is readable on mobile
+- [x] Task 6: Responsive Interview Detail Page (AC: 1, 2, 3, 4, 7)
+  - [x] 6.1 Convert 70/30 desktop grid to stacked layout on mobile
+  - [x] 6.2 Replace context sidebar with horizontal scrollable `PrevRoundsStrip` for previous round badges (not tabs)
+  - [x] 6.3 Simplify rich text editor toolbar on mobile (essential formatting only)
+  - [x] 6.4 Collapse question sections by default on mobile to reduce scroll
+  - [x] 6.5 Ensure interviewer list is readable on mobile
 
-- [ ] Task 7: Responsive Assessment Detail Page (AC: 1, 2, 3, 4, 8)
-  - [ ] 7.1 Stack assessment info vertically on mobile
-  - [ ] 7.2 Submission form full width on mobile
-  - [ ] 7.3 Status dropdown accessible on mobile (minimum touch target)
-  - [ ] 7.4 Add Submission modal: full-screen on mobile, centered dialog on tablet/desktop
+- [x] Task 7: Responsive Assessment Detail Page (AC: 1, 2, 3, 4, 8)
+  - [x] 7.1 Stack assessment info vertically on mobile
+  - [x] 7.2 Submission form full width on mobile
+  - [x] 7.3 Status dropdown accessible on mobile (minimum touch target)
+  - [x] 7.4 Add Submission modal: full-screen on mobile, centered dialog on tablet/desktop
 
-- [ ] Task 8: Responsive Timeline Page (AC: 1, 2, 3)
-  - [ ] 8.1 Timeline items full width cards on mobile
-  - [ ] 8.2 Filter controls stack vertically on mobile
-  - [ ] 8.3 Date grouping headers sticky on mobile for context
+- [x] Task 8: Responsive Timeline Page (AC: 1, 2, 3)
+  - [x] 8.1 Timeline items full width cards on mobile
+  - [x] 8.2 Filter controls stack vertically on mobile
+  - [x] 8.3 Date grouping headers sticky on mobile for context
 
 - [ ] Task 9: Responsive Form Components (AC: 5, 6)
   - [ ] 9.1 Add `inputMode` attribute to inputs (numeric, email, tel, url)
@@ -84,12 +84,12 @@ so that I can access my job search data from any device.
   - [ ] 9.4 Add focus trap and auto-focus management for modals on mobile
   - [ ] 9.5 Ensure date pickers work on mobile (touch-friendly)
 
-- [ ] Task 10: Responsive Rich Text Editor (TipTap) (AC: 7)
-  - [ ] 10.1 Create responsive toolbar: full options desktop, essential mobile
-  - [ ] 10.2 Essential mobile toolbar: bold, italic, list, link only
-  - [ ] 10.3 Add overflow menu for additional formatting on mobile
-  - [ ] 10.4 Increase editor content area min-height on mobile
-  - [ ] 10.5 Test paste and link insertion on mobile browsers
+- [x] Task 10: Responsive Rich Text Editor (TipTap) (AC: 7)
+  - [x] 10.1 Create responsive toolbar: full options desktop, essential mobile
+  - [x] 10.2 Essential mobile toolbar: bold, italic, list, link only
+  - [x] 10.3 Add overflow menu for additional formatting on mobile
+  - [x] 10.4 Increase editor content area min-height on mobile
+  - [x] 10.5 Test paste and link insertion on mobile browsers
 
 - [ ] Task 11: Touch Target Audit and Fix (AC: 5)
   - [ ] 11.1 Audit all buttons, links, and interactive elements for 44x44px minimum
@@ -97,11 +97,11 @@ so that I can access my job search data from any device.
   - [ ] 11.3 Add padding to clickable table rows on mobile
   - [ ] 11.4 Ensure dropdown items have adequate touch spacing
 
-- [ ] Task 12: Global Search Responsive (AC: 2, 3)
-  - [ ] 12.1 Full-screen search overlay on mobile (modal style)
-  - [ ] 12.2 Search input auto-focused when opened on mobile
-  - [ ] 12.3 Results grouped with collapsible sections on mobile
-  - [ ] 12.4 Close button easily accessible (top right, 44x44px)
+- [x] Task 12: Global Search Responsive (AC: 2, 3)
+  - [x] 12.1 Full-screen search overlay on mobile (modal style)
+  - [x] 12.2 Search input auto-focused when opened on mobile
+  - [x] 12.3 Results grouped with collapsible sections on mobile
+  - [x] 12.4 Close button easily accessible (top right, 44x44px)
 
 - [x] Task 13: FAB (Floating Action Button) Pattern for Mobile (AC: 2)
   - [x] 13.1 Create reusable `FAB` component: 52x52px, primary background, plus icon, corner radius 26px, drop shadow (blur 12px, offset y:4)
@@ -117,21 +117,21 @@ so that I can access my job search data from any device.
   - [ ] 14.3 Implement `SortSheet` for mobile sort options
   - [ ] 14.4 Ensure bottom sheets have proper drag-to-dismiss and backdrop
 
-- [ ] Task 15: Modal Responsiveness Strategy (AC: 8)
-  - [ ] 15.1 Create responsive modal wrapper that switches between full-screen (mobile) and centered dialog (tablet+)
-  - [ ] 15.2 Update all existing modals to use responsive pattern
-  - [ ] 15.3 Full-screen mobile modals: header with close button, scrollable content, sticky footer actions
-  - [ ] 15.4 Centered tablet modals: standard dialog with max-width constraint
+- [x] Task 15: Modal Responsiveness Strategy (AC: 8)
+  - [x] 15.1 Create responsive modal wrapper that switches between full-screen (mobile) and centered dialog (tablet+)
+  - [x] 15.2 Update all existing modals to use responsive pattern
+  - [x] 15.3 Full-screen mobile modals: header with close button, scrollable content, sticky footer actions
+  - [x] 15.4 Centered tablet modals: standard dialog with max-width constraint
 
-- [ ] Task 16: Responsive Files Page (AC: 1, 2, 3)
-  - [ ] 16.1 Files list as cards on mobile, table on tablet+
-  - [ ] 16.2 Near-limit storage warning state responsive styling
-  - [ ] 16.3 File upload button accessible on mobile (consider FAB or header action)
+- [x] Task 16: Responsive Files Page (AC: 1, 2, 3)
+  - [x] 16.1 Files list as cards on mobile, table on tablet+
+  - [x] 16.2 Near-limit storage warning state responsive styling
+  - [x] 16.3 File upload button accessible on mobile (consider FAB or header action)
 
-- [ ] Task 17: Responsive Settings Page (AC: 1, 2, 3)
-  - [ ] 17.1 Settings sections stack vertically on mobile
-  - [ ] 17.2 Form controls full-width on mobile
-  - [ ] 17.3 Navigation between settings sections on mobile (tabs or accordion)
+- [x] Task 17: Responsive Settings Page (AC: 1, 2, 3)
+  - [x] 17.1 Settings sections stack vertically on mobile
+  - [x] 17.2 Form controls full-width on mobile
+  - [x] 17.3 Navigation between settings sections on mobile (tabs or accordion)
 
 - [ ] Task 18: Empty States for Mobile/Tablet (AC: 2, 3)
   - [ ] 18.1 Create responsive empty states for Dashboard (no recent applications)
@@ -140,10 +140,10 @@ so that I can access my job search data from any device.
   - [ ] 18.4 Create responsive empty states for Files page
   - [ ] 18.5 Empty states include icon, title, description, and CTA button matching design
 
-- [ ] Task 19: Notification Dropdown Responsive (AC: 2, 3)
-  - [ ] 19.1 Notification bell tap shows dropdown overlay on mobile (full-width minus padding)
-  - [ ] 19.2 Notification bell tap shows dropdown overlay on tablet (360px width, positioned right)
-  - [ ] 19.3 Dropdown has shadow effect and border, contains notification items
+- [x] Task 19: Notification Dropdown Responsive (AC: 2, 3)
+  - [x] 19.1 Notification bell tap shows dropdown overlay on mobile (full-width minus padding)
+  - [x] 19.2 Notification bell tap shows dropdown overlay on tablet (360px width, positioned right)
+  - [x] 19.3 Dropdown has shadow effect and border, contains notification items
 
 - [ ] Task 20: Visual Verification and Bug Fixes (AC: All)
   - [ ] 20.1 Test on actual mobile device (iOS Safari, Android Chrome)
@@ -409,10 +409,93 @@ const { filters, setFilters, applyFilters } = useApplicationFilters();
 
 ### Completion Notes List
 
+- Core responsive infrastructure implemented: `useBreakpoint` hook, `ResponsiveHeader`, `NavSheet`, `FAB`, `UserAvatar`
+- UI components made responsive: Dialog (full-screen on mobile), Sidebar hidden on mobile/tablet
+- All main pages responsive: Dashboard, Applications (list/detail), Interviews (list/detail with card components), Assessment detail, Timeline, Settings, Files
+- Interview detail page restructured with modular cards: DetailsCard, DocumentsCard, InterviewersCard, NotesCard, QuestionsCard, SelfAssessmentCard
+- `InterviewRoundsStrip` created for horizontal scrolling previous rounds on mobile
+- `MobileAppCard` created for mobile application list view
+- `InterviewCardList` created for mobile interview list view
+- All modals updated to be responsive (interview form, assessment form, application selector)
+- Global search, notification dropdown, export dialog made responsive
+- Rich text editor made responsive
+- Bottom padding added to layout for mobile/tablet UX
+
 ### File List
+
+**New Files Created:**
+- `frontend/src/hooks/use-breakpoint.ts`
+- `frontend/src/components/layout/ResponsiveHeader.tsx`
+- `frontend/src/components/layout/NavSheet.tsx`
+- `frontend/src/components/layout/UserAvatar.tsx`
+- `frontend/src/components/ui/fab.tsx`
+- `frontend/src/components/applications/MobileAppCard.tsx`
+- `frontend/src/components/interview-detail/details-card.tsx`
+- `frontend/src/components/interview-detail/documents-card.tsx`
+- `frontend/src/components/interview-detail/interviewers-card.tsx`
+- `frontend/src/components/interview-detail/notes-card.tsx`
+- `frontend/src/components/interview-detail/questions-card.tsx`
+- `frontend/src/components/interview-detail/self-assessment-card.tsx`
+- `frontend/src/components/interview-detail/interview-detail-card.tsx`
+- `frontend/src/components/interview-detail/interview-rounds-strip.tsx`
+- `frontend/src/components/interview-list/interview-card-list.tsx`
+
+**Modified Files:**
+- `frontend/src/app/(app)/layout.tsx`
+- `frontend/src/app/(app)/page.tsx` (dashboard)
+- `frontend/src/app/(app)/applications/page.tsx`
+- `frontend/src/app/(app)/applications/[id]/page.tsx`
+- `frontend/src/app/(app)/applications/[id]/assessments/[assessmentId]/page.tsx`
+- `frontend/src/app/(app)/applications/application-filters.tsx`
+- `frontend/src/app/(app)/applications/application-table/application-table.tsx`
+- `frontend/src/app/(app)/applications/new/add-application-form.tsx`
+- `frontend/src/app/(app)/interviews/page.tsx`
+- `frontend/src/app/(app)/interviews/[id]/page.tsx`
+- `frontend/src/app/(app)/interviews/interview-table/columns.tsx`
+- `frontend/src/app/(app)/interviews/interview-table/interview-table.tsx`
+- `frontend/src/app/(app)/timeline/components/TimelineDateGroup.tsx`
+- `frontend/src/app/(app)/timeline/components/TimelineFilters.tsx`
+- `frontend/src/app/(app)/timeline/components/TimelineItem.tsx`
+- `frontend/src/app/(app)/settings/page.tsx`
+- `frontend/src/app/(auth)/register/page.tsx`
+- `frontend/src/components/ui/dialog.tsx`
+- `frontend/src/components/ui/dropdown-menu.tsx`
+- `frontend/src/components/ui/select.tsx`
+- `frontend/src/components/ui/sidebar.tsx`
+- `frontend/src/components/layout-wrapper/layout-wrapper.tsx`
+- `frontend/src/components/page-header/page-header.tsx`
+- `frontend/src/components/global-search/GlobalSearch.tsx`
+- `frontend/src/components/notification-center/NotificationCenter.tsx`
+- `frontend/src/components/notification-center/NotificationDropdown.tsx`
+- `frontend/src/components/export-dialog/ExportDialog.tsx`
+- `frontend/src/components/rich-text-editor.tsx`
+- `frontend/src/components/storage-quota/user-files-list.tsx`
+- `frontend/src/components/assessment-form/assessment-form-modal.tsx`
+- `frontend/src/components/assessment-list/assessment-list.tsx`
+- `frontend/src/components/submission-list/submission-list.tsx`
+- `frontend/src/components/interview-form/interview-form-modal.tsx`
+- `frontend/src/components/interview-detail/interview-rounds-panel.tsx`
+- `frontend/src/components/interview-detail/interviewers-section.tsx`
+- `frontend/src/components/interview-detail/questions-section.tsx`
+- `frontend/src/components/interview-detail/self-assessment-section.tsx`
+- `frontend/src/components/interview-list/needs-feedback-section.tsx`
+- `frontend/src/components/application-selector/application-selector-dialog.tsx`
+- `frontend/src/components/dashboard/components/RecentApplications.tsx`
+- `frontend/src/components/dashboard/components/UpcomingWidget.tsx`
+- `frontend/src/app/globals.css`
+
+## Known Issues / Backlog
+
+- **Mobile Filter Sheet Flicker**: When clicking filter options inside the mobile filter sheet (e.g., selecting a status), there's a brief flicker where the sheet content disappears and reappears. Root cause: changing filter values triggers parent component re-renders which propagate down. Partial fix applied (memoized `currentFilters` and `selectedStatusIds`, replaced Radix Sheet with CSS-based approach), but flicker still occurs on filter interactions. Full fix requires further state isolation or different state management approach.
 
 ## Change Log
 
+- 2026-02-15: Added Known Issues section documenting mobile filter sheet flicker issue for backlog
+- 2026-02-15: Updated story to reflect completed implementation based on commit history review:
+  - Marked Tasks 5-8, 10, 12, 15-17, 19 as complete (verified via git commits deabb46, 4876a51, f44f91f, f1df33c, bd555bd, 6d7f2c8, ab4d164, 4ce7a4c)
+  - Added comprehensive File List with all created and modified files
+  - Added Completion Notes summarizing implementation
+  - Remaining tasks: 9 (Form Components - partial), 11 (Touch Target Audit), 14 (Bottom Sheets), 18 (Empty States), 20 (Visual Verification)
 - 2026-02-12: Generated story context XML with documentation, code artifacts, dependencies, constraints, interfaces, and test ideas
 - 2026-02-12: Fixed stale items and consolidated tasks based on review feedback:
   - Fixed Architecture Alignment: removed stale "collapsed state" reference, sidebar is now hidden/shown only

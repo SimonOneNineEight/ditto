@@ -44,7 +44,7 @@
 
 ## 3. Dashboard Page (`/`)
 
-- [ ] Stats cards grid: 2x2 on mobile, 4x1 on desktop
+- [ ] Stats cards grid: 2x2 on mobile/tablet, 4x1 on desktop
 - [ ] Upcoming widget scrolls horizontally on mobile
 - [ ] Recent applications list readable on mobile
 - [ ] FAB appears on mobile for quick actions
