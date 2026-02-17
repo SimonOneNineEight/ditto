@@ -40,7 +40,7 @@ export default function SettingsPage() {
                 <NotificationPreferences />
 
                 <Card>
-                    <CardHeader>
+                    <CardHeader className="space-y-1">
                         <CardTitle className="flex items-center gap-2">
                             <Shield className="h-[18px] w-[18px]" />
                             Data & Privacy
@@ -54,20 +54,20 @@ export default function SettingsPage() {
                             <div className="flex items-start gap-2.5">
                                 <Cloud className="h-4 w-4 text-muted-foreground mt-0.5" />
                                 <div className="space-y-0.5">
-                                    <p className="font-medium text-sm">Data Security</p>
-                                    <p className="text-sm text-muted-foreground">
+                                    <div className="font-medium text-sm">Data Security</div>
+                                    <div className="text-sm text-muted-foreground">
                                         Your data is stored securely. Download a full backup anytime using the options below.
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="flex items-start gap-2.5">
                                 <Database className="h-4 w-4 text-muted-foreground mt-0.5" />
                                 <div className="space-y-0.5">
-                                    <p className="font-medium text-sm">Data Retention</p>
-                                    <p className="text-sm text-muted-foreground">
+                                    <div className="font-medium text-sm">Data Retention</div>
+                                    <div className="text-sm text-muted-foreground">
                                         Your data is retained indefinitely while your account is active
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -109,10 +109,10 @@ export default function SettingsPage() {
                     <CardContent>
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div className="space-y-0.5">
-                                <p className="font-medium text-sm">Delete account</p>
-                                <p className="text-xs text-muted-foreground">
+                                <div className="font-medium text-sm">Delete account</div>
+                                <div className="text-xs text-muted-foreground">
                                     Permanently delete your account and all data
-                                </p>
+                                </div>
                             </div>
                             <Button
                                 variant="destructive"

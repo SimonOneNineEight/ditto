@@ -18,7 +18,7 @@ function PreferenceRow({ title, description, checked, onChange }: PreferenceRowP
         <div className="flex items-center justify-between">
             <div className="flex flex-col gap-0.5">
                 <span className="text-sm font-medium">{title}</span>
-                <span className="text-xs text-muted-foreground">{description}</span>
+                <span className="text-xs text-muted-foreground hidden sm:block">{description}</span>
             </div>
             <Switch checked={checked} onCheckedChange={onChange} />
         </div>

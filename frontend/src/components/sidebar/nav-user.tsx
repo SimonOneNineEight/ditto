@@ -1,5 +1,5 @@
 'use client';
-import { BadgeCheck, ChevronDown, LogOut, Settings } from 'lucide-react';
+import { ChevronDown, LogOut, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -78,10 +78,6 @@ export function NavUser() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                        <BadgeCheck />
-                        Account
-                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                         <Link href="/settings">
                             <Settings />

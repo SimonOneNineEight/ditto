@@ -1,6 +1,7 @@
 'use client';
 
-import { BadgeCheck, LogOut, Settings } from 'lucide-react';
+import { useState } from 'react';
+import { LogOut, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -12,12 +13,19 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { useSession, signOut } from 'next-auth/react';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 
 export function UserAvatar() {
     const { data: session } = useSession();
     const breakpoint = useBreakpoint();
+    const [sheetOpen, setSheetOpen] = useState(false);
 
     if (!session?.user) {
         return null;
@@ -37,51 +45,91 @@ export function UserAvatar() {
     };
 
     const isMobile = breakpoint === 'mobile';
-    const dropdownWidth = isMobile ? 'calc(100vw - 32px)' : '180px';
+
+    const avatarButton = (
+        <button
+            className="h-11 w-11 flex items-center justify-center rounded-md hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="User menu"
+            onClick={isMobile ? () => setSheetOpen(true) : undefined}
+        >
+            <Avatar className="h-8 w-8 rounded-full bg-primary">
+                <AvatarFallback className="rounded-full bg-primary text-xs font-semibold">
+                    {getInitials()}
+                </AvatarFallback>
+            </Avatar>
+        </button>
+    );
+
+    const userInfo = (
+        <div className="flex items-center gap-3 px-2 py-2 text-left text-sm">
+            <Avatar className="h-8 w-8 rounded-full bg-primary">
+                <AvatarFallback className="rounded-full bg-primary text-xs font-semibold">
+                    {getInitials()}
+                </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+                <span className="truncate font-medium">
+                    {session.user.name}
+                </span>
+                <span className="truncate text-xs text-muted-foreground">
+                    {session.user.email}
+                </span>
+            </div>
+        </div>
+    );
+
+    if (isMobile) {
+        return (
+            <>
+                {avatarButton}
+                <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                    <SheetContent side="top" className="rounded-b-xl">
+                        <SheetHeader className="sr-only">
+                            <SheetTitle>User menu</SheetTitle>
+                        </SheetHeader>
+                        <div className="pt-2 pb-2">
+                            {userInfo}
+                            <div className="my-2 h-px bg-border" />
+                            <div className="flex flex-col gap-1">
+                                <Link
+                                    href="/settings"
+                                    onClick={() => setSheetOpen(false)}
+                                    className="flex items-center gap-3 rounded-md px-2 py-2.5 text-sm hover:bg-muted transition-colors"
+                                >
+                                    <Settings className="h-4 w-4" />
+                                    Settings
+                                </Link>
+                            </div>
+                            <div className="my-2 h-px bg-border" />
+                            <button
+                                onClick={() => signOut()}
+                                className="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-sm hover:bg-muted transition-colors"
+                            >
+                                <LogOut className="h-4 w-4" />
+                                Log out
+                            </button>
+                        </div>
+                    </SheetContent>
+                </Sheet>
+            </>
+        );
+    }
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button
-                    className="h-11 w-11 flex items-center justify-center rounded-md hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    aria-label="User menu"
-                >
-                    <Avatar className="h-8 w-8 rounded-full bg-primary">
-                        <AvatarFallback className="rounded-full bg-primary text-xs font-semibold">
-                            {getInitials()}
-                        </AvatarFallback>
-                    </Avatar>
-                </button>
+                {avatarButton}
             </DropdownMenuTrigger>
             <DropdownMenuContent
-                className="rounded-lg"
-                style={{ width: dropdownWidth }}
+                className="rounded-lg w-[180px]"
                 align="end"
                 sideOffset={8}
             >
                 <DropdownMenuLabel className="p-0 font-normal">
-                    <div className="flex items-center gap-3 px-2 py-2 text-left text-sm">
-                        <Avatar className="h-8 w-8 rounded-full bg-primary">
-                            <AvatarFallback className="rounded-full bg-primary text-xs font-semibold">
-                                {getInitials()}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col flex-1 min-w-0 gap-0.5">
-                            <span className="truncate font-medium">
-                                {session.user.name}
-                            </span>
-                            <span className="truncate text-xs text-muted-foreground">
-                                {session.user.email}
-                            </span>
-                        </div>
-                    </div>
+                    {userInfo}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                        <BadgeCheck />
-                        Account
-                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                         <Link href="/settings">
                             <Settings />
