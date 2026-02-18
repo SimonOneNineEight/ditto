@@ -5,8 +5,8 @@ export type Breakpoint = 'mobile' | 'tablet' | 'desktop'
 const MOBILE_MAX = 767
 const TABLET_MAX = 1439
 
-export function useBreakpoint(): Breakpoint {
-  const [breakpoint, setBreakpoint] = React.useState<Breakpoint>('desktop')
+export function useBreakpoint(): Breakpoint | undefined {
+  const [breakpoint, setBreakpoint] = React.useState<Breakpoint | undefined>(undefined)
 
   React.useEffect(() => {
     const getBreakpoint = (): Breakpoint => {

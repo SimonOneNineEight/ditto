@@ -177,7 +177,7 @@ export const SubmissionFormModal = ({
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
                   <DialogBody className="space-y-4">
                     <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-muted-foreground">
+                        <Label htmlFor="submission-type" className="text-xs font-medium text-muted-foreground">
                             Submission Type
                         </Label>
                         <Controller
@@ -194,7 +194,11 @@ export const SubmissionFormModal = ({
                                     value={field.value}
                                     disabled={isSubmitting}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger
+                                        id="submission-type"
+                                        aria-invalid={!!errors.submission_type}
+                                        aria-describedby={errors.submission_type ? 'submission-type-error' : undefined}
+                                    >
                                         <SelectValue placeholder="Select type" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -211,7 +215,7 @@ export const SubmissionFormModal = ({
                             )}
                         />
                         {errors.submission_type && (
-                            <p className="text-sm text-destructive">
+                            <p id="submission-type-error" className="text-sm text-destructive" role="alert">
                                 {errors.submission_type.message}
                             </p>
                         )}
@@ -219,7 +223,7 @@ export const SubmissionFormModal = ({
 
                     {submissionType === 'github' && (
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">
+                            <Label htmlFor="submission-github-url" className="text-xs font-medium text-muted-foreground">
                                 GitHub URL
                             </Label>
                             <Controller
@@ -228,14 +232,18 @@ export const SubmissionFormModal = ({
                                 render={({ field }) => (
                                     <Input
                                         {...field}
+                                        id="submission-github-url"
                                         type="url"
                                         placeholder="https://github.com/username/repo"
                                         disabled={isSubmitting}
+                                        aria-required="true"
+                                        aria-invalid={!!errors.github_url}
+                                        aria-describedby={errors.github_url ? 'submission-github-url-error' : undefined}
                                     />
                                 )}
                             />
                             {errors.github_url && (
-                                <p className="text-sm text-destructive">
+                                <p id="submission-github-url-error" className="text-sm text-destructive" role="alert">
                                     {errors.github_url.message}
                                 </p>
                             )}
@@ -255,7 +263,7 @@ export const SubmissionFormModal = ({
                                 disabled={isSubmitting}
                             />
                             {errors.file_id && (
-                                <p className="text-sm text-destructive">
+                                <p className="text-sm text-destructive" role="alert">
                                     {errors.file_id.message}
                                 </p>
                             )}
@@ -264,7 +272,7 @@ export const SubmissionFormModal = ({
 
                     {submissionType === 'notes' && (
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">
+                            <Label htmlFor="submission-notes" className="text-xs font-medium text-muted-foreground">
                                 Notes
                             </Label>
                             <Controller
@@ -273,9 +281,11 @@ export const SubmissionFormModal = ({
                                 render={({ field }) => (
                                     <Textarea
                                         {...field}
+                                        id="submission-notes"
                                         placeholder="Describe your submission..."
                                         rows={4}
                                         disabled={isSubmitting}
+                                        aria-required="true"
                                     />
                                 )}
                             />

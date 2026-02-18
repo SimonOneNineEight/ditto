@@ -143,13 +143,14 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden p-0 gap-0 sm:rounded-xl sm:max-w-[560px] xl:max-w-[720px]">
+      <DialogContent className="overflow-hidden p-0 gap-0 sm:rounded-xl sm:max-w-[560px] xl:max-w-[720px]" aria-label="Global search" data-testid="global-search">
         <Command className="rounded-xl" shouldFilter={false}>
           <CommandInput
             placeholder="Search applications, interviews, assessments..."
             value={query}
             onValueChange={setQuery}
             className="h-12"
+            autoFocus
           />
 
           <CommandList className="flex-1 sm:flex-none sm:max-h-[300px] overflow-y-auto p-2">

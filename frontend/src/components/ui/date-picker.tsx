@@ -13,24 +13,34 @@ import {
 } from "@/components/ui/popover"
 
 interface DatePickerProps {
+  id?: string
   value?: Date
   onChange?: (date: Date | undefined) => void
   placeholder?: string
   className?: string
+  disabled?: boolean
+  "aria-invalid"?: boolean
+  "aria-describedby"?: string
 }
 
-function DatePicker({ value, onChange, placeholder = "Select date...", className }: DatePickerProps) {
+function DatePicker({ id, value, onChange, placeholder = "Select date...", className, disabled, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedby }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
 
   return (
     <div className={cn("relative", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={disabled ? false : open} onOpenChange={disabled ? undefined : setOpen}>
         <PopoverTrigger asChild>
           <button
+            id={id}
             type="button"
+            disabled={disabled}
+            aria-label={value ? `Date: ${format(value, "MMMM d, yyyy")}. Change date` : placeholder}
+            aria-invalid={ariaInvalid}
+            aria-describedby={ariaDescribedby}
             className={cn(
-              "flex w-full items-center justify-between border-b border-border px-0 py-1 font-normal text-sm bg-transparent",
+              "flex w-full items-center justify-between border-b border-border px-0 py-1 font-normal text-sm bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
               !value && "text-muted-foreground",
+              disabled && "opacity-50 cursor-not-allowed",
             )}
           >
             <span>

@@ -3,11 +3,12 @@ interface FormLabelProps {
     required?: boolean;
     error?: boolean;
     className?: string;
+    htmlFor?: string;
 }
 
-export const FormLabel = ({ children, required, error, className = '' }: FormLabelProps) => {
+export const FormLabel = ({ children, required, error, className = '', htmlFor }: FormLabelProps) => {
     return (
-        <label className={`text-xs font-medium uppercase tracking-wider flex items-center gap-1 ${error ? 'text-destructive' : 'text-muted-foreground'} ${className}`}>
+        <label htmlFor={htmlFor} className={`text-xs font-medium uppercase tracking-wider flex items-center gap-1 ${error ? 'text-destructive' : 'text-muted-foreground'} ${className}`}>
             {children}
             {required && <span className={error ? 'text-destructive' : 'text-primary'}>*</span>}
         </label>

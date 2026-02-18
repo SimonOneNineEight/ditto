@@ -77,6 +77,7 @@ const RegisterPage = () => {
                     <form
                         onSubmit={handleSubmit(onSubmit)}
                         className="flex flex-col gap-5"
+                        data-testid="register-form"
                     >
                         <div>
                             <label htmlFor="name" className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
@@ -85,11 +86,15 @@ const RegisterPage = () => {
                             <input
                                 id="name"
                                 autoComplete="name"
+                                aria-required="true"
+                                aria-invalid={!!errors.name}
+                                aria-describedby={errors.name ? 'name-error' : undefined}
                                 {...register('name')}
                                 className={AUTH_INPUT_CLASS}
+                                data-testid="register-name"
                             />
                             {errors.name && (
-                                <p className="text-destructive text-sm mt-1">
+                                <p id="name-error" role="alert" className="text-destructive text-sm mt-1">
                                     {errors.name.message}
                                 </p>
                             )}
@@ -104,11 +109,15 @@ const RegisterPage = () => {
                                 type="email"
                                 autoComplete="email"
                                 inputMode="email"
+                                aria-required="true"
+                                aria-invalid={!!errors.email}
+                                aria-describedby={errors.email ? 'reg-email-error' : undefined}
                                 {...register('email')}
                                 className={AUTH_INPUT_CLASS}
+                                data-testid="register-email"
                             />
                             {errors.email && (
-                                <p className="text-destructive text-sm mt-1">
+                                <p id="reg-email-error" role="alert" className="text-destructive text-sm mt-1">
                                     {errors.email.message}
                                 </p>
                             )}
@@ -122,11 +131,15 @@ const RegisterPage = () => {
                                 id="password"
                                 type="password"
                                 autoComplete="new-password"
+                                aria-required="true"
+                                aria-invalid={!!errors.password}
+                                aria-describedby={errors.password ? 'reg-password-error' : undefined}
                                 {...register('password')}
                                 className={AUTH_INPUT_CLASS}
+                                data-testid="register-password"
                             />
                             {errors.password && (
-                                <p className="text-destructive text-sm mt-1">
+                                <p id="reg-password-error" role="alert" className="text-destructive text-sm mt-1">
                                     {errors.password.message}
                                 </p>
                             )}
@@ -140,23 +153,27 @@ const RegisterPage = () => {
                                 id="confirmPassword"
                                 type="password"
                                 autoComplete="new-password"
+                                aria-required="true"
+                                aria-invalid={!!errors.confirmPassword}
+                                aria-describedby={errors.confirmPassword ? 'confirm-password-error' : undefined}
                                 {...register('confirmPassword')}
                                 className={AUTH_INPUT_CLASS}
+                                data-testid="register-confirm-password"
                             />
                             {errors.confirmPassword && (
-                                <p className="text-destructive text-sm mt-1">
+                                <p id="confirm-password-error" role="alert" className="text-destructive text-sm mt-1">
                                     {errors.confirmPassword.message}
                                 </p>
                             )}
                         </div>
 
                         {error && (
-                            <p className="text-destructive text-sm text-center">
+                            <p role="alert" className="text-destructive text-sm text-center">
                                 {error}
                             </p>
                         )}
 
-                        <Button type="submit" size="full">
+                        <Button type="submit" size="full" data-testid="register-submit">
                             Create Account
                         </Button>
                     </form>

@@ -46,6 +46,13 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
+                    <a
+                        href="#main-content"
+                        className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-background focus:text-foreground focus:border focus:rounded-md focus:m-2"
+                        data-testid="skip-to-content"
+                    >
+                        Skip to main content
+                    </a>
                     <SidebarProvider>
                         <AppSidebar />
                         <SidebarInset className="max-w-full min-w-0">

@@ -54,7 +54,7 @@ export function NotificationDropdown({
                 {hasUnread && (
                     <button
                         onClick={handleMarkAllAsRead}
-                        className="text-xs font-medium text-primary hover:underline"
+                        className="text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
                     >
                         Mark all as read
                     </button>

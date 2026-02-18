@@ -129,7 +129,7 @@ export const InterviewFormModal = ({
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">Interview Type</Label>
+                            <Label htmlFor="interview-type" className="text-xs font-medium text-muted-foreground">Interview Type</Label>
                             <Controller
                                 name="interview_type"
                                 control={control}
@@ -139,7 +139,12 @@ export const InterviewFormModal = ({
                                         value={field.value ?? ''}
                                         disabled={isSubmitting}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger
+                                            id="interview-type"
+                                            aria-required="true"
+                                            aria-invalid={!!errors.interview_type}
+                                            aria-describedby={errors.interview_type ? 'interview-type-error' : undefined}
+                                        >
                                             <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -156,7 +161,7 @@ export const InterviewFormModal = ({
                                 )}
                             />
                             {errors.interview_type && (
-                                <p className="text-sm text-destructive">
+                                <p id="interview-type-error" role="alert" className="text-sm text-destructive">
                                     {errors.interview_type.message}
                                 </p>
                             )}
@@ -164,32 +169,36 @@ export const InterviewFormModal = ({
 
                         <div className="flex gap-3">
                             <div className="flex-1 space-y-1.5">
-                                <Label className="text-xs font-medium text-muted-foreground">Date</Label>
+                                <Label htmlFor="interview-date" className="text-xs font-medium text-muted-foreground">Date</Label>
                                 <Controller
                                     name="scheduled_date"
                                     control={control}
                                     render={({ field }) => (
                                         <DatePicker
+                                            id="interview-date"
                                             value={field.value}
                                             onChange={field.onChange}
                                             className="w-full"
+                                            aria-invalid={!!errors.scheduled_date}
+                                            aria-describedby={errors.scheduled_date ? 'interview-date-error' : undefined}
                                         />
                                     )}
                                 />
                                 {errors.scheduled_date && (
-                                    <p className="text-sm text-destructive">
+                                    <p id="interview-date-error" role="alert" className="text-sm text-destructive">
                                         {errors.scheduled_date.message}
                                     </p>
                                 )}
                             </div>
 
                             <div className="flex-1 space-y-1.5">
-                                <Label className="text-xs font-medium text-muted-foreground">Time</Label>
+                                <Label htmlFor="interview-time" className="text-xs font-medium text-muted-foreground">Time</Label>
                                 <Controller
                                     name="scheduled_time"
                                     control={control}
                                     render={({ field }) => (
                                         <TimePicker
+                                            id="interview-time"
                                             value={field.value}
                                             onChange={field.onChange}
                                             disabled={isSubmitting}
@@ -200,7 +209,7 @@ export const InterviewFormModal = ({
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">Duration</Label>
+                            <Label htmlFor="interview-duration" className="text-xs font-medium text-muted-foreground">Duration</Label>
                             <Controller
                                 name="duration_minutes"
                                 control={control}
@@ -210,7 +219,7 @@ export const InterviewFormModal = ({
                                         value={field.value ?? ''}
                                         disabled={isSubmitting}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger id="interview-duration">
                                             <SelectValue placeholder="Select duration" />
                                         </SelectTrigger>
                                         <SelectContent>

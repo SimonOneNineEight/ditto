@@ -9,7 +9,7 @@ type Props = {
 const LayoutWrapper = ({ children }: Props) => {
     return (
         <div className="flex flex-col row-start-2 items-center px-4 pt-4 pb-24 sm:px-6 lg:px-8 desktop:pb-8">
-            <main className="w-full max-w-[1440px] min-w-0">
+            <main id="main-content" className="w-full max-w-[1440px] min-w-0">
                 {children}
             </main>
         </div>

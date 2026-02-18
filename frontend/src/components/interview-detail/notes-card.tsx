@@ -128,13 +128,15 @@ export const NotesCard = ({
         <InterviewDetailCard title="Notes" headerAction={headerAction}>
             <div className="space-y-4">
                 {/* Tabs */}
-                <div className="flex gap-1 border-b border-border">
+                <div className="flex gap-1 border-b border-border" role="tablist" aria-label="Note categories">
                     {TABS.map((tab) => (
                         <button
                             key={tab.id}
+                            role="tab"
+                            aria-selected={activeTab === tab.id}
                             onClick={() => handleTabChange(tab.id)}
                             className={cn(
-                                'px-4 py-2 text-sm font-medium transition-colors relative',
+                                'px-4 py-2 text-sm font-medium transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-t-sm',
                                 activeTab === tab.id
                                     ? 'text-foreground'
                                     : 'text-muted-foreground hover:text-foreground'

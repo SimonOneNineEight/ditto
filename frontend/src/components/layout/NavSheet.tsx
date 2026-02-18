@@ -100,7 +100,7 @@ export function NavSheet({ open, onOpenChange }: NavSheetProps) {
                         </div>
 
                         {/* Navigation Items */}
-                        <nav className="flex flex-col gap-1 px-3 flex-1">
+                        <nav aria-label="Main navigation" className="flex flex-col gap-1 px-3 flex-1" data-testid="navsheet-nav">
                             {navItems.map((item) => {
                                 const isActive =
                                     item.url === '/'
@@ -111,6 +111,7 @@ export function NavSheet({ open, onOpenChange }: NavSheetProps) {
                                         key={item.title}
                                         href={item.url}
                                         onClick={handleNavClick}
+                                        aria-current={isActive ? 'page' : undefined}
                                         className={cn(
                                             'flex items-center gap-3 rounded-md px-4 py-3 text-sm transition-colors',
                                             isActive

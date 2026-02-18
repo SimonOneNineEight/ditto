@@ -199,7 +199,7 @@ export const SelfAssessmentCard = ({
         value: string,
         onChange: (val: string) => void,
         placeholder: string,
-        ref: React.RefObject<HTMLDivElement | null>
+        ref: React.RefObject<HTMLDivElement>
     ) => {
         const isEditing = editingField === field;
 
@@ -246,7 +246,7 @@ export const SelfAssessmentCard = ({
     };
 
     const headerAction = (
-        <div className="h-4">
+        <div className="h-4" aria-live="polite" data-testid="autosave-status">
             {autoSaveStatus === 'saving' && (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -315,14 +315,17 @@ export const SelfAssessmentCard = ({
                     <Label className="text-muted-foreground text-xs font-medium">
                         Confidence Level (1-5)
                     </Label>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2" role="radiogroup" aria-label="Confidence level">
                         {CONFIDENCE_LEVELS.map((level) => (
                             <button
                                 key={level}
                                 type="button"
+                                role="radio"
+                                aria-checked={confidenceLevel === level}
+                                aria-label={`${level} - ${getConfidenceLabel(level)}`}
                                 onClick={() => handleConfidenceLevelChange(level)}
                                 className={cn(
-                                    'h-8 w-8 rounded text-sm font-medium transition-colors',
+                                    'h-8 w-8 rounded text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                                     confidenceLevel === level
                                         ? 'bg-primary text-primary-foreground'
                                         : 'bg-muted text-muted-foreground hover:bg-muted/80'

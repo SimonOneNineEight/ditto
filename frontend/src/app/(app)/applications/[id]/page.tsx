@@ -297,6 +297,7 @@ const ApplicationPage = () => {
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Edit application"
                         onClick={() => router.push(`/applications/${applicationId}/edit`)}
                     >
                         <Pencil className="h-4 w-4" />
@@ -304,6 +305,7 @@ const ApplicationPage = () => {
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Delete application"
                         onClick={() => setIsDeleteOpen(true)}
                     >
                         <Trash2 className="h-4 w-4" />
@@ -314,7 +316,7 @@ const ApplicationPage = () => {
                 <div className="sm:hidden flex-shrink-0">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Application actions">
                                 <MoreVertical className="h-4 w-4 text-muted-foreground" />
                             </Button>
                         </DropdownMenuTrigger>
@@ -396,7 +398,9 @@ const ApplicationPage = () => {
                             {app.job?.job_description && (
                                 <button
                                     onClick={() => setIsJdExpanded(!isJdExpanded)}
-                                    className="text-muted-foreground hover:text-foreground"
+                                    aria-expanded={isJdExpanded}
+                                    aria-label={isJdExpanded ? 'Collapse job description' : 'Expand job description'}
+                                    className="text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
                                 >
                                     {isJdExpanded ? (
                                         <ChevronUp className="h-[18px] w-[18px]" />
@@ -432,7 +436,9 @@ const ApplicationPage = () => {
                             <CardTitle className="text-base">Notes</CardTitle>
                             <button
                                 onClick={() => setIsNotesExpanded(!isNotesExpanded)}
-                                className="text-muted-foreground hover:text-foreground"
+                                aria-expanded={isNotesExpanded}
+                                aria-label={isNotesExpanded ? 'Collapse notes' : 'Expand notes'}
+                                className="text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
                             >
                                 {isNotesExpanded ? (
                                     <ChevronUp className="h-[18px] w-[18px]" />

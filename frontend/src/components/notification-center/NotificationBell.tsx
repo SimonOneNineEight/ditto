@@ -14,10 +14,11 @@ export function NotificationBell({ unreadCount, onClick, className }: Notificati
         <button
             onClick={onClick}
             className={cn(
-                'relative flex h-9 w-9 items-center justify-center rounded-md hover:bg-muted',
+                'relative flex h-9 w-9 items-center justify-center rounded-md hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                 className
             )}
             aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
+            data-testid="notification-bell"
         >
             <Bell className="h-5 w-5 text-muted-foreground" />
             {unreadCount > 0 && (

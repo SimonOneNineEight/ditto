@@ -93,8 +93,7 @@ export function AddRoundDialog({ open, onOpenChange, applicationId }: AddRoundDi
             onOpenChange(false);
             reset();
             router.push(`/interviews/${newInterview.id}`);
-        } catch (err) {
-            console.error('Failed to add interview round:', err);
+        } catch {
             toast.error('Failed to add interview round');
         }
     };
@@ -120,7 +119,7 @@ export function AddRoundDialog({ open, onOpenChange, applicationId }: AddRoundDi
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <DialogBody className="space-y-4">
                         <div className="space-y-2">
-                            <Label>Interview Type</Label>
+                            <Label htmlFor="round-type">Interview Type</Label>
                             <Controller
                                 name="interview_type"
                                 control={control}
@@ -130,7 +129,12 @@ export function AddRoundDialog({ open, onOpenChange, applicationId }: AddRoundDi
                                         value={field.value}
                                         disabled={isSubmitting}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger
+                                            id="round-type"
+                                            aria-required="true"
+                                            aria-invalid={!!errors.interview_type}
+                                            aria-describedby={errors.interview_type ? 'round-type-error' : undefined}
+                                        >
                                             <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -146,35 +150,44 @@ export function AddRoundDialog({ open, onOpenChange, applicationId }: AddRoundDi
                                     </Select>
                                 )}
                             />
+                            {errors.interview_type && (
+                                <p id="round-type-error" className="text-sm text-destructive" role="alert">
+                                    {errors.interview_type.message}
+                                </p>
+                            )}
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Scheduled Date</Label>
+                            <Label htmlFor="round-date">Scheduled Date</Label>
                             <Controller
                                 name="scheduled_date"
                                 control={control}
                                 render={({ field }) => (
                                     <DatePicker
+                                        id="round-date"
                                         value={field.value}
                                         onChange={field.onChange}
                                         disabled={isSubmitting}
+                                        aria-invalid={!!errors.scheduled_date}
+                                        aria-describedby={errors.scheduled_date ? 'round-date-error' : undefined}
                                     />
                                 )}
                             />
                             {errors.scheduled_date && (
-                                <p className="text-sm text-destructive">
+                                <p id="round-date-error" role="alert" className="text-sm text-destructive">
                                     {errors.scheduled_date.message}
                                 </p>
                             )}
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Scheduled Time</Label>
+                            <Label htmlFor="round-time">Scheduled Time</Label>
                             <Controller
                                 name="scheduled_time"
                                 control={control}
                                 render={({ field }) => (
                                     <TimePicker
+                                        id="round-time"
                                         value={field.value || ''}
                                         onChange={field.onChange}
                                         disabled={isSubmitting}
@@ -184,7 +197,7 @@ export function AddRoundDialog({ open, onOpenChange, applicationId }: AddRoundDi
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Duration</Label>
+                            <Label htmlFor="round-duration">Duration</Label>
                             <Controller
                                 name="duration_minutes"
                                 control={control}
@@ -194,7 +207,7 @@ export function AddRoundDialog({ open, onOpenChange, applicationId }: AddRoundDi
                                         value={field.value}
                                         disabled={isSubmitting}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger id="round-duration">
                                             <SelectValue placeholder="Select duration" />
                                         </SelectTrigger>
                                         <SelectContent>

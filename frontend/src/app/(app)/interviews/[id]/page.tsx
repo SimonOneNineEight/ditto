@@ -279,6 +279,7 @@ const InterviewDetailPage = () => {
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Edit interview"
                         onClick={handleEditOpen}
                     >
                         <Pencil className="h-4 w-4" />
@@ -286,6 +287,7 @@ const InterviewDetailPage = () => {
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Delete interview"
                         onClick={() => setIsDeleteOpen(true)}
                     >
                         <Trash2 className="h-4 w-4" />
@@ -296,7 +298,7 @@ const InterviewDetailPage = () => {
                 <div className="sm:hidden flex-shrink-0">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Interview actions">
                                 <MoreVertical className="h-4 w-4 text-muted-foreground" />
                             </Button>
                         </DropdownMenuTrigger>
@@ -403,7 +405,7 @@ const InterviewDetailPage = () => {
                     >
                       <DialogBody className="space-y-4">
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">Interview Type</Label>
+                            <Label htmlFor="edit-interview-type" className="text-xs font-medium text-muted-foreground">Interview Type</Label>
                             <Controller
                                 name="interview_type"
                                 control={control}
@@ -413,7 +415,7 @@ const InterviewDetailPage = () => {
                                         value={field.value}
                                         disabled={isSubmitting}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger id="edit-interview-type">
                                             <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -433,12 +435,13 @@ const InterviewDetailPage = () => {
 
                         <div className="flex gap-3">
                             <div className="flex-1 space-y-1.5">
-                                <Label className="text-xs font-medium text-muted-foreground">Date</Label>
+                                <Label htmlFor="edit-interview-date" className="text-xs font-medium text-muted-foreground">Date</Label>
                                 <Controller
                                     name="scheduled_date"
                                     control={control}
                                     render={({ field }) => (
                                         <DatePicker
+                                            id="edit-interview-date"
                                             value={field.value}
                                             onChange={field.onChange}
                                             className="w-full"
@@ -446,19 +449,20 @@ const InterviewDetailPage = () => {
                                     )}
                                 />
                                 {errors.scheduled_date && (
-                                    <p className="text-sm text-destructive">
+                                    <p className="text-sm text-destructive" role="alert">
                                         {errors.scheduled_date.message}
                                     </p>
                                 )}
                             </div>
 
                             <div className="flex-1 space-y-1.5">
-                                <Label className="text-xs font-medium text-muted-foreground">Time</Label>
+                                <Label htmlFor="edit-interview-time" className="text-xs font-medium text-muted-foreground">Time</Label>
                                 <Controller
                                     name="scheduled_time"
                                     control={control}
                                     render={({ field }) => (
                                         <TimePicker
+                                            id="edit-interview-time"
                                             value={field.value}
                                             onChange={field.onChange}
                                             disabled={isSubmitting}
@@ -469,7 +473,7 @@ const InterviewDetailPage = () => {
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">Duration</Label>
+                            <Label htmlFor="edit-interview-duration" className="text-xs font-medium text-muted-foreground">Duration</Label>
                             <Controller
                                 name="duration_minutes"
                                 control={control}
@@ -479,7 +483,7 @@ const InterviewDetailPage = () => {
                                         value={field.value ?? ''}
                                         disabled={isSubmitting}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger id="edit-interview-duration">
                                             <SelectValue placeholder="Select duration" />
                                         </SelectTrigger>
                                         <SelectContent>

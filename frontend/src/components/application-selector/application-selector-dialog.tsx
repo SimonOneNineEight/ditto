@@ -137,7 +137,7 @@ export const ApplicationSelectorDialog = ({
                                         <button
                                             key={app.id}
                                             onClick={() => handleSelect(app.id)}
-                                            className="w-full flex items-center gap-3 p-2.5 rounded-md hover:bg-muted text-left transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                            className="w-full flex items-center gap-3 p-2.5 rounded-md hover:bg-muted text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                         >
                                             <div className="flex items-center justify-center w-9 h-9 rounded-md bg-muted flex-shrink-0">
                                                 <Building2 className="h-4 w-4 text-muted-foreground" />

@@ -118,7 +118,7 @@ export const AssessmentFormModal = ({
                     </DialogHeader>
                     <DialogBody className="space-y-4">
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">
+                            <Label htmlFor="assessment-type" className="text-xs font-medium text-muted-foreground">
                                 Assessment Type
                             </Label>
                             <Controller
@@ -130,7 +130,11 @@ export const AssessmentFormModal = ({
                                         value={field.value ?? ''}
                                         disabled={isSubmitting}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger
+                                            id="assessment-type"
+                                            aria-invalid={!!errors.assessment_type}
+                                            aria-describedby={errors.assessment_type ? 'assessment-type-error' : undefined}
+                                        >
                                             <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -147,30 +151,34 @@ export const AssessmentFormModal = ({
                                 )}
                             />
                             {errors.assessment_type && (
-                                <p className="text-sm text-destructive">
+                                <p id="assessment-type-error" className="text-sm text-destructive" role="alert">
                                     {errors.assessment_type.message}
                                 </p>
                             )}
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">
+                            <Label htmlFor="assessment-title" className="text-xs font-medium text-muted-foreground">
                                 Title
                             </Label>
                             <Input
+                                id="assessment-title"
                                 {...register('title')}
                                 placeholder="e.g., Backend API Challenge"
                                 disabled={isSubmitting}
+                                aria-required="true"
+                                aria-invalid={!!errors.title}
+                                aria-describedby={errors.title ? 'assessment-title-error' : undefined}
                             />
                             {errors.title && (
-                                <p className="text-sm text-destructive">
+                                <p id="assessment-title-error" className="text-sm text-destructive" role="alert">
                                     {errors.title.message}
                                 </p>
                             )}
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">
+                            <Label htmlFor="assessment-due-date" className="text-xs font-medium text-muted-foreground">
                                 Due Date
                             </Label>
                             <Controller
@@ -178,24 +186,28 @@ export const AssessmentFormModal = ({
                                 control={control}
                                 render={({ field }) => (
                                     <DatePicker
+                                        id="assessment-due-date"
                                         value={field.value}
                                         onChange={field.onChange}
                                         className="w-full"
+                                        aria-invalid={!!errors.due_date}
+                                        aria-describedby={errors.due_date ? 'assessment-due-date-error' : undefined}
                                     />
                                 )}
                             />
                             {errors.due_date && (
-                                <p className="text-sm text-destructive">
+                                <p id="assessment-due-date-error" className="text-sm text-destructive" role="alert">
                                     {errors.due_date.message}
                                 </p>
                             )}
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">
+                            <Label htmlFor="assessment-instructions" className="text-xs font-medium text-muted-foreground">
                                 Instructions (optional)
                             </Label>
                             <Textarea
+                                id="assessment-instructions"
                                 {...register('instructions')}
                                 placeholder="Enter any instructions or requirements..."
                                 rows={3}
@@ -204,10 +216,11 @@ export const AssessmentFormModal = ({
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">
+                            <Label htmlFor="assessment-requirements" className="text-xs font-medium text-muted-foreground">
                                 Requirements (optional)
                             </Label>
                             <Textarea
+                                id="assessment-requirements"
                                 {...register('requirements')}
                                 placeholder="Technical requirements, constraints, etc..."
                                 rows={3}

@@ -229,7 +229,7 @@ const InterviewPageContent = () => {
             {/* Mobile FAB */}
             {hasInterviews && (
                 <FAB
-                    className="fixed bottom-4 right-4 z-50 md:hidden"
+                    className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-4 z-50 md:hidden"
                     aria-label="Add new interview"
                     onClick={handleAddInterview}
                 >

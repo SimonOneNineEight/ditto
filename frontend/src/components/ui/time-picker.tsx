@@ -32,14 +32,17 @@ function formatDisplay(hour: number, minute: number, period: "AM" | "PM"): strin
 }
 
 interface TimePickerProps {
+  id?: string
   value?: string
   onChange?: (time: string) => void
   placeholder?: string
   className?: string
   disabled?: boolean
+  "aria-invalid"?: boolean
+  "aria-describedby"?: string
 }
 
-function TimePicker({ value, onChange, placeholder = "Select time...", className, disabled }: TimePickerProps) {
+function TimePicker({ id, value, onChange, placeholder = "Select time...", className, disabled, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedby }: TimePickerProps) {
   const [open, setOpen] = React.useState(false)
   const clickedRef = React.useRef({ hour: false, minute: false, period: false })
 
@@ -70,10 +73,14 @@ function TimePicker({ value, onChange, placeholder = "Select time...", className
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
+            id={id}
             type="button"
             disabled={disabled}
+            aria-label={parsed ? `Time: ${formatDisplay(parsed.hour, parsed.minute, parsed.period)}. Change time` : placeholder}
+            aria-invalid={ariaInvalid}
+            aria-describedby={ariaDescribedby}
             className={cn(
-              "flex items-center justify-between w-full border-b border-border px-0 py-1 font-normal text-sm bg-transparent",
+              "flex items-center justify-between w-full border-b border-border px-0 py-1 font-normal text-sm bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
               !value && "text-muted-foreground",
               disabled && "opacity-50 cursor-not-allowed",
               className

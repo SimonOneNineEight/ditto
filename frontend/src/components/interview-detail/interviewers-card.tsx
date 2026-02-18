@@ -152,6 +152,7 @@ export const InterviewersCard = ({
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
+                                                aria-label="Save changes"
                                                 className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-100"
                                                 onClick={saveEditing}
                                                 disabled={isSaving}
@@ -161,6 +162,7 @@ export const InterviewersCard = ({
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
+                                                aria-label="Cancel editing"
                                                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                                 onClick={cancelEditing}
                                                 disabled={isSaving}
@@ -195,6 +197,7 @@ export const InterviewersCard = ({
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
+                                                aria-label={`Edit ${interviewer.name}`}
                                                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                                 onClick={() =>
                                                     startEditing(interviewer)
@@ -205,6 +208,7 @@ export const InterviewersCard = ({
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
+                                                aria-label={`Delete ${interviewer.name}`}
                                                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                                 onClick={() =>
                                                     setDeleteTarget(interviewer)

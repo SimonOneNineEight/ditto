@@ -44,6 +44,8 @@ interface SortableHeaderProps {
     className?: string;
 }
 
+type AriaSortValue = 'ascending' | 'descending' | 'none' | undefined;
+
 const SortableHeader = ({ label, columnId, sortState, onSort, className }: SortableHeaderProps) => {
     const sortColumn = sortColumnMap[columnId];
     if (!sortColumn || !onSort) {
@@ -63,6 +65,7 @@ const SortableHeader = ({ label, columnId, sortState, onSort, className }: Sorta
                 e.stopPropagation();
                 onSort(sortColumn);
             }}
+            aria-sort={(isAsc ? 'ascending' : isDesc ? 'descending' : 'none') as AriaSortValue}
         >
             <span>{label}</span>
             {isAsc && <ArrowUp className="ml-1 h-3 w-3" />}
@@ -215,7 +218,7 @@ export const createColumns = (
                     {hasDocuments && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" aria-label="Documents">
                                     <FileText size={16} />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -234,6 +237,7 @@ export const createColumns = (
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Edit application"
                         onClick={(e) => {
                             e.stopPropagation();
                             options.onEdit?.(row.original.id);
@@ -244,6 +248,7 @@ export const createColumns = (
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Delete application"
                         onClick={(e) => {
                             e.stopPropagation();
                             options.onDelete?.(row.original.id);

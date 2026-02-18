@@ -231,7 +231,6 @@ const ApplicationPageContent = () => {
                 onFilterChange={handleFilterChange}
                 onClear={handleClearFilters}
                 hasActiveFilters={hasActiveFilters}
-                total={unfilteredTotal}
                 filteredCount={total}
             />
             <div className="mt-3">
@@ -273,7 +272,7 @@ const ApplicationPageContent = () => {
             {/* Mobile FAB */}
             <Link href="/applications/new" className="md:hidden">
                 <FAB
-                    className="fixed bottom-4 right-4 z-40"
+                    className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-4 z-40"
                     aria-label="Add new application"
                 >
                     <Plus className="h-6 w-6" />

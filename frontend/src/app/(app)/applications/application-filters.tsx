@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { Search, X, ChevronDown, Check, SlidersHorizontal } from 'lucide-react';
 import { format, parse } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -88,7 +88,8 @@ const MobileFilterSheet = memo(function MobileFilterSheet({
                     <h2 className="text-lg font-semibold">Filters</h2>
                     <button
                         onClick={() => onOpenChange(false)}
-                        className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                        className="flex items-center justify-center h-11 w-11 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        aria-label="Close filters"
                     >
                         <X className="h-4 w-4" />
                         <span className="sr-only">Close</span>
@@ -233,7 +234,6 @@ interface ApplicationFiltersProps {
     onFilterChange: (filters: Filters) => void;
     onClear: () => void;
     hasActiveFilters: boolean;
-    total?: number;
     filteredCount?: number;
 }
 
@@ -243,12 +243,16 @@ export function ApplicationFilters({
     onFilterChange,
     onClear,
     hasActiveFilters,
-    total,
     filteredCount,
 }: ApplicationFiltersProps) {
     const [companyInput, setCompanyInput] = useState(currentFilters.company_name || '');
     const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
     const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+    const filtersRef = useRef(currentFilters);
+    const onFilterChangeRef = useRef(onFilterChange);
+    useEffect(() => { filtersRef.current = currentFilters; }, [currentFilters]);
+    useEffect(() => { onFilterChangeRef.current = onFilterChange; }, [onFilterChange]);
 
     const activeFilterCount = [
         currentFilters.status_ids?.length ? 1 : 0,
@@ -264,15 +268,15 @@ export function ApplicationFilters({
     useEffect(() => {
         const timeout = setTimeout(() => {
             const trimmed = companyInput.trim();
-            if (trimmed !== (currentFilters.company_name || '')) {
-                onFilterChange({
-                    ...currentFilters,
+            if (trimmed !== (filtersRef.current.company_name || '')) {
+                onFilterChangeRef.current({
+                    ...filtersRef.current,
                     company_name: trimmed || undefined,
                 });
             }
         }, 300);
         return () => clearTimeout(timeout);
-    }, [companyInput]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [companyInput]);
 
     const selectedStatusIds = useMemo(
         () => currentFilters.status_ids || [],
@@ -361,8 +365,6 @@ export function ApplicationFilters({
         if (selectedStatusIds.length === 1) return getStatusName(selectedStatusIds[0]);
         return `${selectedStatusIds.length} statuses`;
     };
-
-    const showCount = total !== undefined && filteredCount !== undefined;
 
     return (
         <div className="space-y-3">

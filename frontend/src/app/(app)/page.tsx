@@ -149,7 +149,7 @@ export default function Dashboard() {
             ) : (
                 <div className="grid grid-cols-2 desktop:grid-cols-4 gap-4 desktop:gap-6">
                     <StatCard
-                        label="Total Applications"
+                        label="Applications"
                         value={stats?.total_applications ?? 0}
                         icon={Briefcase}
                         onClick={() => handleStatClick()}
@@ -200,7 +200,7 @@ export default function Dashboard() {
             )}
 
             {/* Mobile FAB with expandable options */}
-            <div className="fixed bottom-4 right-4 z-50 md:hidden">
+            <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-4 z-50 md:hidden">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <FAB aria-label="Create new item">

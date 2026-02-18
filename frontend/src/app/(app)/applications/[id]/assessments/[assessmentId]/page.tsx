@@ -193,6 +193,7 @@ const AssessmentDetailPage = () => {
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Delete assessment"
                         onClick={() => setIsDeleteOpen(true)}
                     >
                         <Trash2 className="h-4 w-4" />
@@ -203,7 +204,7 @@ const AssessmentDetailPage = () => {
                 <div className="sm:hidden flex-shrink-0">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Assessment actions">
                                 <MoreVertical className="h-4 w-4 text-muted-foreground" />
                             </Button>
                         </DropdownMenuTrigger>

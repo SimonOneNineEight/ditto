@@ -3,8 +3,8 @@ import { useEffect, useRef, type RefObject } from 'react';
 export function useClickOutside<T extends HTMLElement>(
     callback: () => void,
     enabled: boolean = true
-): RefObject<T | null> {
-    const ref = useRef<T | null>(null);
+): RefObject<T> {
+    const ref = useRef<T>(null);
 
     useEffect(() => {
         if (!enabled) return;

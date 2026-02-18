@@ -25,7 +25,7 @@ export interface PageHeaderProps {
 
 const PageHeader = ({ title, titleExtra, subtitle, breadcrumbs, actions }: PageHeaderProps) => {
     return (
-        <div className="flex flex-col gap-4 desktop:gap-6 mb-4 desktop:mb-6">
+        <div className="flex flex-col gap-4 desktop:gap-6 mb-4 desktop:mb-6" data-testid="page-header">
             {breadcrumbs && breadcrumbs.length > 0 && (
                 <Breadcrumb>
                     <BreadcrumbList>

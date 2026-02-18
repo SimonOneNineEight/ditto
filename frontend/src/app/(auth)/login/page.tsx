@@ -67,6 +67,7 @@ const LoginForm = () => {
                     <form
                         onSubmit={handleSubmit(onSubmit)}
                         className="flex flex-col gap-5"
+                        data-testid="login-form"
                     >
                         <div>
                             <label htmlFor="email" className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">
@@ -75,11 +76,17 @@ const LoginForm = () => {
                             <input
                                 id="email"
                                 type="email"
+                                autoComplete="email"
+                                inputMode="email"
+                                aria-required="true"
+                                aria-invalid={!!errors.email}
+                                aria-describedby={errors.email ? 'email-error' : undefined}
                                 {...register('email')}
                                 className={AUTH_INPUT_CLASS}
+                                data-testid="login-email"
                             />
                             {errors.email && (
-                                <p className="text-destructive text-sm mt-1">
+                                <p id="email-error" role="alert" className="text-destructive text-sm mt-1">
                                     {errors.email.message}
                                 </p>
                             )}
@@ -92,23 +99,28 @@ const LoginForm = () => {
                             <input
                                 id="password"
                                 type="password"
+                                autoComplete="current-password"
+                                aria-required="true"
+                                aria-invalid={!!errors.password}
+                                aria-describedby={errors.password ? 'password-error' : undefined}
                                 {...register('password')}
                                 className={AUTH_INPUT_CLASS}
+                                data-testid="login-password"
                             />
                             {errors.password && (
-                                <p className="text-destructive text-sm mt-1">
+                                <p id="password-error" role="alert" className="text-destructive text-sm mt-1">
                                     {errors.password.message}
                                 </p>
                             )}
                         </div>
 
                         {error && (
-                            <p className="text-destructive text-sm text-center">
+                            <p role="alert" className="text-destructive text-sm text-center">
                                 {error}
                             </p>
                         )}
 
-                        <Button type="submit" size="full">
+                        <Button type="submit" size="full" data-testid="login-submit">
                             Sign In
                         </Button>
                     </form>

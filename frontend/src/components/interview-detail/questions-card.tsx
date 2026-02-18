@@ -352,6 +352,7 @@ export const QuestionsCard = ({
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
+                                                            aria-label={`Move question ${index + 1} up`}
                                                             className="h-7 w-7 text-muted-foreground hover:text-foreground"
                                                             onClick={() =>
                                                                 handleMoveUp(
@@ -369,6 +370,7 @@ export const QuestionsCard = ({
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
+                                                            aria-label={`Move question ${index + 1} down`}
                                                             className="h-7 w-7 text-muted-foreground hover:text-foreground"
                                                             onClick={() =>
                                                                 handleMoveDown(
@@ -390,6 +392,7 @@ export const QuestionsCard = ({
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
+                                                    aria-label={`Edit question ${index + 1}`}
                                                     className="h-7 w-7 text-muted-foreground hover:text-foreground"
                                                     onClick={() =>
                                                         startEditing(question)
@@ -400,6 +403,7 @@ export const QuestionsCard = ({
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
+                                                    aria-label={`Delete question ${index + 1}`}
                                                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
                                                     onClick={() =>
                                                         setDeleteTarget(question)

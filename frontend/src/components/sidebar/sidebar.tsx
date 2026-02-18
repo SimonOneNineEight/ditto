@@ -84,6 +84,7 @@ const AppSidebar = () => {
                         icon={<X />}
                         onClick={toggleSidebar}
                         className="absolute top-4 left-2"
+                        aria-label="Close sidebar"
                     />
                 )}
                 <Link href="/">
@@ -105,13 +106,15 @@ const AppSidebar = () => {
                     hasIcon
                     iconPosition="left"
                     icon={<Search className="h-4 w-4" />}
+                    aria-label="Search"
+                    data-testid="sidebar-search"
                 >
                     <span className="flex-1 text-left text-[13px] font-normal">Search...</span>
                     <kbd className="px-1.5 py-0.5 text-[11px] font-medium bg-background rounded">
                         ⌘K
                     </kbd>
                 </Button>
-                <nav className="flex flex-col gap-1">
+                <nav aria-label="Main navigation" className="flex flex-col gap-1" data-testid="sidebar-nav">
                     {sidebarMenu.map((item) => {
                         const isActive =
                             item.url === '/'
@@ -121,6 +124,7 @@ const AppSidebar = () => {
                             <Link
                                 key={item.title}
                                 href={item.url}
+                                aria-current={isActive ? 'page' : undefined}
                                 className={cn(
                                     'flex items-center gap-3 rounded-md px-4 py-3 text-sm transition-colors',
                                     isActive

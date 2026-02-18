@@ -55,19 +55,17 @@ export function ApplicationTable({
     const isMobile = breakpoint === 'mobile';
     const totalPages = Math.ceil(total / limit);
 
-    const startItem = (page - 1) * limit + 1;
-    const endItem = Math.min(page * limit, total);
-
     const renderPagination = () => (
         <div className="flex items-center justify-between px-4 md:px-5 py-3 border-t border-border">
             <span className="text-[13px] text-muted-foreground">
                 Showing {total}{unfilteredTotal !== undefined && unfilteredTotal !== total ? ` of ${unfilteredTotal}` : ''} applications
             </span>
             {totalPages > 1 && (
-                <div className="flex items-center gap-2">
+                <nav aria-label="Pagination" className="flex items-center gap-2">
                     <Button
                         variant="secondary"
                         size="icon"
+                        aria-label="Previous page"
                         onClick={() => onPageChange(page - 1)}
                         disabled={page <= 1}
                         className="h-10 w-10 md:h-8 md:w-8"
@@ -88,13 +86,14 @@ export function ApplicationTable({
                     <Button
                         variant="secondary"
                         size="icon"
+                        aria-label="Next page"
                         onClick={() => onPageChange(page + 1)}
                         disabled={page >= totalPages}
                         className="h-10 w-10 md:h-8 md:w-8"
                     >
                         <ChevronRight className="h-4 w-4" />
                     </Button>
-                </div>
+                </nav>
             )}
         </div>
     );
@@ -126,7 +125,7 @@ export function ApplicationTable({
 
     return (
         <div className="overflow-hidden rounded-lg">
-            <Table className="w-full">
+            <Table className="w-full" aria-label="Applications">
                 <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>

@@ -38,7 +38,8 @@ export function MobileAppCard({ application }: MobileAppCardProps) {
     return (
         <button
             onClick={handleClick}
-            className="w-full text-left bg-card rounded-lg p-3 hover:bg-muted/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="w-full text-left bg-card rounded-lg p-3 hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            data-testid="mobile-app-card"
         >
             <div className="flex items-start justify-between gap-2">
                 <span className="font-semibold text-sm text-foreground truncate">

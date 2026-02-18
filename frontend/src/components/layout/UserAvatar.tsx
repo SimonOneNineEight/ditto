@@ -48,7 +48,8 @@ export function UserAvatar() {
 
     const avatarButton = (
         <button
-            className="h-11 w-11 flex items-center justify-center rounded-md hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="h-11 w-11 flex items-center justify-center rounded-md hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            data-testid="user-avatar"
             aria-label="User menu"
             onClick={isMobile ? () => setSheetOpen(true) : undefined}
         >
