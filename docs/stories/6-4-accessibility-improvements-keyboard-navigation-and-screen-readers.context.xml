@@ -1,0 +1,240 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>4</storyId>
+    <title>Accessibility Improvements - Keyboard Navigation and Screen Readers</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-18</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-4-accessibility-improvements-keyboard-navigation-and-screen-readers.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user with accessibility needs</asA>
+    <iWant>ditto to be fully usable with keyboard navigation and screen readers</iWant>
+    <soThat>I can access all features regardless of how I interact with the web</soThat>
+    <tasks>
+      <task id="1" ac="2">Semantic HTML Audit and Enhancement
+        <subtask id="1.1">Audit app layout (layout.tsx) for semantic landmarks: ensure main, nav, header wrapping is correct</subtask>
+        <subtask id="1.2">Ensure Sidebar uses nav element with aria-label="Main navigation"</subtask>
+        <subtask id="1.3">Ensure ResponsiveHeader uses header element with proper role</subtask>
+        <subtask id="1.4">Wrap page content areas in main id="main-content" with role="main"</subtask>
+        <subtask id="1.5">Replace non-semantic div wrappers with section, article, header, footer where appropriate in detail pages</subtask>
+        <subtask id="1.6">Verify heading hierarchy (h1 → h2 → h3) on all pages - ensure single h1 per page, no skipped levels</subtask>
+        <subtask id="1.7">Test: Run axe DevTools on each page to verify landmark structure</subtask>
+      </task>
+      <task id="2" ac="6">Skip Navigation Link
+        <subtask id="2.1">Add visually-hidden "Skip to main content" link as first focusable element in the root layout</subtask>
+        <subtask id="2.2">Style with sr-only focus:not-sr-only pattern: hidden by default, visible and styled on keyboard focus</subtask>
+        <subtask id="2.3">Link targets #main-content anchor on the main content wrapper</subtask>
+        <subtask id="2.4">Test: Verify Tab from page load focuses skip link first, Enter navigates to main content</subtask>
+      </task>
+      <task id="3" ac="1">Keyboard Navigation Enhancement
+        <subtask id="3.1">Audit all custom interactive elements (FAB, MobileAppCard, InterviewCardList, status dropdowns) for keyboard operability</subtask>
+        <subtask id="3.2">Ensure FAB button is keyboard accessible with Enter/Space activation and has proper focus order</subtask>
+        <subtask id="3.3">Ensure NavSheet items are keyboard navigable (Tab through items, Enter to select, Escape to close)</subtask>
+        <subtask id="3.4">Verify modal focus trap: Dialog, Sheet, and BottomSheet components trap focus inside when open, restore focus to trigger on close</subtask>
+        <subtask id="3.5">Ensure Escape key closes all overlays (modals, dropdowns, sheets, notification dropdown, search overlay)</subtask>
+        <subtask id="3.6">Verify data table rows are keyboard navigable (Tab to interactive elements within rows, Enter to navigate to detail)</subtask>
+        <subtask id="3.7">Ensure rich text editor (TipTap) toolbar is keyboard accessible with Tab/Arrow key navigation between toolbar buttons</subtask>
+        <subtask id="3.8">Test: Navigate entire app using keyboard only on all pages</subtask>
+      </task>
+      <task id="4" ac="5">Focus Indicator Styling
+        <subtask id="4.1">Audit current focus styles across all interactive elements</subtask>
+        <subtask id="4.2">Define consistent focus ring style: focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2</subtask>
+        <subtask id="4.3">Apply focus-visible styles to all custom interactive elements that don't inherit from shadcn/ui primitives</subtask>
+        <subtask id="4.4">Ensure focus styles are visible in both light and dark modes with sufficient contrast</subtask>
+        <subtask id="4.5">Remove any outline-none without replacement focus-visible styles</subtask>
+        <subtask id="4.6">Test: Tab through all pages verifying every interactive element shows visible focus indicator</subtask>
+      </task>
+      <task id="5" ac="4">Color Contrast Audit and Fix
+        <subtask id="5.1">Run contrast audit on all pages in light mode</subtask>
+        <subtask id="5.2">Run contrast audit on all pages in dark mode</subtask>
+        <subtask id="5.3">Fix any text that fails 4.5:1 ratio for normal text</subtask>
+        <subtask id="5.4">Fix any large text that fails 3:1 ratio</subtask>
+        <subtask id="5.5">Check status badges for contrast compliance</subtask>
+        <subtask id="5.6">Check placeholder text contrast</subtask>
+        <subtask id="5.7">Verify color is not the sole means of conveying information</subtask>
+        <subtask id="5.8">Test: Re-run contrast audit to confirm all violations fixed</subtask>
+      </task>
+      <task id="6" ac="7">ARIA Labels for Icon-Only Buttons and Dynamic Content
+        <subtask id="6.1">Audit all icon-only buttons and add aria-label</subtask>
+        <subtask id="6.2">Add aria-label to icon-only navigation items in NavSheet and Sidebar</subtask>
+        <subtask id="6.3">Add aria-live="polite" to auto-save status indicator</subtask>
+        <subtask id="6.4">Add aria-live="polite" to notification count badge updates</subtask>
+        <subtask id="6.5">Ensure toast notifications (sonner) are announced to screen readers</subtask>
+        <subtask id="6.6">Add aria-expanded to collapsible sections</subtask>
+        <subtask id="6.7">Add aria-current="page" to active navigation item in Sidebar and NavSheet</subtask>
+        <subtask id="6.8">Test: Use screen reader to verify all icon buttons are announced with descriptive labels</subtask>
+      </task>
+      <task id="7" ac="3">Form Label Association and Accessibility
+        <subtask id="7.1">Audit all forms: application, interview, assessment, submission, login/register, settings, search, filter inputs</subtask>
+        <subtask id="7.2">Ensure every input has an associated label</subtask>
+        <subtask id="7.3">For inputs with visible labels, verify htmlFor/id pair</subtask>
+        <subtask id="7.4">For visually-hidden labels (icon inputs, search), use sr-only label or aria-label</subtask>
+        <subtask id="7.5">Add aria-required="true" to required form fields</subtask>
+        <subtask id="7.6">Add aria-describedby linking inputs to their error message elements</subtask>
+        <subtask id="7.7">Test: Click on labels and verify they focus the associated input</subtask>
+      </task>
+      <task id="8" ac="8">Form Validation Error Announcements
+        <subtask id="8.1">Add aria-invalid="true" to inputs that have validation errors</subtask>
+        <subtask id="8.2">Add role="alert" or aria-live="polite" to validation error message containers</subtask>
+        <subtask id="8.3">Ensure inline error messages have unique IDs referenced by aria-describedby</subtask>
+        <subtask id="8.4">Verify react-hook-form error rendering includes proper ARIA attributes</subtask>
+        <subtask id="8.5">Test: Submit forms with invalid data using screen reader, verify errors are announced</subtask>
+      </task>
+      <task id="9" ac="all">Accessibility Testing and Verification
+        <subtask id="9.1">Run axe DevTools automated audit on all pages</subtask>
+        <subtask id="9.2">Fix all Critical and Serious axe violations</subtask>
+        <subtask id="9.3">Perform full keyboard-only navigation test on all pages</subtask>
+        <subtask id="9.4">Test with screen reader: login flow, create application, view application detail, create interview, navigate timeline</subtask>
+        <subtask id="9.5">Run Lighthouse accessibility audit and achieve score >= 90</subtask>
+        <subtask id="9.6">Verify all fixes work in both light and dark modes</subtask>
+        <subtask id="9.7">Run npm run build to verify no TypeScript errors introduced</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">All interactive elements keyboard accessible (Tab, Enter, Escape) without requiring a mouse (NFR-4.3)</ac>
+    <ac id="2">Semantic HTML5 elements used throughout (nav, main, article, section, header, footer, button) for proper screen reader interpretation</ac>
+    <ac id="3">All form inputs have properly associated labels via htmlFor/id or wrapping label, and error messages linked via aria-describedby</ac>
+    <ac id="4">All text meets WCAG AA contrast ratios: 4.5:1 for normal text, 3:1 for large text in both light and dark modes</ac>
+    <ac id="5">Visible, consistent focus rings on all interactive elements during keyboard navigation; no focus indicator suppression</ac>
+    <ac id="6">"Skip to main content" link at top of page, visible on keyboard focus, bypasses sidebar/header navigation</ac>
+    <ac id="7">Icon-only buttons have descriptive aria-label; dynamic content regions use aria-live regions</ac>
+    <ac id="8">Validation errors use aria-invalid on inputs and role="alert" or aria-live="polite" so screen readers announce errors automatically</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-6.md" title="Epic 6 Technical Specification" section="Story 6.4: Accessibility Improvements" snippet="Authoritative acceptance criteria for accessibility: keyboard navigation, semantic HTML, form labels, color contrast WCAG AA, focus indicators, skip navigation, ARIA labels, and form error announcements. Also defines test strategy: axe DevTools, keyboard navigation, screen reader, color contrast." />
+      <doc path="docs/architecture-frontend.md" title="Frontend Architecture" section="Component Architecture / shadcn/ui Components" snippet="15 shadcn/ui components built on Radix UI primitives provide accessible focus management, keyboard navigation, and ARIA attributes. Tailwind CSS v4 with focus-visible: prefix and sr-only utility for accessibility." />
+      <doc path="docs/architecture.md" title="Architecture Document" section="Security Architecture / Input Validation" snippet="React Hook Form + Zod for client-side validation, Go struct tags for server-side. All components use Radix UI which provides keyboard navigation, focus management, and ARIA attributes built-in." />
+      <doc path="docs/architecture.md" title="Architecture Document" section="Technology Stack Details" snippet="Frontend: Next.js 14 App Router, React 18, TypeScript, shadcn/ui + Radix UI, Tailwind CSS, TipTap 3.0+, React Hook Form + Zod. shadcn/ui copy-paste model means components live in repo and can be modified." />
+      <doc path="docs/tech-spec-epic-6.md" title="Epic 6 Technical Specification" section="Accessibility Tests" snippet="Testing strategy: axe DevTools automated audit on all pages, manual keyboard navigation for all interactive elements, screen reader testing (VoiceOver/NVDA) for critical flows, WebAIM Contrast Checker for color contrast." />
+      <doc path="docs/tech-spec-epic-6.md" title="Epic 6 Technical Specification" section="Frontend Dependencies" snippet="Key accessibility-relevant deps: tailwindcss ^4.1.10 (focus-visible, sr-only), lucide-react ^0.452.0 (icons needing aria-labels), sonner ^2.0.7 (toast with built-in ARIA support), @radix-ui/* (accessible primitives)." />
+      <doc path="docs/tech-spec-epic-6.md" title="Epic 6 Technical Specification" section="shadcn/ui Components" snippet="Button, Dialog, Toast (sonner), Form, Input, Select, Tooltip components all relevant to accessibility story. Dialog provides focus trap, Tooltip provides accessible hints." />
+      <doc path="docs/stories/6-3-responsive-design-mobile-and-tablet-support.md" title="Story 6.3: Responsive Design" section="Dev Agent Record / Completion Notes" snippet="Created useBreakpoint hook, restructured interview detail into modular cards, enhanced Dialog close button to 44px touch target, refactored rich text editor toolbar with mobile compact mode. New components (FAB, NavSheet, ResponsiveHeader, UserAvatar, MobileAppCard, InterviewCardList) all need ARIA audit." />
+    </docs>
+
+    <code>
+      <file path="frontend/src/app/layout.tsx" kind="layout" symbol="RootLayout" lines="33-47" reason="Root layout where skip navigation link must be added as first focusable element inside body. Currently has no skip link. (Task 2)" />
+      <file path="frontend/src/app/(app)/layout.tsx" kind="layout" symbol="RootLayout" lines="33-66" reason="App layout with SidebarProvider, AppSidebar, ResponsiveHeader, Navbar, LayoutWrapper. Needs main id='main-content' wrapper and semantic landmark structure. (Task 1)" />
+      <file path="frontend/src/components/sidebar/sidebar.tsx" kind="component" symbol="AppSidebar" lines="54-146" reason="Main sidebar navigation. Has nav element (line 114) but lacks aria-label='Main navigation' and aria-current='page' on active items. Close button (line 80-88) lacks aria-label. (Tasks 1, 6)" />
+      <file path="frontend/src/components/layout/ResponsiveHeader.tsx" kind="component" symbol="ResponsiveHeader" lines="20-69" reason="Mobile/tablet header. Already has header element and aria-label on hamburger button (line 43). Verify NotificationCenter and UserAvatar have aria-labels. (Tasks 1, 6)" />
+      <file path="frontend/src/components/layout/NavSheet.tsx" kind="component" symbol="NavSheet" lines="38-134" reason="Mobile navigation sheet. Has SheetTitle (sr-only), close button with aria-label (line 81). Needs aria-current='page' on active nav items and nav aria-label. (Tasks 3, 6)" />
+      <file path="frontend/src/components/ui/fab.tsx" kind="component" symbol="FAB" lines="35-49" reason="Floating action button. Has focus-visible styles (line 9) but consumers must provide aria-label. Verify all FAB usages have aria-label. (Tasks 3, 6)" />
+      <file path="frontend/src/components/global-search/GlobalSearch.tsx" kind="component" symbol="GlobalSearch" lines="47-216" reason="Search dialog using Command (cmdk) component. Needs label for search input, aria-live for results count. cmdk provides keyboard navigation built-in. (Tasks 3, 7)" />
+      <file path="frontend/src/components/ui/dialog.tsx" kind="component" symbol="DialogContent" lines="37-67" reason="Dialog with Radix UI focus trap and Escape close. Close button has sr-only 'Close' text (line 61). Verify focus trap works correctly and focus returns to trigger on close. (Task 3)" />
+      <file path="frontend/src/components/rich-text-editor.tsx" kind="component" symbol="RichTextEditor" lines="132-201" reason="TipTap editor with toolbar. Toggle buttons (line 75-85) lack aria-label. Toolbar prevents default mouseDown but keyboard access needs verification. FormatPicker popover needs keyboard navigation. (Tasks 3, 6)" />
+      <file path="frontend/src/components/ui/button.tsx" kind="component" symbol="Button" lines="8-9" reason="Button component has focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring. This is the base focus pattern. (Task 4)" />
+      <file path="frontend/src/app/globals.css" kind="stylesheet" symbol="globals" lines="198-268" reason="CSS variables for light/dark themes. Color contrast must be verified against WCAG AA ratios. Focus styles defined for links (line 465). Typography scale with muted-foreground colors need contrast check. (Tasks 4, 5)" />
+      <file path="frontend/src/components/notification-center/NotificationCenter.tsx" kind="component" symbol="NotificationCenter" reason="Notification bell button and dropdown. Needs aria-label on bell icon button, aria-live for badge count updates. (Task 6)" />
+      <file path="frontend/src/components/notification-center/NotificationDropdown.tsx" kind="component" symbol="NotificationDropdown" reason="Notification dropdown panel. Needs aria-live='polite' for count badge and notification updates. (Task 6)" />
+      <file path="frontend/src/components/notification-center/NotificationBell.tsx" kind="component" symbol="NotificationBell" reason="Bell icon button. Needs aria-label='Notifications' and aria-live on badge count. (Task 6)" />
+      <file path="frontend/src/components/sidebar/nav-user.tsx" kind="component" symbol="NavUser" reason="User profile section in sidebar footer. Verify keyboard operability and ARIA labels. (Task 6)" />
+      <file path="frontend/src/components/layout/UserAvatar.tsx" kind="component" symbol="UserAvatar" reason="User avatar button in mobile header. Needs aria-label for dropdown trigger. (Task 6)" />
+      <file path="frontend/src/app/(app)/page.tsx" kind="page" symbol="Dashboard" reason="Dashboard page. Check heading hierarchy (single h1), semantic structure, keyboard navigation for stats cards and widgets. (Tasks 1, 3)" />
+      <file path="frontend/src/app/(app)/applications/page.tsx" kind="page" symbol="ApplicationsPage" reason="Applications list page with filters and table. Verify filter controls, table keyboard navigation, heading structure. (Tasks 1, 3, 7)" />
+      <file path="frontend/src/app/(app)/interviews/page.tsx" kind="page" symbol="InterviewsPage" reason="Interviews list with card layout. Verify InterviewCardList keyboard navigation and heading structure. (Tasks 1, 3)" />
+      <file path="frontend/src/app/(app)/applications/application-table/application-table.tsx" kind="component" symbol="ApplicationTable" reason="Data table using TanStack Table + shadcn Table. Verify keyboard navigation within table rows and interactive elements. (Task 3)" />
+      <file path="frontend/src/app/(app)/applications/application-filters.tsx" kind="component" symbol="ApplicationFilters" reason="Filter inputs for applications. Verify form labels, select accessibility, filter sheet keyboard nav. (Tasks 3, 7)" />
+      <file path="frontend/src/components/ui/date-picker.tsx" kind="component" symbol="DatePicker" reason="Date picker component. Verify label association, keyboard navigation, ARIA attributes. (Tasks 3, 7)" />
+      <file path="frontend/src/components/interview-detail/add-round-dialog.tsx" kind="component" symbol="AddRoundDialog" reason="Dialog for adding interview rounds. Verify focus trap, form labels, error handling ARIA. (Tasks 3, 7, 8)" />
+      <file path="frontend/src/components/interview-detail/self-assessment-card.tsx" kind="component" symbol="SelfAssessmentCard" reason="Self-assessment with rating. Verify keyboard operability for rating selection. (Task 3)" />
+      <file path="frontend/src/hooks/use-breakpoint.ts" kind="hook" symbol="useBreakpoint" reason="Returns 'mobile' | 'tablet' | 'desktop' | undefined. SSR-safe with undefined initial state. Accessibility enhancements must also be SSR-safe. (Constraint)" />
+    </code>
+
+    <dependencies>
+      <ecosystem name="node" manifest="frontend/package.json">
+        <package name="next" version="14.2.15" />
+        <package name="react" version="^18" />
+        <package name="react-dom" version="^18" />
+        <package name="typescript" version="^5" />
+        <package name="tailwindcss" version="^4.1.10" />
+        <package name="@radix-ui/react-dialog" version="^1.1.2" />
+        <package name="@radix-ui/react-dropdown-menu" version="^2.1.2" />
+        <package name="@radix-ui/react-accordion" version="^1.2.11" />
+        <package name="@radix-ui/react-collapsible" version="^1.1.11" />
+        <package name="@radix-ui/react-popover" version="^1.1.15" />
+        <package name="@radix-ui/react-select" version="^2.2.6" />
+        <package name="@radix-ui/react-toggle" version="^1.1.10" />
+        <package name="@radix-ui/react-tooltip" version="^1.2.7" />
+        <package name="@radix-ui/react-label" version="^2.1.8" />
+        <package name="@radix-ui/react-slot" version="^1.1.0" />
+        <package name="@radix-ui/react-alert-dialog" version="^1.1.15" />
+        <package name="@radix-ui/react-progress" version="^1.1.8" />
+        <package name="@radix-ui/react-separator" version="^1.1.7" />
+        <package name="@radix-ui/react-avatar" version="^1.1.10" />
+        <package name="react-hook-form" version="^7.54.2" />
+        <package name="@hookform/resolvers" version="^4.1.2" />
+        <package name="zod" version="^3.24.2" />
+        <package name="lucide-react" version="^0.452.0" />
+        <package name="sonner" version="^2.0.7" />
+        <package name="cmdk" version="^1.1.1" />
+        <package name="@tiptap/react" version="^3.17.1" />
+        <package name="@tiptap/starter-kit" version="^3.17.1" />
+        <package name="@tiptap/extension-link" version="^3.17.1" />
+        <package name="@tiptap/extension-placeholder" version="^3.17.1" />
+        <package name="@tiptap/extension-underline" version="^3.17.1" />
+        <package name="class-variance-authority" version="^0.7.0" />
+        <package name="next-themes" version="^0.3.0" />
+        <package name="date-fns" version="^4.1.0" />
+        <package name="vaul" version="^1.1.2" />
+        <package name="@tanstack/react-table" version="^8.20.5" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="dev-notes">Enhance, don't rebuild. shadcn/ui + Radix UI already provides most accessibility primitives. Focus on: ensuring custom components match the same standard, adding missing ARIA labels and landmarks, fixing contrast issues in the theme, adding skip navigation, verifying full keyboard and screen reader experience.</constraint>
+    <constraint source="dev-notes">Audit-first approach: Run axe DevTools on every page first to identify all violations, categorize by severity (Critical > Serious > Moderate > Minor), fix in severity order, re-run audit to confirm fixes.</constraint>
+    <constraint source="dev-notes">Focus ring pattern: focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 as the standard for custom interactive elements.</constraint>
+    <constraint source="dev-notes">Skip link pattern: sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-background focus:text-foreground focus:border focus:rounded-md</constraint>
+    <constraint source="dev-notes">SSR safety: useBreakpoint initial state is undefined to prevent hydration mismatch. Accessibility enhancements must also be SSR-safe (no conditional rendering based on client-only state that would cause hydration errors).</constraint>
+    <constraint source="dev-notes">Known issue: Mobile filter sheet flicker - do not modify filter sheet state management in this story.</constraint>
+    <constraint source="architecture">Tailwind CSS v4 with focus-visible: prefix for focus styles (only shows on keyboard navigation, not mouse click). Use sr-only utility for visually-hidden content.</constraint>
+    <constraint source="architecture">shadcn/ui components are in frontend/src/components/ui/ and can be modified directly. Radix UI primitives handle focus trapping, keyboard navigation, and ARIA attributes internally - verify these work rather than reimplementing.</constraint>
+    <constraint source="project">Only write comments that explain WHY, not WHAT the code is doing. Code should be self-documenting.</constraint>
+    <constraint source="story-6.3">Deferred from 6.3: inputMode/autoComplete attributes not yet added to form inputs. Consider adding aria-required and proper labeling as part of this story's form accessibility work.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="Radix UI Dialog" kind="component-api" signature="DialogPrimitive.Root, Content (focus trap), Close (Escape key), Overlay" path="frontend/src/components/ui/dialog.tsx" />
+    <interface name="Radix UI Sheet" kind="component-api" signature="Sheet, SheetContent (side, focus trap), SheetHeader, SheetTitle" path="frontend/src/components/ui/sheet.tsx" />
+    <interface name="Radix UI DropdownMenu" kind="component-api" signature="DropdownMenu, DropdownMenuTrigger, DropdownMenuContent (keyboard nav built-in)" path="frontend/src/components/ui/dropdown-menu.tsx" />
+    <interface name="Radix UI Accordion" kind="component-api" signature="Accordion, AccordionItem, AccordionTrigger (aria-expanded built-in), AccordionContent" path="frontend/src/components/ui/accordion.tsx" />
+    <interface name="cmdk Command" kind="component-api" signature="Command, CommandInput, CommandList, CommandGroup, CommandItem (keyboard navigation built-in)" path="frontend/src/components/ui/command.tsx" />
+    <interface name="react-hook-form" kind="library-api" signature="useForm({ register, handleSubmit, formState: { errors } }) - errors object keyed by field name with message property" path="frontend/src/app/(auth)/login/page.tsx" />
+    <interface name="Sonner Toast" kind="component-api" signature="toast.success(), toast.error() - built-in ARIA role='status' and aria-live='polite'" path="frontend/src/components/ui/sonner.tsx" />
+    <interface name="Button focus-visible" kind="css-pattern" signature="focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring" path="frontend/src/components/ui/button.tsx" />
+    <interface name="FAB focus-visible" kind="css-pattern" signature="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" path="frontend/src/components/ui/fab.tsx" />
+  </interfaces>
+
+  <tests>
+    <standards>This story uses manual accessibility testing as the primary verification method. axe DevTools browser extension for automated WCAG violation detection on all pages. Manual keyboard-only navigation testing (Tab, Shift+Tab, Enter, Escape, Arrow keys) across every page. Screen reader testing with VoiceOver (macOS) or NVDA for critical user flows. WebAIM Contrast Checker for color contrast verification. Lighthouse accessibility audit targeting score >= 90. All fixes must be verified in both light and dark themes. No automated test framework (Jest/RTL) is set up yet; validation is manual + axe + Lighthouse.</standards>
+    <locations>
+      <location>frontend/src/app/(app)/page.tsx - Dashboard</location>
+      <location>frontend/src/app/(app)/applications/page.tsx - Applications list</location>
+      <location>frontend/src/app/(app)/applications/[id]/page.tsx - Application detail</location>
+      <location>frontend/src/app/(app)/interviews/page.tsx - Interviews list</location>
+      <location>frontend/src/app/(app)/interviews/[id]/page.tsx - Interview detail</location>
+      <location>frontend/src/app/(app)/timeline/page.tsx - Timeline</location>
+      <location>frontend/src/app/(app)/settings/page.tsx - Settings</location>
+      <location>frontend/src/app/(app)/files/page.tsx - Files</location>
+      <location>frontend/src/app/(auth)/login/page.tsx - Login</location>
+      <location>frontend/src/app/(auth)/register/page.tsx - Register</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Keyboard-only navigation test: Tab through every page verifying all interactive elements (buttons, links, inputs, dropdowns, cards) are reachable and operable without a mouse</idea>
+      <idea ac="2">axe DevTools landmark audit: Verify each page has proper landmark structure (main, nav, header) with no duplicate main landmarks</idea>
+      <idea ac="3">Form label test: Click every label to verify it focuses the correct input. Screen reader should announce label when input receives focus</idea>
+      <idea ac="4">Contrast audit with WebAIM: Check all text colors against backgrounds in both light (--background: 0 0% 100%) and dark (--background: 204 7% 13%) themes. Pay special attention to muted-foreground colors</idea>
+      <idea ac="5">Focus indicator test: Tab through app and verify every interactive element shows a visible focus ring. Check that focus ring is visible on both light and dark backgrounds</idea>
+      <idea ac="6">Skip link test: Reload page, press Tab once - skip link should appear. Press Enter - focus should move to main content area, bypassing sidebar/header</idea>
+      <idea ac="7">Screen reader icon button test: Navigate to each icon-only button and verify screen reader announces descriptive label (e.g., "Open navigation menu", "Notifications", "Close")</idea>
+      <idea ac="8">Form error announcement test: Submit forms with invalid data while using screen reader. Verify error messages are announced automatically when they appear</idea>
+    </ideas>
+  </tests>
+</story-context>
