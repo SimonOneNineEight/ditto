@@ -2,17 +2,21 @@
 
 ## Executive Summary
 
-The Ditto frontend is a modern, production-ready Next.js 14 application that provides a job tracking and management interface for users. Built with Next.js App Router, shadcn/ui components, and comprehensive authentication via NextAuth v5, the application demonstrates best practices in server and client component architecture, state management, and secure API integration.
+The Ditto frontend is a Next.js 14 application providing a job tracking and management interface. Built with the App Router, shadcn/ui components, and NextAuth v5, the application covers authentication, job applications, interview tracking, file management, assessments, notifications, timeline activity, and global search.
 
-The frontend is organized around two primary route groups: `(app)` for authenticated features and `(auth)` for public authentication pages. It leverages TypeScript for type safety, Zod for schema validation, React Hook Form for form management, and Tailwind CSS for styling. Token-based authentication is seamlessly integrated with a backend API, supporting both credential-based login and OAuth providers (GitHub, Google).
+The frontend is organized around two route groups: `(app)` for authenticated features and `(auth)` for public authentication pages. It uses TypeScript for type safety, Zod schemas for form validation, React Hook Form for form state, Tailwind CSS v4 for styling, and axios with CSRF protection, retry logic, and token refresh for API communication.
 
 **Key Metrics:**
-- Framework: Next.js 14 (App Router)
-- Total Frontend Code: ~4,937 lines of TypeScript/React
-- UI Components: 15 shadcn/ui components
-- Authentication: NextAuth v5 (beta.29)
-- Type Safety: Full TypeScript coverage
+- Framework: Next.js 14.2.15 (App Router)
+- Package Manager: pnpm
+- UI Components: 32 shadcn/ui components
+- Custom Hooks: 8
+- Zod Schemas: 7
+- Type Definitions: 7 files
+- Authentication: NextAuth v5 (beta.29) with GitHub, Google, Credentials
+- Testing: Jest + React Testing Library
 - Styling: Tailwind CSS v4 + shadcn theming
+- Frontend Port: 8080
 
 ---
 
@@ -21,27 +25,28 @@ The frontend is organized around two primary route groups: `(app)` for authentic
 | Category | Technology | Version | Purpose |
 |----------|-----------|---------|---------|
 | **Framework** | Next.js | 14.2.15 | Server-side rendering, App Router, API routes |
-| **Runtime** | React | 18 | Component framework and hooks |
-| **Language** | TypeScript | 5 | Type-safe development |
-| **Auth** | NextAuth | 5.0.0-beta.29 | Multi-provider authentication (credentials, GitHub, Google) |
+| **Runtime** | React | ^18 | Component framework and hooks |
+| **Language** | TypeScript | ^5 | Type-safe development |
+| **Auth** | NextAuth | 5.0.0-beta.29 | Multi-provider authentication (Credentials, GitHub, Google) |
 | **UI Library** | shadcn/ui | Latest | Pre-built, accessible component system |
-| **UI Primitives** | Radix UI | Latest (v1.x) | Unstyled, accessible components |
-| **Styling** | Tailwind CSS | 4.1.10 | Utility-first CSS framework |
-| **Theme Management** | next-themes | 0.3.0 | Dark/light mode support |
-| **HTTP Client** | axios | 1.7.9 | API requests with interceptors |
-| **Form State** | react-hook-form | 7.54.2 | Efficient form state management |
-| **Form Validation** | Zod | 3.24.2 | Runtime schema validation |
-| **Form Resolvers** | @hookform/resolvers | 4.1.2 | Bridge between react-hook-form and Zod |
-| **Icons** | lucide-react | 0.452.0 | React icon library |
-| **Icons (Brands)** | @icons-pack/react-simple-icons | 13.6.0 | Brand SVG icons (GitHub, Google, etc.) |
-| **Data Tables** | @tanstack/react-table | 8.20.5 | Headless table library |
-| **UI Utilities** | class-variance-authority | 0.7.0 | Type-safe CSS class composition |
-| **CSS Utilities** | clsx, tailwind-merge | 2.1.1, 2.5.3 | Class composition and merging |
-| **Animations** | tailwindcss-animate | 1.0.7 | Animation utilities |
-| **Drawers** | vaul | 1.1.2 | Drawer component library |
-| **Colors** | randomcolor | 0.6.2 | Random color generation |
-| **Linting** | ESLint | 8 | Code quality |
-| **Formatting** | Prettier | 3.5.2 | Code formatting |
+| **UI Primitives** | Radix UI | Latest | Unstyled, accessible components |
+| **Styling** | Tailwind CSS | ^4.1.10 | Utility-first CSS framework |
+| **Theme Management** | next-themes | Latest | Dark/light mode support |
+| **HTTP Client** | axios | ^1.7.9 | API requests with interceptors, CSRF, retry |
+| **Form State** | react-hook-form | ^7.54.2 | Efficient form state management |
+| **Form Validation** | Zod | ^3.24.2 | Runtime schema validation |
+| **Form Resolvers** | @hookform/resolvers | Latest | Bridge between react-hook-form and Zod |
+| **Data Tables** | @tanstack/react-table | ^8.20.5 | Headless table library |
+| **Icons** | lucide-react | ^0.452.0 | React icon library |
+| **Toast** | sonner | ^2.0.7 | Toast notifications |
+| **Rich Text** | @tiptap/* | ^3.17.1 | Rich text editor |
+| **Dates** | date-fns | ^4.1.0 | Date formatting and manipulation |
+| **Markdown** | react-markdown | ^10.1.0 | Markdown rendering |
+| **Sanitization** | dompurify | ^3.3.1 | HTML sanitization |
+| **UI Utilities** | class-variance-authority | ^0.7.0 | Type-safe CSS class composition |
+| **CSS Utilities** | clsx, tailwind-merge | ^2.1.1 | Class composition and merging |
+| **Drawers** | vaul | Latest | Drawer component library |
+| **Testing** | Jest + React Testing Library | Latest | Unit and component testing |
 
 ---
 
@@ -50,7 +55,7 @@ The frontend is organized around two primary route groups: `(app)` for authentic
 ### Next.js App Router Overview
 
 The application uses Next.js 14's App Router (directory-based routing in `/src/app`), which provides:
-- **Server-Side Rendering (SSR)**: Default for all pages unless marked with 'use client'
+- **Server-Side Rendering (SSR)**: Default for all pages unless marked with `'use client'`
 - **Server Components**: Request-level caching and data fetching
 - **Client Components**: Interactive features, hooks, event listeners
 - **Hybrid Rendering**: Mix of server and client components as needed
@@ -58,42 +63,49 @@ The application uses Next.js 14's App Router (directory-based routing in `/src/a
 ```
 Ditto Frontend Architecture
 
-┌─────────────────────────────────────────────────────────┐
-│                    Request Middleware                     │
-│              (Auth validation, route protection)          │
-└──────────────────┬──────────────────────────────────────┘
-                   │
-        ┌──────────┴──────────┐
-        │                     │
-    ┌───▼────┐          ┌─────▼──┐
-    │ (auth) │          │  (app) │
-    │ Routes │          │ Routes │
-    └────┬───┘          └────┬──┘
-         │                   │
-    ┌────▼─────┐        ┌────▼────────────────┐
-    │ /login   │        │ /applications       │
-    │ /register│        │ /interviews         │
-    └──────────┘        │ /design-system      │
-                        └─────────────────────┘
-        │                   │
-        ├──────┬────────────┤
-        │      │            │
-    ┌───▼──┐ ┌─▼───┐ ┌──────▼──────┐
-    │ auth │ │Form │ │ Data Tables  │
-    │Token │ │State│ │ & Components │
-    └──────┘ └─────┘ └──────────────┘
-        │      │            │
-        └──┬───┴────────┬───┘
-           │            │
-      ┌────▼────────────▼────┐
-      │  Axios API Client     │
-      │  (Interceptors)       │
-      └──────────┬────────────┘
-           │     │
-      ┌────▼─────▼─────┐
-      │ Backend API     │
-      │ (JWT + OAuth)   │
-      └─────────────────┘
++-------------------------------------------------------------+
+|                     Request Middleware                        |
+|               (Auth validation, route protection)            |
++-----------------------------+-------------------------------+
+                              |
+                  +-----------+-----------+
+                  |                       |
+            +-----v------+         +-----v------+
+            |   (auth)   |         |   (app)    |
+            |   Routes   |         |   Routes   |
+            +-----+------+         +-----+------+
+                  |                       |
+            +-----v------+   +-----------v--------------------------+
+            | /login     |   | /                  (dashboard)       |
+            | /register  |   | /applications      (CRUD + detail)  |
+            +------------+   | /interviews        (CRUD + detail)  |
+                             | /files             (file manager)    |
+                             | /timeline          (activity feed)   |
+                             | /settings          (user prefs)      |
+                             | /design-system     (component demo)  |
+                             +--------------------------------------+
+                  |                       |
+                  +---+---+---+-----------+
+                      |   |   |
+                +-----v-+ | +-v-----------+
+                | Auth  | | | Components  |
+                | Token | | | + Hooks     |
+                +-------+ | +-------------+
+                      +---v----+
+                      | Form   |
+                      | State  |
+                      +---+----+
+                          |
+                  +-------v-----------+
+                  | Axios API Client  |
+                  | (CSRF, Retry,     |
+                  |  Token Refresh)   |
+                  +-------+-----------+
+                          |
+                  +-------v-----------+
+                  | Backend API       |
+                  | (JWT + OAuth)     |
+                  +-------------------+
 ```
 
 ---
@@ -103,370 +115,369 @@ Ditto Frontend Architecture
 ```
 frontend/
 ├── src/
-│   ├── app/                          # Next.js App Router root
-│   │   ├── (app)/                    # Authenticated routes (route group)
-│   │   │   ├── layout.tsx            # Shared layout (sidebar, navbar)
-│   │   │   ├── page.tsx              # Dashboard
-│   │   │   ├── applications/         # Job applications feature
-│   │   │   │   ├── page.tsx          # Applications list
+│   ├── app/
+│   │   ├── (app)/                         # Authenticated routes
+│   │   │   ├── layout.tsx                 # Shared layout (sidebar, header)
+│   │   │   ├── page.tsx                   # Dashboard
+│   │   │   ├── applications/
+│   │   │   │   ├── page.tsx               # Applications list
+│   │   │   │   ├── new/                   # Add application (autocomplete, URL import)
+│   │   │   │   │   ├── add-application-form.tsx
+│   │   │   │   │   ├── url-import.tsx
+│   │   │   │   │   └── __tests__/
+│   │   │   │   └── [id]/
+│   │   │   │       ├── page.tsx           # Application detail
+│   │   │   │       ├── edit/              # Edit application
+│   │   │   │       └── assessments/
+│   │   │   │           └── [assessmentId]/
+│   │   │   │               └── page.tsx   # Assessment detail
+│   │   │   ├── interviews/
+│   │   │   │   ├── page.tsx               # Interviews list
 │   │   │   │   ├── [id]/
-│   │   │   │   │   ├── page.tsx      # Application detail
-│   │   │   │   │   └── job-description.tsx
-│   │   │   │   └── application-table/
-│   │   │   │       ├── application-table.tsx
-│   │   │   │       └── columns.tsx
-│   │   │   ├── interviews/           # Interview tracking
-│   │   │   │   ├── page.tsx          # Interviews list
-│   │   │   │   └── past-interviews/  # Interview history
-│   │   │   └── design-system/        # UI component showcase
-│   │   ├── (auth)/                   # Public auth routes (route group)
-│   │   │   ├── layout.tsx            # Auth page layout
+│   │   │   │   │   └── page.tsx           # Interview detail
+│   │   │   │   ├── interview-table/
+│   │   │   │   └── past-interviews/
+│   │   │   ├── files/                     # File management
+│   │   │   ├── timeline/                  # Activity timeline with filters
+│   │   │   ├── settings/                  # User settings
+│   │   │   └── design-system/             # UI component showcase
+│   │   ├── (auth)/
+│   │   │   ├── layout.tsx                 # Auth page layout
 │   │   │   ├── login/
-│   │   │   │   └── page.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── __tests__/
 │   │   │   ├── register/
 │   │   │   │   └── page.tsx
 │   │   │   └── components/
-│   │   │       ├── oauth-buttons.tsx
-│   │   │       └── market-banner.tsx
+│   │   │       ├── auth-styles.ts
+│   │   │       ├── market-banner.tsx
+│   │   │       └── oauth-buttons.tsx
 │   │   ├── api/
 │   │   │   └── auth/
 │   │   │       └── [...nextauth]/
-│   │   │           └── route.ts      # NextAuth API routes
-│   │   ├── layout.tsx                # Root layout
-│   │   ├── fonts/                    # Local fonts
-│   │   │   ├── GeistVF.woff
-│   │   │   └── GeistMonoVF.woff
-│   │   └── globals.css               # Global styles
+│   │   │           └── route.ts           # NextAuth API routes
+│   │   ├── layout.tsx                     # Root layout
+│   │   ├── fonts/
+│   │   └── globals.css
 │   │
-│   ├── auth.ts                       # NextAuth configuration
-│   ├── middleware.ts                 # Route protection middleware
+│   ├── auth.ts                            # NextAuth configuration
+│   ├── middleware.ts                       # Route protection middleware
 │   │
-│   ├── components/                   # Reusable components
-│   │   ├── ui/                       # shadcn/ui components (15 total)
-│   │   │   ├── accordion.tsx
-│   │   │   ├── avatar.tsx
-│   │   │   ├── badge.tsx
-│   │   │   ├── button.tsx
-│   │   │   ├── card.tsx
-│   │   │   ├── collapsible.tsx
-│   │   │   ├── drawer.tsx
-│   │   │   ├── dropdown-menu.tsx
-│   │   │   ├── input.tsx
-│   │   │   ├── separator.tsx
-│   │   │   ├── sheet.tsx
-│   │   │   ├── sidebar.tsx
-│   │   │   ├── skeleton.tsx
-│   │   │   ├── table.tsx
-│   │   │   └── tooltip.tsx
-│   │   ├── Navbar/
-│   │   │   ├── navbar.tsx
-│   │   │   ├── dark-mode-dropdown.tsx
-│   │   │   └── user-nav-control/
-│   │   │       └── user-nav-control.tsx
-│   │   ├── Sidebar/
-│   │   │   ├── Sidebar.tsx           # Main sidebar
-│   │   │   ├── nav-user.tsx          # User profile section
-│   │   │   └── sidebar-trigger-button.tsx
-│   │   ├── job-table/                # Job management table
-│   │   │   ├── job-table.tsx
-│   │   │   ├── columns.tsx
-│   │   │   ├── apply-status-dropdown.tsx
-│   │   │   └── scrape-button.tsx
-│   │   ├── layout-wrapper/           # Layout container
-│   │   ├── theme-provider.tsx        # Theme context
-│   │   ├── index.tsx                 # Component exports
-│   │   ├── button-demo.tsx
-│   │   ├── color-palette-demo.tsx
-│   │   └── typography-demo.tsx
+│   ├── components/
+│   │   ├── ui/                            # shadcn/ui components (32 total)
+│   │   ├── application-selector/          # Dialog for selecting applications
+│   │   ├── applications/                  # MobileAppCard
+│   │   ├── assessment-form/               # Assessment modal + tests
+│   │   ├── assessment-list/               # Assessment display
+│   │   ├── assessment-status-select/      # Status dropdown
+│   │   ├── auto-save-indicator/           # Visual auto-save indicator
+│   │   ├── export-dialog/                 # Export to CSV/JSON
+│   │   ├── file-upload/                   # Upload with progress tracking
+│   │   ├── global-search/                 # Global search
+│   │   ├── interview-detail/              # Full interview detail suite
+│   │   ├── interview-form/                # Interview modal + tests
+│   │   ├── interview-list/                # Cards, list items, filter bar
+│   │   ├── job-table/                     # Table, columns, status, scrape
+│   │   ├── layout/                        # ResponsiveHeader, NavSheet, UserAvatar
+│   │   ├── layout-wrapper/                # Main wrapper
+│   │   ├── loading-skeleton/              # Loading states
+│   │   ├── navbar/                        # Navigation
+│   │   ├── notification-center/           # Bell, dropdown, preferences
+│   │   ├── page-header/                   # Reusable page header
+│   │   ├── settings/                      # DeleteAccountDialog
+│   │   ├── sidebar/                       # Navigation sidebar + user menu
+│   │   ├── stat-card/                     # Stats display
+│   │   ├── storage-quota/                 # Quota widget + file list
+│   │   ├── submission-form/               # Assessment submission modal
+│   │   ├── submission-list/               # Submission results
+│   │   ├── __tests__/                     # Shared component tests
+│   │   ├── auth-guard.tsx                 # Route protection
+│   │   ├── error-boundary.tsx             # Error boundary
+│   │   ├── network-status-monitor.tsx     # Network indicator
+│   │   ├── rich-text-editor.tsx           # TipTap editor
+│   │   └── theme-provider.tsx             # Theme context
 │   │
-│   ├── hooks/                        # Custom React hooks
-│   │   ├── use-mobile.ts             # Mobile breakpoint detection
-│   │   └── use-compact-layout.ts     # Layout preferences
+│   ├── hooks/
+│   │   ├── useAutoSave.ts
+│   │   ├── useFileUpload.ts
+│   │   ├── useNotifications.ts
+│   │   ├── use-breakpoint.ts
+│   │   ├── use-click-outside.ts
+│   │   ├── use-compact-layout.ts
+│   │   ├── use-mobile.ts
+│   │   └── index.ts
 │   │
-│   ├── lib/                          # Utility functions
-│   │   ├── axios.ts                  # Axios instance + interceptors
-│   │   └── utils.ts                  # Helper utilities
+│   ├── lib/
+│   │   ├── axios.ts                       # Axios instance (CSRF, retry, refresh)
+│   │   ├── constants.ts                   # App-wide constants
+│   │   ├── errors.ts                      # Error code mapping
+│   │   ├── file-service.ts                # File upload/download service
+│   │   ├── sanitizer.ts                   # HTML sanitization
+│   │   ├── utils.ts                       # Helper utilities
+│   │   ├── schemas/                       # Zod validation schemas (7)
+│   │   │   ├── application.ts
+│   │   │   ├── assessment.ts
+│   │   │   ├── interview.ts
+│   │   │   ├── interviewer.ts
+│   │   │   ├── question.ts
+│   │   │   ├── submission.ts
+│   │   │   ├── index.ts
+│   │   │   └── __tests__/
+│   │   └── __tests__/                     # Lib unit tests
 │   │
-│   ├── services/                     # Business logic / API layer
-│   │   ├── auth-service.ts           # Authentication API calls
-│   │   └── job-service.ts            # Job management API calls
+│   ├── providers/
+│   │   └── auth-provider.tsx              # SessionProvider wrapper
 │   │
-│   ├── providers/                    # Context providers
-│   │   └── auth-provider.tsx         # NextAuth SessionProvider
-│   │
-│   └── types/                        # TypeScript type definitions
-│       └── auth-type.ts              # Auth-related types
+│   └── types/                             # TypeScript type definitions (7 files)
+│       ├── auth-type.ts
+│       ├── job-type.ts
+│       ├── notification.ts
+│       ├── timeline.ts
+│       ├── upcoming.ts
+│       ├── search.ts
+│       └── index.ts
 │
-├── public/                           # Static assets
-│   ├── favicon.svg
-│   └── ...
-│
-├── package.json                      # Dependencies
-├── tsconfig.json                     # TypeScript config
-├── tailwind.config.ts                # Tailwind configuration
-├── next.config.mjs                   # Next.js configuration
-├── components.json                   # shadcn/ui config
-├── .eslintrc.json                    # ESLint config
-└── .prettierrc.json                  # Prettier config
+├── __mocks__/                             # Jest mocks
+├── jest.config.ts                         # Jest configuration
+├── jest.setup.ts                          # Jest setup
+├── package.json
+├── tsconfig.json
+├── next.config.mjs
+├── components.json                        # shadcn/ui config
+└── .prettierrc.json
 ```
 
 ---
 
 ## App Router Organization
 
-### Route Groups: Separation of Concerns
-
-The application uses **route groups** (directories wrapped in parentheses) to organize routes without affecting the URL structure:
+### Route Groups
 
 #### `(auth)` Route Group
 - **Purpose**: Public authentication routes
 - **Authentication**: None required
 - **Layout**: Auth-specific layout with marketing banner
 - **Routes**:
-  - `/login` - Credential and OAuth login
-  - `/register` - User registration
+  - `/login` -- Credential and OAuth login
+  - `/register` -- User registration
 - **Middleware**: Redirects authenticated users to dashboard
-- **Components**: `oauth-buttons.tsx`, `market-banner.tsx`
+- **Components**: `auth-styles.ts`, `market-banner.tsx`, `oauth-buttons.tsx`
 
 #### `(app)` Route Group
 - **Purpose**: Protected application routes (require authentication)
 - **Authentication**: Mandatory via NextAuth
-- **Layout**: Full dashboard layout (sidebar + navbar)
+- **Layout**: Full dashboard layout (sidebar + responsive header)
 - **Routes**:
-  - `/` - Dashboard (main page)
-  - `/applications` - Job applications list and detail views
-  - `/interviews` - Interview tracking and history
-  - `/design-system` - UI component showcase
-- **Components**: Sidebar, Navbar, Data tables
+  - `/` -- Dashboard with RecentApplications, UpcomingWidget, UpcomingItemCard
+  - `/applications` -- Applications list
+  - `/applications/new` -- Add application (company autocomplete, URL import)
+  - `/applications/[id]` -- Application detail
+  - `/applications/[id]/edit` -- Edit application
+  - `/applications/[id]/assessments/[assessmentId]` -- Assessment detail
+  - `/interviews` -- Interviews list with filter bar, needs-feedback section
+  - `/interviews/[id]` -- Interview detail (rounds, questions, interviewers, notes, feedback, self-assessment, documents)
+  - `/files` -- File management
+  - `/timeline` -- Activity timeline with filters
+  - `/settings` -- User settings with delete account
+  - `/design-system` -- UI component showcase
 - **Middleware Protection**: All routes require valid session
-
-### Middleware Configuration
-
-File: `src/middleware.ts`
-
-```typescript
-export { auth as middleware } from '@/auth';
-
-export const config = {
-    matcher: [
-        '/applications/:path*',
-        '/interviews/:path*',
-        '/((?!api|_next/static|_next/image|favicon.ico|auth).*)',
-    ],
-};
-```
-
-**Behavior**:
-- Protects all routes under `/applications` and `/interviews`
-- Excludes API routes, Next.js internals, static files, and auth routes
-- Redirects unauthenticated users to login page
 
 ---
 
 ## Component Architecture
 
-### shadcn/ui Components (15 Total)
+### shadcn/ui Components (32 Total)
 
-The application uses shadcn/ui, which provides unstyled, accessible components built on Radix UI primitives. These are fully customizable with Tailwind CSS.
+| Component | Usage |
+|-----------|-------|
+| **accordion** | Collapsible sections |
+| **alert-dialog** | Destructive action confirmation |
+| **avatar** | User profile pictures |
+| **badge** | Status indicators, tags |
+| **breadcrumb** | Page navigation breadcrumbs |
+| **button** | Primary CTA, form submissions, actions |
+| **calendar** | Date selection |
+| **card** | Content containers, layout blocks |
+| **collapsible** | Toggle-able content |
+| **command** | Command palette / autocomplete |
+| **date-picker** | Date input with calendar |
+| **delete-confirm-dialog** | Delete confirmation |
+| **dialog** | Modal dialogs |
+| **drawer** | Mobile-friendly slide-up panels |
+| **dropdown-menu** | User actions, navigation menus |
+| **fab** | Floating action button |
+| **form** | Form wrapper with react-hook-form integration |
+| **input** | Text input fields |
+| **label** | Form labels |
+| **popover** | Contextual floating content |
+| **progress** | Progress bars |
+| **select** | Dropdown selection |
+| **separator** | Visual dividers |
+| **sheet** | Slide-out panels |
+| **sidebar** | Main navigation sidebar |
+| **skeleton** | Loading placeholders |
+| **sonner** | Toast notification provider |
+| **switch** | Toggle switches |
+| **table** | Data display with TanStack Table |
+| **textarea** | Multi-line text input |
+| **time-picker** | Time selection |
+| **toggle** | Toggle buttons |
+| **tooltip** | Contextual help text |
 
-#### Core UI Components
+### Custom Component Groups
 
-| Component | Radix Primitive | Usage |
-|-----------|----------------|-------|
-| **Button** | N/A (custom) | Primary CTA, form submissions, actions |
-| **Card** | N/A (custom) | Content containers, layout blocks |
-| **Input** | N/A (custom) | Text input fields, form inputs |
-| **Badge** | N/A (custom) | Status indicators, tags |
-| **Avatar** | Avatar (Radix) | User profile pictures |
-| **Separator** | Separator (Radix) | Visual dividers |
-| **Tooltip** | Tooltip (Radix) | Contextual help text |
-| **Dropdown Menu** | DropdownMenu (Radix) | User actions, navigation |
-| **Sheet** | Dialog (Radix) | Slide-out navigation panels |
-| **Drawer** | Dialog (Radix) | Mobile-friendly sheet drawer |
-| **Dialog** | Dialog (Radix) | Modal dialogs (not yet used, available) |
-| **Accordion** | Accordion (Radix) | Collapsible sections |
-| **Collapsible** | Collapsible (Radix) | Toggle-able content |
-| **Sidebar** | N/A (custom composition) | Main navigation sidebar |
-| **Skeleton** | N/A (custom) | Loading placeholders |
-| **Table** | N/A (headless) | Data display with TanStack Table |
+#### Interview Detail Suite (`interview-detail/`)
+A comprehensive set of components for the interview detail page:
+- `add-interviewer-form` -- Add interviewers to rounds
+- `add-question-form` -- Add questions to rounds
+- `add-round-dialog` -- Create interview rounds
+- `collapsible-section` -- Reusable collapsible wrapper
+- `details-card` -- Interview metadata
+- `documents-card` -- Attached documents
+- `feedback-section` -- Interview feedback
+- `interview-detail-card` -- Main detail layout
+- `interview-rounds-panel` -- Round management panel
+- `interview-rounds-strip` -- Round navigation strip
+- `interviewers-section` / `interviewers-card` -- Interviewer management
+- `notes-section` -- Interview notes
+- `questions-section` / `questions-card` -- Question management
+- `self-assessment-section` / `self-assessment-card` -- Self-assessment tracking
 
-### Component Composition Pattern
+#### Interview List (`interview-list/`)
+- `interview-card-list` -- Card-based interview display
+- `interview-list-item` -- Individual list items
+- `filter-bar` -- Filtering controls
+- `needs-feedback-section` -- Outstanding feedback section
 
-```
-Custom Page/Feature Component
-├── shadcn/ui Wrapper Components (Card, Button, etc.)
-├── Feature-Specific Components (job-table, application-detail)
-├── Business Logic / Hooks (useSession, custom hooks)
-└── Service Integration (api calls)
-```
+#### File Upload (`file-upload/`)
+- `file-upload.tsx` -- Main upload component with drag-and-drop
+- `file-item.tsx` -- Individual file display
+- `file-list.tsx` -- File listing
+- `documents-section.tsx` -- Documents area
+- `upload-progress.tsx` -- Upload progress indicator
 
-**Example: Application Table**
+#### Notification Center (`notification-center/`)
+- `NotificationBell` -- Header bell icon with unread count
+- `NotificationCenter` -- Full notification view
+- `NotificationDropdown` -- Quick notification dropdown
+- `NotificationItem` -- Individual notification
+- `NotificationPreferences` -- Notification settings
 
-```
-ApplicationTable (Feature Component)
-├── Card (shadcn/ui)
-│   ├── TanStack Table + Table (shadcn/ui)
-│   │   ├── Columns (with Badge, Dropdown Menu)
-│   │   └── Rows
-│   └── Button (shadcn/ui)
-└── API Integration (jobService)
-```
+#### Other Component Groups
+- `application-selector/` -- Dialog for selecting applications
+- `applications/` -- MobileAppCard for responsive views
+- `assessment-form/` -- Assessment creation modal (with tests)
+- `assessment-list/` -- Assessment display
+- `assessment-status-select/` -- Status dropdown
+- `auto-save-indicator/` -- Visual auto-save feedback
+- `export-dialog/` -- Export data to CSV/JSON
+- `global-search/` -- Application-wide search
+- `job-table/` -- Job table with columns, status dropdown, scrape button
+- `layout/` -- ResponsiveHeader, NavSheet, UserAvatar
+- `loading-skeleton/` -- Loading state skeletons
+- `page-header/` -- Reusable page header
+- `settings/` -- DeleteAccountDialog
+- `sidebar/` -- Navigation sidebar with user menu (nav-user)
+- `stat-card/` -- Dashboard statistics display
+- `storage-quota/` -- Storage quota widget and user file list
+- `submission-form/` -- Assessment submission with file upload
+- `submission-list/` -- Submission results display
 
-### Custom Components
-
-#### Navigation Components
-- **Navbar**: Conditional rendering based on auth status
-- **Sidebar**: Main navigation with user profile section
-- **SidebarProvider/SidebarInset**: Sidebar layout system
-
-#### Feature Components
-- **JobTable**: Paginated, sortable job listings
-- **ApplicationTable**: Application status tracking
-- **InterviewTable**: Interview management
-- **OAuthButtons**: Multi-provider OAuth login buttons
-- **MarketBanner**: Marketing content on auth pages
-
-#### Layout Components
-- **LayoutWrapper**: Consistent page container padding
-- **ThemeProvider**: Dark/light mode management
+#### Standalone Components
+- `auth-guard.tsx` -- Route protection wrapper
+- `error-boundary.tsx` -- React error boundary (with tests)
+- `network-status-monitor.tsx` -- Network connectivity indicator
+- `rich-text-editor.tsx` -- TipTap-based rich text editor
+- `theme-provider.tsx` -- Dark/light theme context
 
 ---
 
-## Authentication Flow
+## Custom Hooks (8)
 
-### NextAuth v5 Integration
+| Hook | Purpose |
+|------|---------|
+| `useAutoSave` | Automatic form saving with debounce |
+| `useFileUpload` | File upload with progress tracking, abort, retry, multi-stage flow |
+| `useNotifications` | Notification polling (60s), unread count, mark read |
+| `use-breakpoint` | Responsive breakpoint detection |
+| `use-click-outside` | Detect clicks outside a ref |
+| `use-compact-layout` | Layout density preferences |
+| `use-mobile` | Mobile viewport detection |
+
+### useFileUpload Detail
+
+Manages the full file upload lifecycle:
+- **Progress tracking**: percent, bytes transferred, upload speed, ETA
+- **Abort/cancel**: Cancel in-progress uploads
+- **Retry**: Retry failed uploads
+- **Multi-stage flow**: Presigned URL -> S3 upload -> confirm with backend
+- **States**: `idle`, `uploading`, `confirming`, `completed`, `failed`, `cancelled`
+
+---
+
+## Authentication
+
+### NextAuth v5 Configuration
 
 File: `src/auth.ts`
 
-NextAuth is configured as the primary authentication system with three provider strategies:
+Three provider strategies:
 
-#### 1. Credentials Provider (Email + Password)
-- Local authentication with backend JWT system
-- Calls `/api/login` endpoint to validate credentials
-- Returns access and refresh tokens from backend
+1. **Credentials Provider** -- Email + password login against backend `/api/login`
+2. **GitHub OAuth** -- Social login via GitHub
+3. **Google OAuth** -- Social login via Google
 
-#### 2. OAuth Providers
-- **GitHub**: Social login via GitHub
-- **Google**: Social login via Google
-- Redirects to `/api/oauth` endpoint for backend sync
+OAuth flows call `/api/oauth` on the backend to sync user data and return tokens.
 
-#### 3. Callback Chain
+### Token Management
 
-```
-signIn Callback
-│
-├─ OAuth Flow
-│  ├─ Provider returns user data
-│  ├─ POST /api/oauth (backend sync)
-│  ├─ Backend creates/updates user
-│  └─ Returns access_token, refresh_token, user.id
-│
-└─ Credentials Flow
-   └─ Direct backend login
-```
+- Access token TTL: 24 hours
+- Token refresh: Automatic with 5-minute buffer before expiry
+- JWT callback stores `access_token`, `refresh_token`, and `backendUserId`
+- Session callback exposes tokens to the client
 
-**JWT Callback**:
-- Stores backend tokens (access_token, refresh_token) in JWT
-- Preserves tokens across requests
-- Makes tokens available in session object
+### Session Provider
 
-**Session Callback**:
-- Injects tokens into session object
-- Frontend can access `session.accessToken` for API requests
-- Enriches user ID with backend user ID
+File: `src/providers/auth-provider.tsx`
 
-### Authentication Flow Diagram
+- Wraps entire application with NextAuth `SessionProvider`
+- `refetchOnWindowFocus` enabled
+- Polls for session updates every 4 minutes
+
+### Authentication Flow
 
 ```
 User Login Request
-│
-├─ Via Credentials
-│  ├─ Email + Password → signIn('credentials')
-│  ├─ Credentials Provider authorizes with backend
-│  ├─ Backend validates & returns tokens
-│  └─ NextAuth stores in JWT
-│
-└─ Via OAuth (GitHub/Google)
-   ├─ Redirects to provider
-   ├─ Provider returns authorization code
-   ├─ NextAuth exchanges for tokens
-   ├─ signIn Callback triggers
-   ├─ POST /api/oauth with provider + user data
-   ├─ Backend creates/updates user, returns tokens
-   └─ NextAuth stores in JWT
-        │
-        ▼
-   JWT Callback
-   ├─ Stores access_token, refresh_token, backendUserId
-   └─ Session Callback
-      ├─ Makes tokens available in session
-      └─ Injects into axios interceptors
-           │
-           ▼
-      API Requests
-      ├─ axios interceptor extracts session
-      ├─ Adds Bearer token to Authorization header
-      └─ Backend validates token
+|
++-- Via Credentials
+|   +-- Email + Password -> signIn('credentials')
+|   +-- Backend validates, returns access_token + refresh_token
+|   +-- NextAuth stores in JWT
+|
++-- Via OAuth (GitHub/Google)
+    +-- Redirects to provider
+    +-- Provider returns authorization code
+    +-- NextAuth exchanges for tokens
+    +-- signIn callback: POST /api/oauth with provider + user data
+    +-- Backend creates/updates user, returns tokens
+    +-- NextAuth stores in JWT
+         |
+         v
+    JWT Callback
+    +-- Stores access_token, refresh_token, backendUserId
+    +-- Checks token expiry (5-min buffer)
+    +-- Refreshes if needed
+    +-- Session Callback
+        +-- Makes tokens available in session
+        +-- Injects into axios interceptors
+             |
+             v
+        API Requests (with CSRF + retry)
 ```
-
-### Session Management
-
-**SessionProvider** (Root Layout):
-- Wraps entire application in `src/providers/auth-provider.tsx`
-- Makes `useSession()` hook available throughout app
-- Refetches session periodically
-
-**useSession() Hook**:
-- Returns `session`, `status`, `data`
-- Status: `"loading"`, `"authenticated"`, `"unauthenticated"`
-- Automatically handles token refresh
 
 ### Protected Routes
 
-Routes under `(app)` are protected by middleware. If unauthenticated:
-- Middleware checks session validity
-- Redirects to `/login` page
-- Cleared session clears in browser
-
----
-
-## State Management
-
-The application uses a **minimal state management approach** leveraging React's built-in features:
-
-### Session State (NextAuth)
-```typescript
-const { data: session, status } = useSession();
-// session.user: { id, email, name, image }
-// session.accessToken: JWT token for API calls
-// status: 'loading' | 'authenticated' | 'unauthenticated'
-```
-
-### Local Component State (React Hooks)
-- **useState**: For form inputs, UI toggles, loading states
-- **useEffect**: For side effects, data fetching
-- **useContext**: For theme context (next-themes)
-
-### Form State (react-hook-form)
-- **useForm**: Efficient form state management with minimal re-renders
-- **Validation**: Integrated with Zod schema validation
-- **Controlled Inputs**: Form values tracked in form instance, not component state
-
-### Example: Login Form State
-
-```typescript
-const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-});
-// register: bind input to form state
-// handleSubmit: form submission with validation
-// errors: validation error messages
-```
-
-### Theme State (next-themes)
-- **ThemeProvider**: Wraps app to enable dark/light mode
-- **useTheme()**: Access current theme and toggle function
-- Persists theme preference in localStorage
+Routes under `(app)` are protected by middleware. Unauthenticated users are redirected to `/login`.
 
 ---
 
@@ -484,95 +495,151 @@ const api = axios.create({
 });
 ```
 
-**Base URL**:
-- Production: Set via `NEXT_PUBLIC_API_URL` environment variable
-- Development: Defaults to `http://localhost:8081`
+### CSRF Protection
 
-### Request Interceptor
+Mutating requests (POST, PUT, PATCH, DELETE) include an `X-CSRF-Token` header.
 
-Automatically adds JWT bearer token to all requests:
+### Retry Logic
 
+- Maximum 3 retries
+- Exponential backoff
+- Triggers on 5xx responses and network failures
+
+### 401 Token Refresh
+
+When a request returns 401:
+1. Queues all subsequent failed requests
+2. Attempts token refresh
+3. Replays queued requests with new token
+4. Signs out if refresh fails
+
+### 403 CSRF Handling
+
+Automatically re-fetches CSRF token and retries on 403 responses caused by CSRF validation failure.
+
+### Toast Notifications
+
+Validation errors (422) trigger toast notifications via sonner. Callers can suppress toasts by setting `_suppressToast` on the request config.
+
+---
+
+## Error Handling
+
+### Error Boundary
+
+File: `src/components/error-boundary.tsx`
+
+React error boundary that catches unhandled component errors and displays a fallback UI. Includes tests.
+
+### Error Code Mapping
+
+File: `src/lib/errors.ts`
+
+Maps backend error codes to user-friendly messages.
+
+**Functions:**
+- `getErrorMessage(error)` -- Extract user-friendly message
+- `getErrorDetails(error)` -- Get detailed error info
+- `isValidationError(error)` -- Check if validation error
+- `getFieldErrors(error)` -- Extract per-field validation errors
+
+**Handled error codes:**
+`VALIDATION_FAILED`, `BAD_REQUEST`, `UNAUTHORIZED`, `INVALID_CREDENTIALS`, `FORBIDDEN`, `NOT_FOUND`, `USER_NOT_FOUND`, `CONFLICT`, `EMAIL_ALREADY_EXISTS`, `QUOTA_EXCEEDED`, `INTERNAL_SERVER_ERROR`, `DATABASE_ERROR`, `TIMEOUT_ERROR`, `NETWORK_FAILURE`
+
+### Network Status Monitor
+
+File: `src/components/network-status-monitor.tsx`
+
+Displays a visual indicator when the browser loses network connectivity.
+
+---
+
+## File Service
+
+File: `src/lib/file-service.ts`
+
+### Size Limits
+- General uploads: 5 MB max
+- Assessment uploads: 10 MB max
+
+### Allowed File Types
+- General: PDF, DOCX, TXT
+- Assessments: PDF, DOCX, TXT, ZIP
+
+### Functions
+- `getPresignedUploadUrl(metadata)` -- Get S3 presigned URL
+- `uploadToS3(url, file, onProgress)` -- XHR upload with progress callback
+- `confirmUpload(fileId)` -- Confirm upload with backend
+- `listFiles()` -- List user's files
+- `getFileDownloadUrl(fileId)` -- Get download URL
+- `deleteFile(fileId)` -- Delete a file
+- `getStorageStats()` -- Get usage statistics
+- `validateFile(file)` -- Validate against general limits
+- `validateAssessmentFile(file)` -- Validate against assessment limits
+- `formatFileSize(bytes)` -- Human-readable file size
+
+---
+
+## Validation Schemas
+
+File: `src/lib/schemas/`
+
+Seven Zod schemas with corresponding TypeScript types:
+
+| Schema | File | Purpose |
+|--------|------|---------|
+| Application | `application.ts` | Application form validation |
+| Assessment | `assessment.ts` | Assessment form validation |
+| Interview | `interview.ts` | Interview form validation |
+| Interviewer | `interviewer.ts` | Interviewer form validation |
+| Question | `question.ts` | Question form validation |
+| Submission | `submission.ts` | Submission form validation |
+
+All schemas are re-exported from `index.ts`. Tests live in `__tests__/`.
+
+---
+
+## Type Definitions
+
+File: `src/types/`
+
+| File | Purpose |
+|------|---------|
+| `auth-type.ts` | Auth types, NextAuth module augmentation |
+| `job-type.ts` | Job/application types |
+| `notification.ts` | Notification types |
+| `timeline.ts` | Timeline event types |
+| `upcoming.ts` | Upcoming items types |
+| `search.ts` | Search result types |
+| `index.ts` | Re-exports |
+
+---
+
+## State Management
+
+The application uses a minimal state management approach:
+
+### Session State (NextAuth)
 ```typescript
-api.interceptors.request.use(async (config) => {
-    const session = await getSession();
-    if (session?.accessToken) {
-        config.headers.Authorization = `Bearer ${session.accessToken}`;
-    }
-    return config;
-});
+const { data: session, status } = useSession();
+// session.user: { id, email, name, image }
+// session.accessToken: JWT token for API calls
+// status: 'loading' | 'authenticated' | 'unauthenticated'
 ```
 
-**Features**:
-- Fetches current session from NextAuth
-- Injects access token in Authorization header
-- Runs before every request (transparent to caller)
+### Local Component State
+- `useState` for form inputs, UI toggles, loading states
+- `useEffect` for side effects, data fetching
+- `useContext` for theme (next-themes)
 
-### Response Interceptor
+### Form State (react-hook-form + Zod)
+- `useForm` with `zodResolver` for validated form management
+- Form values tracked in form instance, not component state
+- Per-field validation errors from Zod schemas
 
-Centralized error handling:
-
-```typescript
-api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response) {
-            console.error('Response Error:', error.response.data);
-        } else if (error.request) {
-            console.error('Request Error:', error.request);
-        } else {
-            console.error('Error:', error.message);
-        }
-        return Promise.reject(error);
-    }
-);
-```
-
-**Error Categories**:
-- **Response Errors**: Server returned error (4xx, 5xx)
-- **Request Errors**: Request never reached server
-- **Configuration Errors**: Problem setting up the request
-
-### API Services
-
-Services abstract business logic from components. Each service encapsulates API calls for a feature domain.
-
-#### authService (`src/services/auth-service.ts`)
-
-```typescript
-authService.register(name, email, password)     // POST /api/users
-authService.login(email, password)              // POST /api/login
-authService.refreshToken(refreshToken)         // POST /api/refresh_token
-authService.getMe()                            // GET /api/me
-```
-
-#### jobService (`src/services/job-service.ts`)
-
-```typescript
-jobService.getAllJobs()                        // GET /jobs
-jobService.handleStatusChange(id, status)      // PATCH /jobs/{id}/status
-jobService.syncNewJobs()                       // GET /jobs/sync-new-jobs
-```
-
-**Service Pattern Benefits**:
-- Separation of concerns (API logic separate from UI)
-- Reusable across multiple components
-- Centralized error handling
-- Easier testing and mocking
-
-### Type-Safe API Calls
-
-Zod + TypeScript for runtime validation:
-
-```typescript
-export type LoginResponse = {
-    access_token: string;
-    refresh_token: string;
-    user: UserResponse;
-};
-
-// In service:
-const { data } = await api.post<LoginResponse>('/api/login', {});
-```
+### Theme State (next-themes)
+- ThemeProvider wraps app for dark/light mode
+- Persists preference in localStorage
 
 ---
 
@@ -580,82 +647,56 @@ const { data } = await api.post<LoginResponse>('/api/login', {});
 
 ### Tailwind CSS v4
 
-**Configuration**: `tailwind.config.ts`
-
-- **CSS Variables**: Enabled for theming (`@/app/globals.css`)
-- **Base Color**: Zinc (neutral grays)
-- **Styling Approach**: Utility-first
-
-### Global Styles
-
-File: `src/app/globals.css`
-
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* CSS variables for theming */
-/* --background, --foreground, --primary, --accent, etc. */
-```
-
-**CSS Variables**:
-- Light mode: Default colors
-- Dark mode: Override in `@media (prefers-color-scheme: dark)`
-- Theme toggle: Controlled by next-themes (adds `dark` class to `<html>`)
+- Utility-first CSS framework
+- CSS variables for theming in `globals.css`
+- Dark mode via `dark` class on `<html>`
+- Responsive breakpoints: `sm`, `md`, `lg`, `xl`, `2xl`
 
 ### Component Styling
 
 shadcn/ui components use:
-1. **Tailwind Classes**: Primary styling
-2. **CSS Variables**: Dynamic theming
-3. **CVA (class-variance-authority)**: Variant composition
-
-**Example Button Component**:
-```tsx
-const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground",
-        outline: "border border-input bg-background",
-      },
-      size: {
-        sm: "h-9 px-3 text-sm",
-        lg: "h-11 px-8",
-      },
-    },
-  }
-);
-```
-
-### Local Custom Styling
-
-Components can combine:
-- **Tailwind utilities**: `className="flex items-center gap-4"`
-- **CSS modules**: Not used (Tailwind-first approach)
-- **Inline styles**: Rarely (prefer Tailwind)
-
-### shadcn/ui Customization
-
-Components are copied to `src/components/ui/` and can be modified:
-- Change default variant behavior
-- Add new color schemes
-- Adjust spacing/sizing
-- Customize animations
+1. **Tailwind classes** for primary styling
+2. **CSS variables** for dynamic theming
+3. **CVA (class-variance-authority)** for variant composition
+4. **clsx + tailwind-merge** for conditional class merging
 
 ### Responsive Design
 
-Uses Tailwind breakpoints:
-```tsx
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+- Tailwind responsive prefixes throughout
+- `use-mobile` hook for programmatic mobile detection
+- `use-breakpoint` hook for arbitrary breakpoint detection
+- `use-compact-layout` hook for density preferences
+- Mobile-specific components (MobileAppCard, NavSheet, drawer variants)
+
+---
+
+## Testing
+
+### Configuration
+
+- **Runner**: Jest (`jest.config.ts`)
+- **Library**: React Testing Library
+- **Setup**: `jest.setup.ts`
+- **Mocks**: `__mocks__/` directory
+
+### Running Tests
+
+```bash
+cd frontend
+pnpm test
 ```
 
-Custom hook for mobile detection:
-```typescript
-const isMobile = useIsMobile(); // true if width < 768px
-```
+### Test Coverage
+
+Tests exist for:
+- Login page (`src/app/(auth)/login/__tests__/`)
+- Error boundary (`src/components/__tests__/`)
+- Assessment form (`src/components/assessment-form/__tests__/`)
+- Interview form (`src/components/interview-form/__tests__/`)
+- Add application form (`src/app/(app)/applications/new/__tests__/`)
+- Error utilities (`src/lib/__tests__/`)
+- Utility functions (`src/lib/__tests__/`)
+- Validation schemas (`src/lib/schemas/__tests__/`)
 
 ---
 
@@ -667,572 +708,138 @@ const isMobile = useIsMobile(); // true if width < 768px
 cd frontend
 
 # Install dependencies
-npm install
+pnpm install
 
 # Configure environment
 echo "NEXT_PUBLIC_API_URL=http://localhost:8081" > .env.local
 
 # Run development server
-npm run dev
+pnpm run dev
 
 # Open http://localhost:8080
 ```
 
 ### Development Scripts
 
-```json
-{
-  "dev": "next dev -p 8080",      // Start dev server on port 8080
-  "build": "next build",          // Production build
-  "start": "next start",          // Start production server
-  "lint": "next lint"             // Run ESLint
-}
-```
-
-### Code Quality Tools
-
-#### ESLint Configuration
-File: `.eslintrc.json`
-
-```json
-{
-  "extends": ["next/core-web-vitals", "next/typescript"]
-}
-```
-
-- Enforces Next.js best practices
-- TypeScript type checking
-- Unused variables, missing dependencies
-
-#### Prettier Configuration
-File: `.prettierrc.json`
-
-- Automated code formatting
-- 4-space indentation
-- Consistent style across team
-
-#### TypeScript Configuration
-File: `tsconfig.json`
-
-```typescript
-{
-  "compilerOptions": {
-    "strict": true,                    // Strict type checking
-    "moduleResolution": "bundler",     // Module resolution
-    "paths": {
-      "@/*": ["./src/*"]              // Path aliases
-    }
-  }
-}
-```
-
-### Component Development
-
-#### Creating a New Component
-
-1. **Determine Type**:
-   - If using shadcn primitive: `npx shadcn-ui@latest add [component]`
-   - If custom: Create in `src/components/`
-
-2. **Structure**:
-   ```tsx
-   'use client';  // If interactive
-
-   import { ReactNode } from 'react';
-
-   type ComponentProps = {
-     children: ReactNode;
-     className?: string;
-   };
-
-   export default function Component({ children, className }: ComponentProps) {
-     return <div className={className}>{children}</div>;
-   }
-   ```
-
-3. **Export**: Add to `src/components/index.tsx` for easy imports
-
-#### Testing Components
-
-No automated testing configured. Manual testing approach:
-- Design system page at `/design-system` for UI component showcase
-- Manual integration testing in browser
-- Console logging for debugging
+| Script | Command | Purpose |
+|--------|---------|---------|
+| `dev` | `pnpm run dev` | Start dev server on port 8080 |
+| `build` | `pnpm run build` | Production build |
+| `start` | `pnpm start` | Start production server |
+| `lint` | `pnpm run lint` | Run ESLint |
+| `test` | `pnpm test` | Run Jest tests |
 
 ### Environment Variables
-
-Supported variables:
 
 | Variable | Purpose | Required | Example |
 |----------|---------|----------|---------|
 | `NEXT_PUBLIC_API_URL` | Backend API base URL | Yes | `http://localhost:8081` |
 
-**Notes**:
-- Must be prefixed with `NEXT_PUBLIC_` to be exposed to browser
-- Set in `.env.local` (not committed)
-- Used in `src/lib/axios.ts` and `src/auth.ts`
+Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser. Set in `.env.local` (not committed).
 
 ### Git Workflow
 
 1. Create feature branch from `main`
 2. Make changes with automatic formatting (Prettier)
-3. Run linting: `npm run lint`
-4. Commit with clear messages
-5. Push to remote branch
-6. Create Pull Request
-7. Code review and merge
+3. Run linting: `pnpm run lint`
+4. Run tests: `pnpm test`
+5. Commit with clear messages
+6. Push and create Pull Request
 
 ---
 
-## Deployment Architecture
+## Key Files Reference
 
-### Build Process
+### Authentication and Setup
 
-```bash
-npm run build
-```
+| File | Purpose |
+|------|---------|
+| `src/auth.ts` | NextAuth configuration (providers, callbacks, token refresh) |
+| `src/middleware.ts` | Route protection middleware |
+| `src/providers/auth-provider.tsx` | SessionProvider wrapper (4-min polling) |
+| `src/app/api/auth/[...nextauth]/route.ts` | NextAuth API routes |
 
-1. **Next.js Compilation**:
-   - Compiles TypeScript to JavaScript
-   - Bundles and optimizes code
-   - Generates `.next/` output directory
+### API and Services
 
-2. **Output Files**:
-   - Server-side code: Compiled to Node.js-compatible format
-   - Client-side code: Optimized JavaScript bundles
-   - Static assets: Cached with fingerprints
+| File | Purpose |
+|------|---------|
+| `src/lib/axios.ts` | Axios instance with CSRF, retry, token refresh |
+| `src/lib/errors.ts` | Error code to message mapping |
+| `src/lib/file-service.ts` | File upload/download with S3 presigned URLs |
+| `src/lib/sanitizer.ts` | HTML sanitization |
+| `src/lib/constants.ts` | Application constants |
+| `src/lib/utils.ts` | Helper utilities |
 
-3. **Build Artifacts**:
-   - `.next/` directory: Ready for deployment
-   - Size-optimized bundles
-   - Source maps for debugging (production disabled)
+### Validation
 
-### Deployment Target
+| File | Purpose |
+|------|---------|
+| `src/lib/schemas/application.ts` | Application form schema |
+| `src/lib/schemas/assessment.ts` | Assessment form schema |
+| `src/lib/schemas/interview.ts` | Interview form schema |
+| `src/lib/schemas/interviewer.ts` | Interviewer form schema |
+| `src/lib/schemas/question.ts` | Question form schema |
+| `src/lib/schemas/submission.ts` | Submission form schema |
 
-Typically deployed to:
-- **Vercel** (Next.js native platform) - Recommended
-- **AWS (Amplify, EC2, ECS)**
-- **Docker container**
-- **Node.js server** (using `npm start`)
+### Configuration
 
-### Production Considerations
-
-1. **Environment Variables**:
-   - Set `NEXT_PUBLIC_API_URL` to production backend URL
-   - Use environment file or deployment platform secrets
-
-2. **Performance**:
-   - Automatic code splitting
-   - Image optimization
-   - Font optimization (Geist fonts in `src/app/fonts/`)
-
-3. **Security**:
-   - HTTPS enforcement
-   - CORS configuration on backend
-   - Environment variables never in client code (unless NEXT_PUBLIC_)
-
-4. **Monitoring**:
-   - Deploy with analytics enabled
-   - Monitor Core Web Vitals
-   - Set up error tracking (Sentry, etc.)
-
-### Vercel Deployment (Recommended)
-
-```bash
-# Connected to GitHub repository
-# Automatic deployments on push to main
-# Environment variables configured in Vercel dashboard
-```
-
----
-
-## Performance Considerations
-
-### Server vs Client Components
-
-**Server Components** (Default):
-- Rendered on server
-- Access backend directly
-- No JavaScript sent to browser
-- Better for sensitive data
-- Use case: Pages, layouts, static content
-
-**Client Components** (marked with 'use client'):
-- Rendered in browser
-- Can use React hooks
-- Interactive features
-- Use case: Forms, dropdowns, animations, user interaction
-
-**Current Strategy**:
-- Pages and layouts are server components when possible
-- Interactive sections marked with 'use client'
-- Lazy-loaded client boundaries for interactivity
-
-### Code Splitting
-
-Next.js automatically splits code per route:
-- Each page loads only necessary JavaScript
-- Shared components deduplicated
-- Unused code excluded from bundles
-
-### Image Optimization
-
-Uses native `<img>` tags (static images):
-- Not using Next.js `<Image>` component yet
-- Opportunity for optimization: Add `<Image>` for lazy loading
-
-### Font Optimization
-
-Custom fonts loaded at build time:
-- Geist Sans and Geist Mono from `/public/fonts/`
-- System font stack fallback
-- Preloaded via `localFont()`
-
-### Caching Strategy
-
-- **HTTP Caching**: Configured by deployment platform
-- **Browser Caching**: Static assets cached long-term
-- **Next.js Caching**: ISR (Incremental Static Regeneration) not used
-- **Session Caching**: NextAuth caches sessions in memory
-
-### Bundle Size
-
-Approximate bundles (production):
-- React + React DOM: ~45KB gzipped
-- Next.js runtime: ~25KB gzipped
-- Application code: ~100KB gzipped
-- Total estimated: ~170KB gzipped
+| File | Purpose |
+|------|---------|
+| `package.json` | Dependencies (pnpm) |
+| `tsconfig.json` | TypeScript strict mode, path aliases |
+| `components.json` | shadcn/ui configuration |
+| `next.config.mjs` | Next.js configuration |
+| `jest.config.ts` | Jest test configuration |
 
 ---
 
 ## Architectural Decisions
 
 ### Why Next.js 14 App Router?
-
-**Decisions**:
-- ✅ Modern, recommended routing system (vs Pages Router)
-- ✅ Server-side rendering by default (better performance)
-- ✅ Unified layouts and middleware
-- ✅ Built-in API routes for auth endpoints
-- ❌ Not using Pages Router (legacy approach)
-
-**Tradeoff**: Steeper learning curve, but better long-term maintainability
+Modern, recommended routing system with server-side rendering by default, unified layouts and middleware, and built-in API routes. Tradeoff: steeper learning curve, but better long-term maintainability.
 
 ### Why shadcn/ui?
+Unstyled, fully customizable components built on Radix UI primitives. Copy-paste model keeps components in the repo (not node_modules). Full Tailwind CSS integration. Tradeoff: must maintain components yourself, but full control.
 
-**Decisions**:
-- ✅ Unstyled, fully customizable components
-- ✅ Built on Radix UI (accessible primitives)
-- ✅ Copy-paste model (components in your repo, not node_modules)
-- ✅ Tailwind CSS integration
-- ❌ Not using Material-UI (heavier, opinionated)
-- ❌ Not using Headless UI (fewer components)
-
-**Tradeoff**: Must maintain components yourself, but full control
-
-### Why Tailwind CSS?
-
-**Decisions**:
-- ✅ Utility-first, rapid development
-- ✅ Small bundle size (~15KB gzipped)
-- ✅ Works seamlessly with shadcn/ui
-- ✅ Consistent spacing/sizing system
-- ❌ Not using CSS-in-JS (Emotion, Styled Components)
-- ❌ Not using CSS Modules
-
-**Tradeoff**: Longer class names in JSX, but better performance
+### Why Tailwind CSS v4?
+Utility-first approach enables rapid development with small bundle sizes. Works seamlessly with shadcn/ui and provides a consistent spacing/sizing system.
 
 ### Why NextAuth v5?
+Official Next.js auth solution with multi-provider support (credentials, OAuth), built-in session management, and JWT support. Still in beta, but the most integrated option for Next.js.
 
-**Decisions**:
-- ✅ Official Next.js auth solution
-- ✅ Multi-provider support (credentials, OAuth)
-- ✅ Session management built-in
-- ✅ JWT and database session options
-- ❌ Not using Auth0 (heavier, paid)
-- ❌ Not using Firebase Auth (vendor lock-in)
-
-**Tradeoff**: Still in beta, API changes possible
-
-### Why axios Over fetch?
-
-**Decisions**:
-- ✅ Request/response interceptors (DRY token injection)
-- ✅ Request cancellation
-- ✅ Request timeout
-- ✅ Automatic JSON transformation
-- ❌ Not using fetch (more boilerplate)
-
-**Tradeoff**: Additional dependency, but much cleaner code
+### Why axios over fetch?
+Request/response interceptors enable clean token injection, CSRF handling, retry logic, and centralized error handling without boilerplate. Tradeoff: additional dependency, but significantly cleaner API client code.
 
 ### Why react-hook-form + Zod?
+react-hook-form provides minimal re-renders and good performance. Zod provides runtime schema validation with TypeScript type inference. Combined via `@hookform/resolvers` for validated form handling.
 
-**Decisions**:
-- ✅ react-hook-form: Minimal re-renders, good performance
-- ✅ Zod: Runtime schema validation with TypeScript types
-- ✅ Integration via @hookform/resolvers
-- ❌ Not using Formik (heavier)
-- ❌ Not using raw useState (verbose, error-prone)
+### Why sonner for toasts?
+Lightweight toast library that integrates well with shadcn/ui. Used for validation errors, success messages, and network status feedback.
 
-**Tradeoff**: Learning curve, but professional form handling
+### Why TipTap for rich text?
+Extensible, headless rich text editor based on ProseMirror. Used for interview notes and feedback where markdown-style editing is needed.
 
 ---
 
-## Key Files Reference
-
-### Authentication & Setup
-
-| File | Purpose | Key Exports |
-|------|---------|-------------|
-| `src/auth.ts` | NextAuth configuration | `handlers`, `signIn`, `signOut`, `auth` |
-| `src/middleware.ts` | Route protection | Middleware config, route matchers |
-| `src/providers/auth-provider.tsx` | SessionProvider wrapper | AuthProvider component |
-| `src/app/api/auth/[...nextauth]/route.ts` | Auth API routes | GET, POST handlers |
-
-### Services & API
-
-| File | Purpose | Key Functions |
-|------|---------|----------------|
-| `src/lib/axios.ts` | Axios instance | `api` (axios client) |
-| `src/services/auth-service.ts` | Auth API calls | `register()`, `login()`, `getMe()` |
-| `src/services/job-service.ts` | Job API calls | `getAllJobs()`, `handleStatusChange()` |
-
-### Layout & Components
-
-| File | Purpose | Key Exports |
-|------|---------|-------------|
-| `src/app/layout.tsx` | Root layout | RootLayout |
-| `src/app/(app)/layout.tsx` | App layout | AppLayout (with sidebar/navbar) |
-| `src/app/(auth)/layout.tsx` | Auth layout | AuthLayout |
-| `src/components/Navbar/navbar.tsx` | Top navigation | Navbar |
-| `src/components/Sidebar/Sidebar.tsx` | Main sidebar | AppSidebar |
-| `src/components/theme-provider.tsx` | Theme context | ThemeProvider |
-
-### Configuration
-
-| File | Purpose | Key Settings |
-|------|---------|--------------|
-| `package.json` | Dependencies | All npm packages |
-| `tsconfig.json` | TypeScript | Strict mode, path aliases |
-| `components.json` | shadcn/ui config | Component aliases, Tailwind paths |
-| `next.config.mjs` | Next.js config | Currently empty (default config) |
-| `tailwind.config.ts` | Tailwind config | Colors, fonts, animations |
-
-### Types
-
-| File | Purpose | Key Types |
-|------|---------|-----------|
-| `src/types/auth-type.ts` | Auth types | `LoginResponse`, `UserResponse`, NextAuth module augmentation |
-
----
-
-## Development Patterns & Best Practices
-
-### Component Organization
-
-**Pattern: Feature + UI Separation**
-
-```
-Feature: Job Applications
-├── Feature Components
-│   ├── ApplicationTable.tsx
-│   ├── ApplicationDetail.tsx
-│   └── columns.tsx (table columns)
-├── UI Components (shadcn/ui)
-│   ├── Card
-│   ├── Button
-│   └── Badge
-└── Service Integration
-    └── jobService.getAllJobs()
-```
-
-### Naming Conventions
-
-- **Components**: PascalCase (React components)
-- **Hooks**: camelCase, start with `use` (custom hooks)
-- **Services**: camelCase (functions/objects)
-- **Types**: PascalCase
-- **Constants**: UPPER_SNAKE_CASE
-- **Files**:
-  - Components: PascalCase (`Navbar.tsx`)
-  - Utilities: camelCase (`utils.ts`)
-  - Index exports: `index.ts` for re-exports
-
-### Import Organization
-
-```typescript
-// 1. External libraries
-import React from 'react';
-import { useSession } from 'next-auth/react';
-
-// 2. Internal components
-import { Button, Card } from '@/components/ui';
-import Navbar from '@/components/Navbar';
-
-// 3. Services and utilities
-import { jobService } from '@/services';
-import { cn } from '@/lib/utils';
-
-// 4. Types
-import type { JobResponse } from '@/types';
-```
-
-### Error Handling
-
-**Pattern: Service-level with UI feedback**
-
-```typescript
-try {
-    const response = await jobService.getAllJobs();
-} catch (error) {
-    console.error('Error fetching jobs:', error);
-    setError('Failed to load jobs');
-    // Show error toast/alert to user
-}
-```
-
-### Loading States
-
-**Pattern: Conditional rendering with status**
-
-```typescript
-const [loading, setLoading] = useState(false);
-
-if (loading) return <Skeleton />;
-if (error) return <ErrorMessage />;
-return <Content />;
-```
-
-### Async Operations
-
-**Pattern: useEffect + async function**
-
-```typescript
-useEffect(() => {
-    const fetchData = async () => {
-        try {
-            const data = await jobService.getAllJobs();
-            setJobs(data);
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    };
-    fetchData();
-}, []);
-```
-
----
-
-## Known Limitations & Future Improvements
+## Known Limitations and Future Improvements
 
 ### Current Limitations
 
-1. **No Automated Testing**: No unit, integration, or E2E tests configured
-2. **No Error Boundaries**: Unhandled errors crash the entire app
-3. **No Loading Skeletons**: Basic loading states (no shimmer effects)
-4. **No Toast Notifications**: Error/success messages show as console logs
-5. **No Image Optimization**: Using native `<img>` tags without optimization
-6. **No Offline Support**: No service workers or offline caching
-7. **No PWA Features**: Not installable as app
-8. **Token Refresh**: Not implemented in axios (relies on NextAuth refresh)
+1. **No Image Optimization**: Using native `<img>` tags without Next.js `<Image>` component
+2. **No Offline Support**: No service workers or offline caching
+3. **No PWA Features**: Not installable as a standalone app
+4. **No E2E Tests**: Unit and component tests exist, but no Playwright or Cypress
 
-### Recommended Improvements
+### Potential Improvements
 
-1. **Add Testing**:
-   - Jest + React Testing Library for unit tests
-   - Playwright or Cypress for E2E tests
-
-2. **Improve Error Handling**:
-   - Error boundaries for component-level error catching
-   - Global error page component
-   - User-facing error messages with toast notifications
-
-3. **Performance**:
-   - Convert to `<Image>` component
-   - Add code splitting for large features
-   - Implement dynamic imports for modal dialogs
-
-4. **Auth Improvements**:
-   - Token refresh interceptor
-   - Login expiration warning
-   - Session persistence across page reloads
-
-5. **Monitoring**:
-   - Sentry for error tracking
-   - Analytics for user behavior
-   - Performance monitoring
-
-6. **Accessibility**:
-   - Audit with Axe DevTools
-   - Keyboard navigation for all components
-   - ARIA labels and semantic HTML
+1. **E2E Testing**: Add Playwright or Cypress for end-to-end testing
+2. **Image Optimization**: Convert to Next.js `<Image>` component for lazy loading
+3. **Performance Monitoring**: Add Sentry or similar for error tracking and analytics
+4. **Accessibility Audit**: Continuous auditing with Axe DevTools
 
 ---
 
-## Troubleshooting & Debug Guide
-
-### Common Issues
-
-#### 1. "auth is not exported from @/auth"
-- **Cause**: NextAuth not properly configured
-- **Fix**: Check `src/auth.ts` exports `{ handlers, signIn, signOut, auth }`
-
-#### 2. Session always returns `null` in client components
-- **Cause**: Component not wrapped in `SessionProvider`
-- **Fix**: Ensure `AuthProvider` wraps entire app in root layout
-
-#### 3. Authorization header not sent to API
-- **Cause**: Axios interceptor not running
-- **Fix**: Check session exists and `getSession()` returns token
-
-#### 4. OAuth login redirects to login page after callback
-- **Cause**: Backend `/api/oauth` endpoint failed
-- **Fix**: Check backend logs, ensure `NEXT_PUBLIC_API_URL` correct
-
-#### 5. Tailwind styles not applying
-- **Cause**: CSS not imported globally
-- **Fix**: Check `globals.css` imported in root layout
-
-### Debug Techniques
-
-1. **Console Logging**:
-   ```typescript
-   const { data: session } = useSession();
-   console.log('Current session:', session);
-   ```
-
-2. **Network Tab**:
-   - Open DevTools → Network tab
-   - Check API requests for Authorization header
-   - Verify response status codes
-
-3. **Application Tab**:
-   - Check cookies for NextAuth tokens
-   - Verify localStorage for theme preference
-
-4. **React DevTools**:
-   - Inspect component props and state
-   - View hook state changes
-
----
-
-## Summary
-
-The Ditto frontend demonstrates modern Next.js best practices with:
-
-- **Clean Architecture**: Separation of routes, components, services
-- **Type Safety**: Full TypeScript coverage with Zod validation
-- **Authentication**: NextAuth with multi-provider support and JWT tokens
-- **Component Library**: shadcn/ui + Radix UI for accessible components
-- **Styling**: Tailwind CSS with dark/light theme support
-- **State Management**: React hooks + NextAuth session
-- **API Integration**: Axios with request/response interceptors
-- **Developer Experience**: ESLint, Prettier, TypeScript strict mode
-
-The codebase is production-ready, maintainable, and follows industry best practices for modern web application development with Next.js.
-
----
-
-**Document Generated**: 2024
+**Document Generated**: 2026-02-20
 **Frontend Location**: `/home/simon198/work/personal/ditto/frontend`
 **Framework Version**: Next.js 14.2.15
+**Package Manager**: pnpm

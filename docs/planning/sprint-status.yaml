@@ -6,7 +6,7 @@
 # project: ditto
 # project_key: ditto
 # tracking_system: file-system
-# story_location: {project-root}/docs/stories
+# story_location: {project-root}/docs/planning/stories
 
 # STATUS DEFINITIONS:
 # ==================
@@ -37,7 +37,7 @@ generated: 2026-01-05
 project: ditto
 project_key: ditto
 tracking_system: file-system
-story_location: "{project-root}/docs/stories"
+story_location: "{project-root}/docs/planning/stories"
 
 development_status:
   # Epic 1: Enhanced Application Management

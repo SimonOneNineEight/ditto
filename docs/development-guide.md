@@ -1,8 +1,7 @@
 # Ditto - Development Guide
 
-**Generated:** 2025-11-08
-**Status:** Production Ready
-**Environment:** Docker Compose (Recommended)
+**Updated:** 2026-02-20
+**Environment:** Docker Compose (Recommended) or Manual
 
 ---
 
@@ -19,7 +18,7 @@
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| **Go** | 1.23+ | Backend development |
+| **Go** | 1.24+ | Backend development |
 | **Node.js** | 18+ | Frontend development |
 | **pnpm** | Latest | Frontend package manager |
 | **PostgreSQL** | 15+ | Database |
@@ -90,11 +89,8 @@ cd backend
 # Install Go dependencies
 go mod download
 
-# Set up environment variables
-export DATABASE_URL="postgres://user:password@localhost/ditto_dev?sslmode=disable"
-export JWT_SECRET="your-secret-key-change-in-production"
-export JWT_REFRESH_SECRET="your-refresh-secret-change-in-production"
-export PORT="8081"
+# Create .env file (see Environment Variables section below)
+cp .env.example .env  # or create manually
 
 # Create database
 createdb ditto_dev
@@ -121,7 +117,7 @@ pnpm install
 cat > .env.local <<EOF
 NEXT_PUBLIC_API_URL=http://localhost:8081
 NEXTAUTH_URL=http://localhost:8080
-NEXTAUTH_SECRET=your-nextauth-secret-change-in-production
+AUTH_SECRET=your-auth-secret-change-in-production
 EOF
 
 # Start development server
@@ -403,11 +399,23 @@ docker system prune
 
 ## Environment Variables
 
-### Backend (.env or docker-compose.yml)
+### Backend (.env)
 
 ```bash
 # Database
-DATABASE_URL=postgres://user:password@host:port/database?sslmode=disable
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=ditto_user
+DB_PASSWORD=ditto_password
+DB_NAME=ditto_dev
+DB_SSLMODE=disable
+
+# Test database
+TEST_DB_HOST=localhost
+TEST_DB_PORT=5432
+TEST_DB_USER=ditto_user
+TEST_DB_PASSWORD=ditto_password
+TEST_DB_NAME=ditto_test
 
 # JWT Secrets (CHANGE IN PRODUCTION)
 JWT_SECRET=your-secret-key-here
@@ -415,10 +423,13 @@ JWT_REFRESH_SECRET=your-refresh-secret-here
 
 # Server
 PORT=8081
-GIN_MODE=debug  # debug | release
 
-# External APIs (Optional)
-CLEAROUT_API_KEY=your-clearout-api-key
+# File storage (S3 or LocalStack)
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=ditto-files-local
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_ENDPOINT=http://localhost:4566  # LocalStack; omit for real S3
 ```
 
 ### Frontend (.env.local)
@@ -429,13 +440,13 @@ NEXT_PUBLIC_API_URL=http://localhost:8081
 
 # NextAuth
 NEXTAUTH_URL=http://localhost:8080
-NEXTAUTH_SECRET=your-nextauth-secret-here
+AUTH_SECRET=your-auth-secret-here
 
-# OAuth Providers (if using)
-GITHUB_ID=your-github-client-id
-GITHUB_SECRET=your-github-client-secret
-GOOGLE_ID=your-google-client-id
-GOOGLE_SECRET=your-google-client-secret
+# OAuth Providers (optional)
+AUTH_GITHUB_ID=your-github-client-id
+AUTH_GITHUB_SECRET=your-github-client-secret
+AUTH_GOOGLE_ID=your-google-client-id
+AUTH_GOOGLE_SECRET=your-google-client-secret
 ```
 
 ---
@@ -575,9 +586,8 @@ pnpm dev -p 3000
 1. **Read Architecture Docs:** `docs/architecture-*.md`
 2. **Review API Contracts:** `docs/api-contracts-backend.md`
 3. **Understand Database Schema:** `docs/database-schema.md`
-4. **Explore Components:** `docs/ui-component-inventory.md`
+4. **Explore Components:** `docs/frontend-components.md`
 
 ---
 
-**Last Updated:** 2025-11-08
-**Maintained By:** Ditto Development Team
+**Updated:** 2026-02-20

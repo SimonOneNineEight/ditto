@@ -1,8 +1,8 @@
 # Ditto - Integration Architecture
 
-**Generated:** 2025-11-08
+**Updated:** 2026-02-20
 **Integration Type:** REST API over HTTP
-**Pattern:** Client-Server with JWT Authentication
+**Pattern:** Client-Server with JWT + CSRF Authentication
 
 ---
 
@@ -11,11 +11,12 @@
 This document describes how the Ditto frontend (Next.js) and backend (Go) integrate to form a cohesive application. The integration uses RESTful HTTP communication with JWT authentication managed by NextAuth v5.
 
 **Key Integration Points:**
-- Frontend → Backend API calls via axios
-- Authentication via NextAuth with custom backend provider
-- JWT token management (access + refresh)
+- Frontend → Backend API calls via axios with retry logic
+- Authentication via NextAuth v5 with custom backend provider
+- JWT token management (access + refresh) with CSRF protection
 - CORS configuration for local development
-- Error handling and response standardization
+- Error handling with structured error codes and field-level validation
+- S3 file uploads via presigned URLs
 
 ---
 
@@ -46,10 +47,11 @@ This document describes how the Ditto frontend (Next.js) and backend (Go) integr
 │  └────────────────┬─────────────────────────────────────────┘  │
 │                   │                                             │
 │  ┌────────────────▼─────────────────────────────────────────┐  │
-│  │  API Service Layer (services/)                           │  │
-│  │  - authService (login, register, logout, getMe)          │  │
-│  │  - jobService (CRUD operations)                          │  │
-│  │  - applicationService (tracking)                         │  │
+│  │  API Service Layer (lib/)                                 │  │
+│  │  - axios.ts (CSRF, retry, 401 refresh queue)             │  │
+│  │  - file-service.ts (S3 presigned uploads)                │  │
+│  │  - errors.ts (error code mapping)                        │  │
+│  │  - schemas/ (Zod validation)                             │  │
 │  └────────────────┬─────────────────────────────────────────┘  │
 │                   │                                             │
 └───────────────────┼─────────────────────────────────────────────┘
@@ -130,7 +132,7 @@ This document describes how the Ditto frontend (Next.js) and backend (Go) integr
   │     - SELECT * FROM users JOIN users_auth...
   │
   ├─7─> Generate JWT tokens
-  │     - Access token (15min TTL)
+  │     - Access token (24 hour TTL)
   │     - Refresh token (7 days TTL)
   │     - Store refresh token in users_auth.refresh_token
   │
@@ -233,7 +235,7 @@ This document describes how the Ditto frontend (Next.js) and backend (Go) integr
   │
   ├─5─> Generate new access token
   │     - Same user_id
-  │     - New expiration (15min)
+  │     - New expiration (24 hours)
   │
   ├─6─> Return JSON:
   │     {
@@ -321,7 +323,7 @@ This document describes how the Ditto frontend (Next.js) and backend (Go) integr
 
 #### NextAuth Configuration
 
-**File:** `frontend/src/lib/auth.ts`
+**File:** `frontend/src/auth.ts`
 
 ```typescript
 export const authOptions: NextAuthOptions = {
@@ -349,14 +351,14 @@ export const authOptions: NextAuthOptions = {
 
     // GitHub OAuth
     GitHubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET
+      clientId: process.env.AUTH_GITHUB_ID,
+      clientSecret: process.env.AUTH_GITHUB_SECRET
     }),
 
     // Google OAuth
     GoogleProvider({
-      clientId: process.env.GOOGLE_ID,
-      clientSecret: process.env.GOOGLE_SECRET
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET
     })
   ],
 
@@ -480,10 +482,12 @@ r.Use(cors.New(cors.Config{
         "Origin",
         "Content-Type",
         "Accept",
-        "Authorization", // Critical for JWT
+        "Authorization",
+        "X-CSRF-Token",
     },
     ExposeHeaders: []string{
         "Content-Length",
+        "X-CSRF-Token",
     },
     AllowCredentials: true,
     MaxAge: 12 * time.Hour,
@@ -496,58 +500,49 @@ r.Use(cors.New(cors.Config{
 
 ### Backend Response Format
 
-All backend endpoints return consistent JSON:
+All backend endpoints return a consistent `ApiResponse` envelope:
 
 **Success:**
 ```json
 {
   "success": true,
-  "data": { ... }
+  "data": { ... },
+  "warnings": ["optional warning messages"]
 }
 ```
 
 **Error:**
 ```json
 {
+  "success": false,
   "error": {
+    "error": "Human-readable message",
     "code": "ERROR_CODE",
-    "message": "Human-readable message"
+    "details": ["additional context"],
+    "field_errors": { "field_name": "error message" }
   }
 }
 ```
+
+**Error codes:** `INVALID_CREDENTIALS`, `VALIDATION_FAILED`, `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `EMAIL_ALREADY_EXISTS`, `QUOTA_EXCEEDED`, `INTERNAL_SERVER_ERROR`, `DATABASE_ERROR`, `TIMEOUT_ERROR`, `NETWORK_FAILURE`, and more (20 total).
 
 ### Frontend Error Handling
 
-**File:** `frontend/src/services/api.ts`
+**File:** `frontend/src/lib/errors.ts`
 
 ```typescript
-export const handleApiError = (error: any) => {
-  if (error.response) {
-    // Backend returned error response
-    const errorCode = error.response.data?.error?.code
-    const errorMessage = error.response.data?.error?.message
-
-    switch (errorCode) {
-      case 'ERROR_UNAUTHORIZED':
-        // Handled by axios interceptor
-        break
-      case 'ERROR_VALIDATION_FAILED':
-        // Show validation errors to user
-        return { validationErrors: parseValidationErrors(error.response.data) }
-      case 'ERROR_NOT_FOUND':
-        return { message: 'Resource not found' }
-      default:
-        return { message: errorMessage || 'An error occurred' }
-    }
-  } else if (error.request) {
-    // Request made but no response
-    return { message: 'Network error. Please check your connection.' }
-  } else {
-    // Something else happened
-    return { message: error.message }
-  }
-}
+// Maps backend error codes to user-friendly messages
+getErrorMessage(error)     // Extract user-friendly message from AxiosError
+getErrorDetails(error)     // Extract error details array
+isValidationError(error)   // Check for field-level validation errors
+getFieldErrors(error)      // Extract field errors for form display
 ```
+
+The axios client also provides automatic error handling:
+- **401 errors:** Queues failed requests, refreshes token, retries
+- **403 CSRF errors:** Clears CSRF token for re-fetch
+- **5xx errors:** Retries up to 3 times with exponential backoff
+- **Validation errors:** Displays toast notification (suppressible)
 
 ---
 
@@ -561,20 +556,25 @@ NEXT_PUBLIC_API_URL=http://localhost:8081
 
 # NextAuth
 NEXTAUTH_URL=http://localhost:8080
-NEXTAUTH_SECRET=your-secret-here
+AUTH_SECRET=your-secret-here
 
 # OAuth providers (optional)
-GITHUB_ID=your-github-client-id
-GITHUB_SECRET=your-github-client-secret
-GOOGLE_ID=your-google-client-id
-GOOGLE_SECRET=your-google-client-secret
+AUTH_GITHUB_ID=your-github-client-id
+AUTH_GITHUB_SECRET=your-github-client-secret
+AUTH_GOOGLE_ID=your-google-client-id
+AUTH_GOOGLE_SECRET=your-google-client-secret
 ```
 
 ### Backend (.env)
 
 ```bash
 # Database
-DATABASE_URL=postgres://user:password@localhost/ditto_dev?sslmode=disable
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=ditto_user
+DB_PASSWORD=ditto_password
+DB_NAME=ditto_dev
+DB_SSLMODE=disable
 
 # JWT
 JWT_SECRET=your-jwt-secret
@@ -582,9 +582,13 @@ JWT_REFRESH_SECRET=your-refresh-secret
 
 # Server
 PORT=8081
-GIN_MODE=debug
 
-# CORS (implicit in code, not env var)
+# File storage
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=ditto-files-local
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_ENDPOINT=http://localhost:4566
 ```
 
 ---
@@ -597,12 +601,14 @@ GIN_MODE=debug
 - **Production:** Must restrict to actual domain only
 - **Credentials:** `AllowCredentials: true` required for cookies/auth
 
-### 2. JWT Security
+### 2. JWT + CSRF Security
 
 - **Storage:** Never store in localStorage (XSS risk)
 - **NextAuth:** Stores in httpOnly cookies (secure)
 - **Transmission:** Always use HTTPS in production
-- **Expiration:** Short-lived access tokens (15min)
+- **Access Token TTL:** 24 hours
+- **Refresh Token TTL:** 7 days
+- **CSRF:** Token-based protection on all mutating requests (POST/PUT/PATCH/DELETE)
 
 ### 3. User Data Security
 
@@ -734,7 +740,6 @@ Tests complete workflows including frontend scenarios.
 - [ ] Request caching with SWR or React Query
 - [ ] Optimistic UI updates
 - [ ] Offline support (PWA)
-- [ ] Request retry logic with exponential backoff
 
 ### Scalability
 
@@ -761,5 +766,4 @@ This architecture provides a solid foundation for a scalable, secure, and mainta
 
 ---
 
-**Last Updated:** 2025-11-08
-**Integration Status:** Production Ready
+**Updated:** 2026-02-20

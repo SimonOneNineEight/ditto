@@ -1,7 +1,6 @@
 # Ditto - Deployment Guide
 
-**Generated:** 2025-11-08
-**Status:** Production Ready
+**Updated:** 2026-02-20
 **Deployment Strategy:** Docker Containers
 
 ---
@@ -104,7 +103,12 @@ docker-compose down -v
 
 ```bash
 # Database (use production credentials)
-DATABASE_URL=postgres://prod_user:STRONG_PASSWORD@db-host:5432/ditto_prod?sslmode=require
+DB_HOST=db-host
+DB_PORT=5432
+DB_USER=prod_user
+DB_PASSWORD=STRONG_PASSWORD
+DB_NAME=ditto_prod
+DB_SSLMODE=require
 
 # JWT Secrets (GENERATE STRONG RANDOM KEYS)
 JWT_SECRET=$(openssl rand -base64 32)
@@ -114,8 +118,12 @@ JWT_REFRESH_SECRET=$(openssl rand -base64 32)
 PORT=8081
 GIN_MODE=release  # IMPORTANT: Set to release for production
 
-# External APIs
-CLEAROUT_API_KEY=your-production-clearout-key
+# File storage (AWS S3)
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=ditto-files-prod
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+# AWS_ENDPOINT omitted for real S3
 ```
 
 #### Frontend Production Variables
@@ -126,13 +134,13 @@ NEXT_PUBLIC_API_URL=https://api.yourdomain.com
 
 # NextAuth
 NEXTAUTH_URL=https://yourdomain.com
-NEXTAUTH_SECRET=$(openssl rand -base64 32)
+AUTH_SECRET=$(openssl rand -base64 32)
 
 # OAuth Providers (production credentials)
-GITHUB_ID=your-github-prod-client-id
-GITHUB_SECRET=your-github-prod-client-secret
-GOOGLE_ID=your-google-prod-client-id
-GOOGLE_SECRET=your-google-prod-client-secret
+AUTH_GITHUB_ID=your-github-prod-client-id
+AUTH_GITHUB_SECRET=your-github-prod-client-secret
+AUTH_GOOGLE_ID=your-google-prod-client-id
+AUTH_GOOGLE_SECRET=your-google-prod-client-secret
 ```
 
 ---
@@ -241,14 +249,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 8080
 
-ENV PORT 3000
+ENV PORT 8080
 ENV HOSTNAME "0.0.0.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://localhost:8080/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 CMD ["node", "server.js"]
 ```
@@ -339,9 +347,18 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: \${DATABASE_URL}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: \${DB_USER}
+      DB_PASSWORD: \${DB_PASSWORD}
+      DB_NAME: \${DB_NAME}
+      DB_SSLMODE: require
       JWT_SECRET: \${JWT_SECRET}
       JWT_REFRESH_SECRET: \${JWT_REFRESH_SECRET}
+      AWS_REGION: \${AWS_REGION}
+      AWS_S3_BUCKET: \${AWS_S3_BUCKET}
+      AWS_ACCESS_KEY_ID: \${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: \${AWS_SECRET_ACCESS_KEY}
       GIN_MODE: release
     ports:
       - "8081:8081"
@@ -356,9 +373,9 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: \${API_URL}
       NEXTAUTH_URL: \${NEXTAUTH_URL}
-      NEXTAUTH_SECRET: \${NEXTAUTH_SECRET}
+      AUTH_SECRET: \${AUTH_SECRET}
     ports:
-      - "3000:3000"
+      - "8080:8080"
     depends_on:
       - backend
     restart: unless-stopped
@@ -409,7 +426,7 @@ upstream backend {
 }
 
 upstream frontend {
-    server localhost:3000;
+    server localhost:8080;
 }
 
 server {
@@ -474,10 +491,10 @@ server {
 Never commit these to version control:
 - `JWT_SECRET`
 - `JWT_REFRESH_SECRET`
-- `NEXTAUTH_SECRET`
-- `DATABASE_URL` with credentials
-- OAuth client secrets
-- API keys (Clearout, etc.)
+- `AUTH_SECRET`
+- `DB_PASSWORD`
+- `AWS_SECRET_ACCESS_KEY`
+- OAuth client secrets (`AUTH_GITHUB_SECRET`, `AUTH_GOOGLE_SECRET`)
 
 Use:
 - Environment variables
@@ -623,5 +640,4 @@ docker-compose up -d
 
 ---
 
-**Last Updated:** 2025-11-08
-**Status:** Production Ready
+**Updated:** 2026-02-20
