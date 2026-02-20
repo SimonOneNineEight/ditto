@@ -1,245 +1,152 @@
-# Ditto: Your Job Application Assistant
+# Ditto
 
-Ditto is a modern web application designed to simplify and streamline the job application process. It provides intelligent job management, application tracking, and smart company selection with external API enrichment. With Ditto, you can reduce the repetitive work of managing job applications and focus on landing your dream job.
-
----
+A job application tracking system that helps you manage applications, interviews, technical assessments, and preparation materials in one place.
 
 ## Features
 
-### Implemented
-
-- **Smart Job Management**
-  - Create and manage job listings with intelligent company selection
-  - User-specific job tracking with full CRUD operations
-  - Advanced filtering and pagination
-- **Application Tracking**
-  - Keep track of where you've applied, interview progress, and application outcomes
-  - Status management with analytics and statistics
-  - Timeline tracking and notes
-- **Modern Authentication**
-  - JWT-based authentication with refresh tokens
-  - Secure user registration and login system
-
-### Coming Soon
-
-- **Document Storage and Management**
-  - Save and manage customized resumes and cover letters for future applications
-
----
+- **Application Management** — Track job applications with status workflow, company details, and file attachments (resume, cover letter)
+- **Interview Tracking** — Log interview rounds with interviewers, questions, notes, and self-assessments
+- **Technical Assessments** — Track coding challenges and take-home assignments with submissions (GitHub links, file uploads, notes)
+- **Dashboard & Timeline** — Overview statistics, upcoming events, and chronological activity view
+- **Search & Export** — Full-text search across all entities, CSV export for applications and interviews
+- **Notifications** — In-app notification center with configurable preferences
+- **File Storage** — S3-backed file uploads with storage quota management
 
 ## Tech Stack
 
-### Frontend
+| Layer | Technology |
+|-------|------------|
+| Backend | Go 1.23+ / Gin |
+| Frontend | Next.js 14 / React 18 / TypeScript |
+| Database | PostgreSQL 15+ |
+| File Storage | AWS S3 |
+| Auth | JWT + NextAuth v5 (GitHub, Google OAuth) |
+| Styling | Tailwind CSS v4 / shadcn/ui |
+| Testing | Go `testify` / Jest + React Testing Library |
 
-- **Next.js** (React-based framework for server-rendered and static websites)
-- **TypeScript** (Type-safe development)
-- **Tailwind CSS** (Utility-first CSS framework for styling)
-- **shadcn/ui** (Modern component library)
+## Prerequisites
+
+- [Go](https://go.dev/) 1.23+
+- [Node.js](https://nodejs.org/) 18+
+- [pnpm](https://pnpm.io/)
+- [PostgreSQL](https://www.postgresql.org/) 15+
+- [golang-migrate](https://github.com/golang-migrate/migrate) CLI
+- AWS S3 bucket (or [LocalStack](https://localstack.cloud/) for local dev)
+
+## Quick Start
+
+### 1. Clone and install dependencies
+
+```bash
+git clone <repo-url>
+cd ditto
+
+# Backend
+cd backend
+go mod download
+
+# Frontend
+cd ../frontend
+pnpm install
+```
+
+### 2. Set up PostgreSQL
+
+Create development and test databases:
+
+```bash
+createdb ditto_dev
+createdb ditto_test
+```
+
+Or use Docker:
+
+```bash
+docker-compose up -d db
+```
+
+### 3. Configure environment variables
+
+**Backend** — create `backend/.env`:
+
+```bash
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=ditto_user
+DB_PASSWORD=ditto_password
+DB_NAME=ditto_dev
+DB_SSLMODE=disable
+
+# Test database
+TEST_DB_HOST=localhost
+TEST_DB_PORT=5432
+TEST_DB_USER=ditto_user
+TEST_DB_PASSWORD=ditto_password
+TEST_DB_NAME=ditto_test
+
+# Auth
+JWT_SECRET=your-jwt-secret-change-in-production
+JWT_REFRESH_SECRET=your-refresh-secret-change-in-production
+
+# Server
+PORT=8081
+
+# File storage (S3 or LocalStack)
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=ditto-files-local
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_ENDPOINT=http://localhost:4566   # LocalStack endpoint; omit for real S3
+```
+
+**Frontend** — create `frontend/.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8081
+
+AUTH_SECRET=generate-with-npx-auth-secret
+NEXTAUTH_URL=http://localhost:8080
+
+# OAuth providers (optional)
+AUTH_GITHUB_ID=your-github-client-id
+AUTH_GITHUB_SECRET=your-github-client-secret
+AUTH_GOOGLE_ID=your-google-client-id
+AUTH_GOOGLE_SECRET=your-google-client-secret
+```
+
+### 4. Run database migrations
+
+```bash
+cd backend
+migrate -path migrations -database "postgres://ditto_user:ditto_password@localhost:5432/ditto_dev?sslmode=disable" up
+```
+
+### 5. Start the application
+
+```bash
+# Terminal 1 — Backend (port 8081)
+cd backend
+go run cmd/server/main.go
+
+# Terminal 2 — Frontend (port 8080)
+cd frontend
+pnpm dev
+```
+
+Open http://localhost:8080 to access the application.
+
+### 6. Verify
+
+```bash
+# Health check
+curl http://localhost:8081/health
+# → {"data":{"status":"ok"}}
+```
+
+## Running Tests
 
 ### Backend
-
-- **Go** (High-performance programming language)
-- **Gin** (Web framework for building APIs in Go)
-- **PostgreSQL** (Relational database for storing application and job data)
-- **JWT** (JSON Web Token authentication)
-- **sqlx** (SQL toolkit and query builder)
-
-### External APIs
-
-- **Clearout API** (Company data enrichment and validation)
-
-### Deployment
-
-- **Docker** (Containerization for consistent development and deployment)
-- **Docker Compose** (Multi-container orchestration)
-
----
-
-## Installation and Setup
-
-### Prerequisites
-
-- **Go 1.21+** (for backend development)
-- **Node.js 18+** (for frontend development)
-- **PostgreSQL 14+** (database)
-- **Docker & Docker Compose** (recommended for easy setup)
-
-### Option 1: Docker Setup (Recommended)
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/your-username/ditto.git
-   cd ditto
-   ```
-
-2. **Environment Configuration**
-
-   ```bash
-   # Copy environment template
-   cp .env.example .env
-
-   # Edit .env with your configuration
-   # Basic setup works out of the box for development
-   ```
-
-3. **Start with Docker Compose**
-
-   ```bash
-   # Start all services (database + backend)
-   docker-compose up -d
-
-   # View logs
-   docker-compose logs -f backend
-
-   # Stop services
-   docker-compose down
-   ```
-
-4. **Access the Application**
-   - **Backend API**: http://localhost:8081
-   - **Health Check**: http://localhost:8081/health
-   - **API Documentation**: See backend/README.md
-
-### Option 2: Manual Setup
-
-1. **Setup the Backend**
-
-   ```bash
-   cd backend
-
-   # Install Go dependencies
-   go mod download
-
-   # Set up environment variables
-   export DATABASE_URL="postgres://user:password@localhost/ditto_dev?sslmode=disable"
-   export JWT_SECRET="your-jwt-secret"
-   export JWT_REFRESH_SECRET="your-refresh-secret"
-
-   # Run database migrations
-   migrate -path migrations -database $DATABASE_URL up
-
-   # Start the backend server
-   go run cmd/server/main.go
-   ```
-
-2. **Setup the Frontend**
-
-   ```bash
-   cd frontend
-
-   # Install dependencies
-   npm install
-
-   # Set up environment variables
-   echo "NEXT_PUBLIC_API_URL=http://localhost:8081" > .env.local
-
-   # Start the development server
-   npm run dev
-   ```
-
----
-
-## Project Structure
-
-```
-ditto/
-├── backend/                 # Go backend (Gin + PostgreSQL)
-│   ├── cmd/server/         # Application entrypoint
-│   ├── internal/           # Core business logic
-│   │   ├── handlers/       # HTTP request handlers
-│   │   ├── middleware/     # Authentication, error handling
-│   │   ├── models/         # Data structures
-│   │   ├── repository/     # Database operations
-│   │   └── routes/         # Route registration
-│   ├── migrations/         # Database migrations
-│   ├── pkg/               # Shared packages
-│   └── test_api.sh        # API testing script
-├── frontend/              # Next.js frontend
-│   ├── src/
-│   │   ├── app/           # Next.js app router
-│   │   ├── components/    # Reusable components
-│   │   ├── lib/          # Utilities and configurations
-│   │   └── services/     # API client services
-│   └── package.json
-├── docker-compose.yml   # Development environment
-└── README.md            # This file
-```
-
----
-
-## Quick Start Guide
-
-1. **Clone and Setup**
-
-   ```bash
-   git clone https://github.com/your-username/ditto.git
-   cd ditto
-   docker-compose up -d
-   ```
-
-2. **Create an Account**
-
-   ```bash
-   curl -X POST http://localhost:8081/api/users \
-     -H "Content-Type: application/json" \
-     -d '{"name":"John Doe","email":"john@example.com","password":"password123"}'
-   ```
-
-3. **Login and Get Token**
-
-   ```bash
-   curl -X POST http://localhost:8081/api/login \
-     -H "Content-Type: application/json" \
-     -d '{"email":"john@example.com","password":"password123"}'
-   ```
-
-4. **Create Your First Job**
-   ```bash
-   curl -X POST http://localhost:8081/api/jobs \
-     -H "Authorization: Bearer YOUR_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"company_name":"Google","title":"Software Engineer","job_description":"Backend development","location":"San Francisco","job_type":"Full-time"}'
-   ```
-
----
-
-## API Usage
-
-The backend provides a comprehensive REST API for managing jobs, applications, and companies. Key endpoints include:
-
-### Authentication
-
-- `POST /api/users` - Register new user
-- `POST /api/login` - User login
-- `POST /api/logout` - User logout
-- `GET /api/me` - Get user profile
-
-### Jobs (Protected)
-
-- `GET /api/jobs` - List user's jobs
-- `POST /api/jobs` - Create new job
-- `PUT /api/jobs/:id` - Update job
-- `DELETE /api/jobs/:id` - Delete job
-
-### Companies
-
-- `GET /api/companies/autocomplete?q=query` - Smart company search
-- `POST /api/companies/select` - Create or select company
-
-### Applications (Protected)
-
-- `GET /api/applications` - List applications
-- `POST /api/applications` - Create application
-- `PATCH /api/applications/:id/status` - Update status
-
-For detailed API documentation, see [backend/README.md](backend/README.md).
-
----
-
-## Testing
-
-### Backend Tests
 
 ```bash
 cd backend
@@ -247,125 +154,77 @@ cd backend
 # Run all tests
 go test ./...
 
+# Run with sequential execution (required when running handler + repo tests together)
+go test -p 1 ./...
+
 # Run with coverage
 go test -cover ./...
 
-# Run specific test suite
+# Run specific package
 go test ./internal/repository -v
+go test ./internal/handlers -v
 ```
 
-### API Testing
-
-```bash
-cd backend
-
-# Run comprehensive API tests
-./test_api.sh
-```
-
-### Frontend Tests
+### Frontend
 
 ```bash
 cd frontend
 
-# Run frontend tests
-npm test
+# Run all tests
+pnpm test
 
-# Run with coverage
-npm run test:coverage
+# Run in watch mode
+pnpm test -- --watch
 ```
 
----
+## Project Structure
 
-## Development
-
-### Backend Development
-
-```bash
-cd backend
-
-# Run with hot reload (if using air)
-air
-
-# Format code
-go fmt ./...
-
-# Run linter
-go vet ./...
-
-# Build for production
-go build -o bin/server cmd/server/main.go
+```
+ditto/
+├── backend/
+│   ├── cmd/server/          # Application entrypoint
+│   ├── internal/
+│   │   ├── handlers/        # HTTP request handlers
+│   │   ├── middleware/       # Auth, error handling, security
+│   │   ├── models/          # Data structures
+│   │   ├── repository/      # Database operations
+│   │   ├── routes/          # Route registration
+│   │   ├── services/        # Business logic (S3, notifications)
+│   │   └── testutil/        # Test helpers and fixtures
+│   ├── migrations/          # SQL migration files
+│   └── pkg/                 # Shared packages (errors, response)
+├── frontend/
+│   ├── src/
+│   │   ├── app/             # Next.js App Router pages
+│   │   ├── components/      # React components
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── lib/             # Utilities, API client, schemas
+│   │   ├── providers/       # Context providers
+│   │   └── types/           # TypeScript type definitions
+│   └── __mocks__/           # Jest mocks
+├── docs/                    # Detailed documentation
+│   ├── api-contracts-backend.md
+│   ├── architecture.md
+│   ├── architecture-backend.md
+│   ├── architecture-frontend.md
+│   ├── database-schema.md
+│   ├── deployment-guide.md
+│   └── development-guide.md
+└── docker-compose.yml
 ```
 
-### Frontend Development
+## Documentation
 
-```bash
-cd frontend
+Detailed documentation lives in the [`/docs`](docs/) folder:
 
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Run production server
-npm start
-```
-
----
-
-## Roadmap
-
-- [x] **Backend Migration** - Complete Go backend with full feature parity
-- [x] **Authentication System** - JWT-based auth with refresh tokens
-- [x] **Job Management** - CRUD operations with smart company selection
-- [x] **Application Tracking** - Status management and analytics
-- [x] **Company Intelligence** - External API enrichment and autocomplete
-- [x] **Docker Development** - Complete containerized development environment
-- [x] **Testing Infrastructure** - Comprehensive test suite
-- [ ] **Document Management** - Storage for generated documents
-- [ ] **Analytics Dashboard** - Application success metrics
-- [ ] **Mobile App** - React Native mobile application
-- [ ] **Email Notifications** - Application deadline reminders
-
----
-
-## Contributing
-
-We welcome contributions to Ditto! To contribute:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- **Backend**: Follow Go best practices and include tests
-- **Frontend**: Use TypeScript and follow React conventions
-- **Database**: Include migrations for schema changes
-- **Documentation**: Update README and API docs for new features
-
----
+- [Architecture Overview](docs/architecture.md)
+- [Backend Architecture](docs/architecture-backend.md)
+- [Frontend Architecture](docs/architecture-frontend.md)
+- [API Contracts](docs/api-contracts-backend.md)
+- [Database Schema](docs/database-schema.md)
+- [Development Guide](docs/development-guide.md)
+- [Deployment Guide](docs/deployment-guide.md)
 
 ## License
 
-Ditto is open source and available under the [MIT License](LICENSE).
-
----
-
-## Acknowledgments
-
-Ditto leverages modern web development tools and external APIs to deliver a seamless experience. Special thanks to:
-
-- **Go Community** for the excellent ecosystem
-- **Gin Framework** for the fast HTTP router
-- **PostgreSQL** for reliable data storage
-- **Clearout API** for company data enrichment
-- **shadcn/ui** for beautiful UI components
-- All open-source libraries that make this project possible
-
----
-
-**Last Updated**: January 2025
+MIT

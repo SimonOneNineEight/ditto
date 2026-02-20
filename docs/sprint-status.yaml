@@ -107,10 +107,10 @@ development_status:
   6-2-security-hardening-input-validation-and-xss-prevention: done
   6-3-responsive-design-mobile-and-tablet-support: done
   6-4-accessibility-improvements-keyboard-navigation-and-screen-readers: done
-  6-5-error-handling-and-user-feedback: backlog
-  6-6-form-validation-and-user-input-quality: backlog
-  6-7-file-upload-performance-and-progress: backlog
-  6-8-session-management-and-token-refresh: backlog
-  6-9-testing-infrastructure-unit-and-integration-tests: backlog
-  6-10-documentation-api-database-schema-and-setup: backlog
+  6-5-error-handling-and-user-feedback: done
+  6-6-form-validation-and-user-input-quality: done
+  6-7-file-upload-performance-and-progress: done
+  6-8-session-management-and-token-refresh: done
+  6-9-testing-infrastructure-unit-and-integration-tests: done
+  6-10-documentation-api-database-schema-and-setup: review
   epic-6-retrospective: optional
