@@ -1,204 +1,119 @@
 package repository
 
 import (
-	"ditto-backend/pkg/database"
+	"ditto-backend/internal/testutil"
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func setupTestDB(t *testing.T) *database.Database {
-	db, err := database.NewConnection()
-	require.NoError(t, err)
-	return db
-}
+func TestRateLimitRepository(t *testing.T) {
+	db := testutil.NewTestDatabase(t)
+	defer db.Close(t)
+	db.RunMigrations(t)
 
-func createTestUser(t *testing.T, db *database.Database) uuid.UUID {
-	userID := uuid.New()
-	_, err := db.Exec(`
-		INSERT INTO users (id, name, email, created_at, updated_at)
-		VALUES ($1, $2, $3, NOW(), NOW())
-		ON CONFLICT (email) DO UPDATE SET id = users.id
-		RETURNING id
-	`, userID, "Test User", "rate_limit_test@example.com")
-	require.NoError(t, err)
-	return userID
-}
-
-func cleanupRateLimits(t *testing.T, db *database.Database, userID uuid.UUID) {
-	_, err := db.Exec("DELETE FROM rate_limits WHERE user_id = $1", userID)
-	require.NoError(t, err)
-}
-
-func cleanupTestUser(t *testing.T, db *database.Database, userID uuid.UUID) {
-	_, err := db.Exec("DELETE FROM users WHERE id = $1", userID)
-	require.NoError(t, err)
-}
-
-func TestRateLimitRepository_CreateRateLimit(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
-
-	repo := NewRateLimitRepository(db)
-	userID := createTestUser(t, db)
-	defer cleanupRateLimits(t, db, userID)
-	defer cleanupTestUser(t, db, userID)
-
-	rateLimit, err := repo.CreateRateLimit(userID, "test_resource", 1)
-
-	assert.NoError(t, err)
-	assert.NotNil(t, rateLimit)
-	assert.Equal(t, userID, rateLimit.UserID)
-	assert.Equal(t, "test_resource", rateLimit.Resource)
-	assert.Equal(t, 1, rateLimit.RequestCount)
-	assert.True(t, rateLimit.WindowEnd.After(rateLimit.WindowStart))
-	assert.Equal(t, 24*time.Hour, rateLimit.WindowEnd.Sub(rateLimit.WindowStart))
-}
-
-func TestRateLimitRepository_CheckAndIncrement_NewUser(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
-
-	repo := NewRateLimitRepository(db)
-	userID := createTestUser(t, db)
-	defer cleanupRateLimits(t, db, userID)
-	defer cleanupTestUser(t, db, userID)
-
-	allowed, remaining, err := repo.CheckAndIncrement(userID, "url_extraction", 30)
-
-	assert.NoError(t, err)
-	assert.True(t, allowed)
-	assert.Equal(t, 29, remaining)
-}
-
-func TestRateLimitRepository_CheckAndIncrement_ExistingUser(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
-
-	repo := NewRateLimitRepository(db)
-	userID := createTestUser(t, db)
-	defer cleanupRateLimits(t, db, userID)
-	defer cleanupTestUser(t, db, userID)
-
-	// Create initial rate limit
-	_, err := repo.CreateRateLimit(userID, "url_extraction", 5)
+	userRepo := NewUserRepository(db.Database)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 	require.NoError(t, err)
 
-	// Increment
-	allowed, remaining, err := repo.CheckAndIncrement(userID, "url_extraction", 30)
-
-	assert.NoError(t, err)
-	assert.True(t, allowed)
-	assert.Equal(t, 24, remaining) // 30 - (5 + 1) = 24
-}
-
-func TestRateLimitRepository_CheckAndIncrement_LimitExceeded(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
-
-	repo := NewRateLimitRepository(db)
-	userID := createTestUser(t, db)
-	defer cleanupRateLimits(t, db, userID)
-	defer cleanupTestUser(t, db, userID)
-
-	// Create rate limit at the limit
-	_, err := repo.CreateRateLimit(userID, "url_extraction", 30)
+	testUser, err := userRepo.CreateUser("rate_limit_test@example.com", "Rate Limit Test", string(hashedPassword))
 	require.NoError(t, err)
 
-	// Try to increment
-	allowed, remaining, err := repo.CheckAndIncrement(userID, "url_extraction", 30)
+	repo := NewRateLimitRepository(db.Database)
 
-	assert.NoError(t, err)
-	assert.False(t, allowed)
-	assert.Equal(t, 0, remaining)
-}
+	t.Run("CreateRateLimit", func(t *testing.T) {
+		rateLimit, err := repo.CreateRateLimit(testUser.ID, "test_resource", 1)
 
-func TestRateLimitRepository_GetCurrentUsage_NoRecords(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+		assert.NoError(t, err)
+		assert.NotNil(t, rateLimit)
+		assert.Equal(t, testUser.ID, rateLimit.UserID)
+		assert.Equal(t, "test_resource", rateLimit.Resource)
+		assert.Equal(t, 1, rateLimit.RequestCount)
+		assert.True(t, rateLimit.WindowEnd.After(rateLimit.WindowStart))
+		assert.Equal(t, 24*time.Hour, rateLimit.WindowEnd.Sub(rateLimit.WindowStart))
+	})
 
-	repo := NewRateLimitRepository(db)
-	userID := createTestUser(t, db)
-	defer cleanupTestUser(t, db, userID)
+	t.Run("CheckAndIncrement_NewUser", func(t *testing.T) {
+		allowed, remaining, err := repo.CheckAndIncrement(testUser.ID, "url_extraction", 30)
 
-	used, remaining, resetAt, err := repo.GetCurrentUsage(userID, "url_extraction", 30)
+		assert.NoError(t, err)
+		assert.True(t, allowed)
+		assert.Equal(t, 29, remaining)
+	})
 
-	assert.NoError(t, err)
-	assert.Equal(t, 0, used)
-	assert.Equal(t, 30, remaining)
-	assert.True(t, resetAt.IsZero())
-}
+	t.Run("CheckAndIncrement_ExistingUser", func(t *testing.T) {
+		_, err := repo.CreateRateLimit(testUser.ID, "existing_resource", 5)
+		require.NoError(t, err)
 
-func TestRateLimitRepository_GetCurrentUsage_WithRecords(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+		allowed, remaining, err := repo.CheckAndIncrement(testUser.ID, "existing_resource", 30)
 
-	repo := NewRateLimitRepository(db)
-	userID := createTestUser(t, db)
-	defer cleanupRateLimits(t, db, userID)
-	defer cleanupTestUser(t, db, userID)
+		assert.NoError(t, err)
+		assert.True(t, allowed)
+		assert.Equal(t, 24, remaining) // 30 - (5 + 1) = 24
+	})
 
-	// Create rate limit with 10 requests
-	rateLimit, err := repo.CreateRateLimit(userID, "url_extraction", 10)
-	require.NoError(t, err)
+	t.Run("CheckAndIncrement_LimitExceeded", func(t *testing.T) {
+		_, err := repo.CreateRateLimit(testUser.ID, "exceeded_resource", 30)
+		require.NoError(t, err)
 
-	used, remaining, resetAt, err := repo.GetCurrentUsage(userID, "url_extraction", 30)
+		allowed, remaining, err := repo.CheckAndIncrement(testUser.ID, "exceeded_resource", 30)
 
-	assert.NoError(t, err)
-	assert.Equal(t, 10, used)
-	assert.Equal(t, 20, remaining)
-	assert.False(t, resetAt.IsZero())
-	// Times should be within 24 hours (just checking it's set correctly)
-	assert.WithinDuration(t, rateLimit.WindowEnd, resetAt, 25*time.Hour)
-}
+		assert.NoError(t, err)
+		assert.False(t, allowed)
+		assert.Equal(t, 0, remaining)
+	})
 
-func TestRateLimitRepository_GetCurrentUsage_LimitExceeded(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	t.Run("GetCurrentUsage_NoRecords", func(t *testing.T) {
+		used, remaining, resetAt, err := repo.GetCurrentUsage(testUser.ID, "unused_resource", 30)
 
-	repo := NewRateLimitRepository(db)
-	userID := createTestUser(t, db)
-	defer cleanupRateLimits(t, db, userID)
-	defer cleanupTestUser(t, db, userID)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, used)
+		assert.Equal(t, 30, remaining)
+		assert.True(t, resetAt.IsZero())
+	})
 
-	// Create rate limit over the limit
-	_, err := repo.CreateRateLimit(userID, "url_extraction", 35)
-	require.NoError(t, err)
+	t.Run("GetCurrentUsage_WithRecords", func(t *testing.T) {
+		rateLimit, err := repo.CreateRateLimit(testUser.ID, "usage_resource", 10)
+		require.NoError(t, err)
 
-	used, remaining, _, err := repo.GetCurrentUsage(userID, "url_extraction", 30)
+		used, remaining, resetAt, err := repo.GetCurrentUsage(testUser.ID, "usage_resource", 30)
 
-	assert.NoError(t, err)
-	assert.Equal(t, 35, used)
-	assert.Equal(t, 0, remaining) // Should cap at 0, not go negative
-}
+		assert.NoError(t, err)
+		assert.Equal(t, 10, used)
+		assert.Equal(t, 20, remaining)
+		assert.False(t, resetAt.IsZero())
+		assert.WithinDuration(t, rateLimit.WindowEnd, resetAt, 25*time.Hour)
+	})
 
-func TestRateLimitRepository_MultipleResources(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	t.Run("GetCurrentUsage_LimitExceeded", func(t *testing.T) {
+		_, err := repo.CreateRateLimit(testUser.ID, "over_limit_resource", 35)
+		require.NoError(t, err)
 
-	repo := NewRateLimitRepository(db)
-	userID := createTestUser(t, db)
-	defer cleanupRateLimits(t, db, userID)
-	defer cleanupTestUser(t, db, userID)
+		used, remaining, _, err := repo.GetCurrentUsage(testUser.ID, "over_limit_resource", 30)
 
-	// Create limits for different resources
-	allowed1, _, err := repo.CheckAndIncrement(userID, "url_extraction", 30)
-	require.NoError(t, err)
-	assert.True(t, allowed1)
+		assert.NoError(t, err)
+		assert.Equal(t, 35, used)
+		assert.Equal(t, 0, remaining)
+	})
 
-	allowed2, _, err := repo.CheckAndIncrement(userID, "api_general", 100)
-	require.NoError(t, err)
-	assert.True(t, allowed2)
+	t.Run("MultipleResources", func(t *testing.T) {
+		allowed1, _, err := repo.CheckAndIncrement(testUser.ID, "multi_resource_a", 30)
+		require.NoError(t, err)
+		assert.True(t, allowed1)
 
-	// Verify they're tracked separately
-	used1, _, _, err := repo.GetCurrentUsage(userID, "url_extraction", 30)
-	require.NoError(t, err)
-	assert.Equal(t, 1, used1)
+		allowed2, _, err := repo.CheckAndIncrement(testUser.ID, "multi_resource_b", 100)
+		require.NoError(t, err)
+		assert.True(t, allowed2)
 
-	used2, _, _, err := repo.GetCurrentUsage(userID, "api_general", 100)
-	require.NoError(t, err)
-	assert.Equal(t, 1, used2)
+		used1, _, _, err := repo.GetCurrentUsage(testUser.ID, "multi_resource_a", 30)
+		require.NoError(t, err)
+		assert.Equal(t, 1, used1)
+
+		used2, _, _, err := repo.GetCurrentUsage(testUser.ID, "multi_resource_b", 100)
+		require.NoError(t, err)
+		assert.Equal(t, 1, used2)
+	})
 }

@@ -188,4 +188,45 @@ func TestCompanyRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, companies, 2)
 	})
+
+	t.Run("SearchCompaniesByName", func(t *testing.T) {
+		_, err := repo.CreateCompany(&models.Company{Name: "SearchTarget Inc"})
+		require.NoError(t, err)
+
+		t.Run("FindsMatch", func(t *testing.T) {
+			results, err := repo.SearchCompaniesByName("SearchTarget", 50, 0)
+			require.NoError(t, err)
+			require.NotEmpty(t, results)
+		})
+
+		t.Run("NoMatch", func(t *testing.T) {
+			results, err := repo.SearchCompaniesByName("ZZZZNOTFOUND", 50, 0)
+			require.NoError(t, err)
+			require.Empty(t, results)
+		})
+
+		t.Run("DefaultLimit", func(t *testing.T) {
+			results, err := repo.SearchCompaniesByName("Company", 0, 0)
+			require.NoError(t, err)
+			require.NotNil(t, results)
+		})
+	})
+
+	t.Run("AutocompleteCompanies", func(t *testing.T) {
+		_, err := repo.CreateCompany(&models.Company{Name: "AutoTarget Ltd"})
+		require.NoError(t, err)
+
+		t.Run("FindsMatch", func(t *testing.T) {
+			results, err := repo.AutocompleteCompanies("AutoTarget", 10)
+			require.NoError(t, err)
+			require.NotEmpty(t, results)
+			require.Equal(t, "Saved", results[0].Source)
+		})
+
+		t.Run("NoMatch", func(t *testing.T) {
+			results, err := repo.AutocompleteCompanies("ZZZZNOTFOUND", 10)
+			require.NoError(t, err)
+			require.Empty(t, results)
+		})
+	})
 }

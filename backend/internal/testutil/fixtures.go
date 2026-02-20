@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"ditto-backend/internal/models"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -143,6 +144,33 @@ func CreateTestAssessment(userID, applicationID uuid.UUID, dueDate string, statu
 		Status:         status,
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
+	}
+}
+
+// CreateTestFile creates a test file record
+func CreateTestFile(userID, applicationID uuid.UUID, fileName, fileType string, fileSize int64) *models.File {
+	return &models.File{
+		ID:            uuid.New(),
+		UserID:        userID,
+		ApplicationID: applicationID,
+		FileName:      fileName,
+		FileType:      fileType,
+		FileSize:      fileSize,
+		S3Key:         fmt.Sprintf("users/%s/%s/%s", userID.String(), applicationID.String(), uuid.New().String()),
+		UploadedAt:    time.Now(),
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+}
+
+// CreateTestNotification creates a test notification
+func CreateTestNotification(userID uuid.UUID, notifType, title, message string) *models.Notification {
+	return &models.Notification{
+		UserID:  userID,
+		Type:    notifType,
+		Title:   title,
+		Message: message,
+		Read:    false,
 	}
 }
 
