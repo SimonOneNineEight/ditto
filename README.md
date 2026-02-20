@@ -1,22 +1,26 @@
 # Ditto
 
-A job application tracking system that helps you manage applications, interviews, technical assessments, and preparation materials in one place.
+A full-stack job application tracker built with Go and Next.js.
+
+---
+
+Job searching means juggling dozens of applications, interview rounds, coding challenges, and follow-ups across spreadsheets, emails, and sticky notes. Ditto brings all of that into one place — a clean web app where you can track every application from first click to final offer, log interview details while they're fresh, and keep your prep materials organized.
 
 ## Features
 
-- **Application Management** — Track job applications with status workflow, company details, and file attachments (resume, cover letter)
-- **Interview Tracking** — Log interview rounds with interviewers, questions, notes, and self-assessments
-- **Technical Assessments** — Track coding challenges and take-home assignments with submissions (GitHub links, file uploads, notes)
-- **Dashboard & Timeline** — Overview statistics, upcoming events, and chronological activity view
-- **Search & Export** — Full-text search across all entities, CSV export for applications and interviews
-- **Notifications** — In-app notification center with configurable preferences
-- **File Storage** — S3-backed file uploads with storage quota management
+- **Application Management** — Track applications through a status workflow (applied → interviewing → offered → accepted/rejected) with company details, notes, and file attachments
+- **Interview Tracking** — Log each interview round with interviewers, questions asked, your answers, preparation notes, and self-assessments
+- **Technical Assessments** — Track coding challenges and take-home assignments with submissions via GitHub links, file uploads, or notes
+- **Dashboard & Timeline** — At-a-glance statistics, upcoming interviews and deadlines, and a chronological activity feed
+- **Search & Export** — Full-text search across applications, interviews, and assessments; CSV export for offline analysis
+- **Notifications** — In-app notification center with configurable preferences per event type
+- **File Storage** — S3-backed file uploads for resumes, cover letters, and prep documents with per-user storage quotas
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Backend | Go 1.23+ / Gin |
+| Backend | Go 1.24 / Gin |
 | Frontend | Next.js 14 / React 18 / TypeScript |
 | Database | PostgreSQL 15+ |
 | File Storage | AWS S3 |
@@ -26,7 +30,7 @@ A job application tracking system that helps you manage applications, interviews
 
 ## Prerequisites
 
-- [Go](https://go.dev/) 1.23+
+- [Go](https://go.dev/) 1.24+
 - [Node.js](https://nodejs.org/) 18+
 - [pnpm](https://pnpm.io/)
 - [PostgreSQL](https://www.postgresql.org/) 15+
@@ -203,13 +207,12 @@ ditto/
 │   │   └── types/           # TypeScript type definitions
 │   └── __mocks__/           # Jest mocks
 ├── docs/                    # Detailed documentation
+│   ├── architecture.md      # System design and ADRs
 │   ├── api-contracts-backend.md
-│   ├── architecture.md
-│   ├── architecture-backend.md
-│   ├── architecture-frontend.md
 │   ├── database-schema.md
+│   ├── development-guide.md
 │   ├── deployment-guide.md
-│   └── development-guide.md
+│   └── planning/            # BMAD workflow artifacts (PRD, epics, stories)
 └── docker-compose.yml
 ```
 
