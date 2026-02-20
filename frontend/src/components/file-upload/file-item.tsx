@@ -18,11 +18,25 @@ import {
     getFileExtension,
     type FileRecord,
 } from '@/lib/file-service';
+import { UploadProgress } from './upload-progress';
+import type { FileUploadStatus } from '@/hooks/useFileUpload';
 import { toast } from 'sonner';
+
+export interface FileItemUploadState {
+    status: FileUploadStatus;
+    progress: number;
+    error: string | null;
+    speed: number | null;
+    estimatedTimeRemaining: number | null;
+    totalBytes: number;
+    onCancel: () => void;
+    onRetry: () => void;
+}
 
 interface FileItemProps {
     file: FileRecord;
     onDeleted?: (fileId: string) => void;
+    uploadState?: FileItemUploadState;
 }
 
 const FILE_ICONS: Record<string, string> = {
@@ -31,7 +45,7 @@ const FILE_ICONS: Record<string, string> = {
     '.txt': 'TXT',
 };
 
-export function FileItem({ file, onDeleted }: FileItemProps) {
+export function FileItem({ file, onDeleted, uploadState }: FileItemProps) {
     const [isDownloading, setIsDownloading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -45,7 +59,7 @@ export function FileItem({ file, onDeleted }: FileItemProps) {
             const { presigned_url } = await getFileDownloadUrl(file.id);
             window.open(presigned_url, '_blank');
         } catch {
-            toast.error('Failed to download file');
+            // Handled by axios interceptor
         } finally {
             setIsDownloading(false);
         }
@@ -59,11 +73,29 @@ export function FileItem({ file, onDeleted }: FileItemProps) {
             setShowDeleteDialog(false);
             onDeleted?.(file.id);
         } catch {
-            toast.error('Failed to delete file');
+            // Handled by axios interceptor
         } finally {
             setIsDeleting(false);
         }
     };
+
+    if (uploadState && uploadState.status !== 'idle' && uploadState.status !== 'completed') {
+        return (
+            <div className="py-2 px-3 rounded-md">
+                <UploadProgress
+                    fileName={file.file_name}
+                    progress={uploadState.progress}
+                    status={uploadState.status}
+                    error={uploadState.error}
+                    speed={uploadState.speed}
+                    estimatedTimeRemaining={uploadState.estimatedTimeRemaining}
+                    totalBytes={uploadState.totalBytes}
+                    onCancel={uploadState.onCancel}
+                    onRetry={uploadState.onRetry}
+                />
+            </div>
+        );
+    }
 
     return (
         <>

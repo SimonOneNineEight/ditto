@@ -1,26 +1,17 @@
 'use client';
 
 import { useState, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { Upload, X, FileText, Loader2 } from 'lucide-react';
+import { Upload, X, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     validateFile,
-    getPresignedUploadUrl,
-    uploadToS3,
-    confirmUpload,
     formatFileSize,
     ALLOWED_EXTENSIONS,
     type FileRecord,
 } from '@/lib/file-service';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { UploadProgress } from './upload-progress';
 import { toast } from 'sonner';
-
-export type UploadStatus =
-    | 'idle'
-    | 'validating'
-    | 'uploading'
-    | 'confirming'
-    | 'success'
-    | 'error';
 
 export interface FileUploadHandle {
     trigger: () => void;
@@ -46,36 +37,40 @@ export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(function
     interviewId = '',
 }, ref) {
     const [isDragging, setIsDragging] = useState(false);
-    const [status, setStatus] = useState<UploadStatus>('idle');
-    const [progress, setProgress] = useState(0);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [validationError, setValidationError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    const uploadState = useFileUpload({
+        applicationId: applicationId || '',
+        interviewId: interviewId || undefined,
+        onComplete: (fileRecord) => {
+            toast.success('File uploaded successfully');
+            onUploadComplete?.(fileRecord);
+            setTimeout(() => {
+                uploadState.reset();
+                setSelectedFile(null);
+            }, 2000);
+        },
+    });
+
+    const isIdle = uploadState.status === 'idle';
 
     useImperativeHandle(ref, () => ({
         trigger() {
-            if (!disabled && status === 'idle') {
+            if (!disabled && isIdle) {
                 inputRef.current?.click();
             }
         },
-    }), [disabled, status]);
-
-    const resetState = useCallback(() => {
-        setStatus('idle');
-        setProgress(0);
-        setSelectedFile(null);
-        setError(null);
-    }, []);
+    }), [disabled, isIdle]);
 
     const handleFile = useCallback(
         async (file: File) => {
-            setError(null);
-            setStatus('validating');
+            setValidationError(null);
 
             const validation = validateFile(file);
             if (!validation.valid) {
-                setError(validation.error || 'Invalid file');
-                setStatus('error');
+                setValidationError(validation.error || 'Invalid file');
                 toast.error(validation.error || 'Invalid file');
                 return;
             }
@@ -84,58 +79,25 @@ export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(function
 
             if (onFileSelect) {
                 onFileSelect(file);
-                setStatus('idle');
                 return;
             }
 
             if (!applicationId) {
-                setStatus('idle');
                 return;
             }
 
-            try {
-                setStatus('uploading');
-                setProgress(0);
-
-                const presigned = await getPresignedUploadUrl(
-                    file.name,
-                    file.type,
-                    file.size,
-                    applicationId,
-                    interviewId
-                );
-
-                await uploadToS3(presigned.presigned_url, file, setProgress);
-
-                setStatus('confirming');
-
-                const fileRecord = await confirmUpload(
-                    presigned.s3_key,
-                    file.name,
-                    file.type,
-                    file.size,
-                    applicationId,
-                    interviewId
-                );
-
-                setStatus('success');
-                toast.success('File uploaded successfully');
-
-                if (onUploadComplete) {
-                    onUploadComplete(fileRecord);
-                }
-
-                setTimeout(resetState, 2000);
-            } catch (err) {
-                setStatus('error');
-                const message =
-                    err instanceof Error ? err.message : 'Upload failed';
-                setError(message);
-                toast.error(message);
-            }
+            await uploadState.upload(file);
         },
-        [applicationId, interviewId, onFileSelect, onUploadComplete, resetState]
+        [applicationId, onFileSelect, uploadState]
     );
+
+    const handleCancel = useCallback(() => {
+        uploadState.cancel();
+        setTimeout(() => {
+            uploadState.reset();
+            setSelectedFile(null);
+        }, 0);
+    }, [uploadState]);
 
     const handleDragOver = useCallback(
         (e: React.DragEvent) => {
@@ -184,17 +146,12 @@ export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(function
     );
 
     const handleClick = useCallback(() => {
-        if (!disabled && status === 'idle') {
+        if (!disabled && isIdle) {
             inputRef.current?.click();
         }
-    }, [disabled, status]);
+    }, [disabled, isIdle]);
 
-    const handleCancel = useCallback(() => {
-        resetState();
-    }, [resetState]);
-
-    const isUploading = status === 'uploading' || status === 'confirming';
-    const showProgress = isUploading || status === 'success';
+    const showUploadProgress = uploadState.status !== 'idle';
 
     return (
         <div className={className}>
@@ -216,57 +173,22 @@ export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(function
                     relative rounded-lg border-2 border-dashed p-6 transition-all cursor-pointer
                     ${isDragging ? 'border-primary bg-primary/5' : 'border-border/40 hover:border-border'}
                     ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-                    ${status === 'error' ? 'border-destructive/50' : ''}
-                    ${status === 'success' ? 'border-accent/50 bg-accent/5' : ''}
+                    ${validationError ? 'border-destructive/50' : ''}
+                    ${uploadState.status === 'completed' ? 'border-accent/50 bg-accent/5' : ''}
                 `}
             >
-                {showProgress ? (
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                            {status === 'success' ? (
-                                <FileText className="h-5 w-5 text-accent" />
-                            ) : (
-                                <Loader2 className="h-5 w-5 animate-spin text-secondary" />
-                            )}
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm truncate">
-                                    {selectedFile?.name}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    {selectedFile &&
-                                        formatFileSize(selectedFile.size)}
-                                    {status === 'confirming' &&
-                                        ' • Confirming...'}
-                                    {status === 'success' && ' • Uploaded'}
-                                </p>
-                            </div>
-                            {isUploading && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleCancel();
-                                    }}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            )}
-                        </div>
-
-                        <div className="h-1.5 w-full bg-muted/40 rounded-full overflow-hidden">
-                            <div
-                                className={`h-full transition-all duration-300 rounded-full ${
-                                    status === 'success'
-                                        ? 'bg-accent'
-                                        : 'bg-secondary'
-                                }`}
-                                style={{
-                                    width: `${status === 'success' ? 100 : progress}%`,
-                                }}
-                            />
-                        </div>
-                    </div>
+                {showUploadProgress && uploadState.fileName ? (
+                    <UploadProgress
+                        fileName={uploadState.fileName}
+                        progress={uploadState.progress}
+                        status={uploadState.status}
+                        error={uploadState.error}
+                        speed={uploadState.speed}
+                        estimatedTimeRemaining={uploadState.estimatedTimeRemaining}
+                        totalBytes={uploadState.totalBytes}
+                        onCancel={handleCancel}
+                        onRetry={uploadState.retry}
+                    />
                 ) : selectedFile && !applicationId ? (
                     <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-muted-foreground" />
@@ -275,7 +197,7 @@ export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(function
                                 {selectedFile.name}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                                {formatFileSize(selectedFile.size)} • Ready to
+                                {formatFileSize(selectedFile.size)} · Ready to
                                 upload
                             </p>
                         </div>
@@ -284,7 +206,8 @@ export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(function
                             size="icon-sm"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                resetState();
+                                setSelectedFile(null);
+                                setValidationError(null);
                             }}
                         >
                             <X className="h-4 w-4" />
@@ -305,9 +228,9 @@ export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(function
                     </div>
                 )}
 
-                {error && status === 'error' && (
-                    <p className="text-xs text-destructive mt-2 text-center">
-                        {error}
+                {validationError && (
+                    <p className="text-xs text-destructive mt-2 text-center" role="alert">
+                        {validationError}
                     </p>
                 )}
             </div>

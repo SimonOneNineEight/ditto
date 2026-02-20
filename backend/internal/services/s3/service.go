@@ -14,6 +14,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type S3ServiceInterface interface {
+	GeneratePresignedPutURL(ctx context.Context, s3Key, contentType string) (string, error)
+	GeneratePresignedGetURL(ctx context.Context, s3Key string) (string, error)
+	HeadObject(ctx context.Context, s3Key string) (bool, error)
+	DeleteObject(ctx context.Context, s3Key string) error
+}
+
 type S3Service struct {
 	client        *s3.Client
 	presignClient *s3.PresignClient

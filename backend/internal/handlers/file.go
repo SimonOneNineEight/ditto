@@ -41,10 +41,10 @@ var assessmentAllowedFileTypes = map[string]bool{
 
 type FileHandler struct {
 	fileRepo  *repository.FileRepository
-	s3Service *s3service.S3Service
+	s3Service s3service.S3ServiceInterface
 }
 
-func NewFileHandler(fileRepo *repository.FileRepository, s3Service *s3service.S3Service) *FileHandler {
+func NewFileHandler(fileRepo *repository.FileRepository, s3Service s3service.S3ServiceInterface) *FileHandler {
 	return &FileHandler{
 		fileRepo:  fileRepo,
 		s3Service: s3Service,

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -20,6 +21,29 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type mockS3Service struct {
+	headObjectFn func(ctx context.Context, s3Key string) (bool, error)
+}
+
+func (m *mockS3Service) GeneratePresignedPutURL(ctx context.Context, s3Key, contentType string) (string, error) {
+	return "https://mock-presigned-url.example.com/" + s3Key, nil
+}
+
+func (m *mockS3Service) GeneratePresignedGetURL(ctx context.Context, s3Key string) (string, error) {
+	return "https://mock-presigned-url.example.com/" + s3Key, nil
+}
+
+func (m *mockS3Service) HeadObject(ctx context.Context, s3Key string) (bool, error) {
+	if m.headObjectFn != nil {
+		return m.headObjectFn(ctx, s3Key)
+	}
+	return false, nil
+}
+
+func (m *mockS3Service) DeleteObject(ctx context.Context, s3Key string) error {
+	return nil
+}
 
 func setupFileHandlerTest(t *testing.T) (*gin.Engine, *repository.FileRepository, uuid.UUID, uuid.UUID, *s3service.S3Service) {
 	gin.SetMode(gin.TestMode)
@@ -188,15 +212,63 @@ func TestFileHandler_GetPresignedUploadURL(t *testing.T) {
 	})
 }
 
+func setupFileHandlerTestWithMockS3(t *testing.T, mock s3service.S3ServiceInterface) (*gin.Engine, *repository.FileRepository, uuid.UUID, uuid.UUID) {
+	gin.SetMode(gin.TestMode)
+
+	db := testutil.NewTestDatabase(t)
+	t.Cleanup(func() {
+		db.Close(t)
+	})
+	db.RunMigrations(t)
+
+	userRepo := repository.NewUserRepository(db.Database)
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	testUser, err := userRepo.CreateUser("fileconfirmtest@example.com", "File Confirm Test", string(hashedPassword))
+	require.NoError(t, err)
+
+	companyRepo := repository.NewCompanyRepository(db.Database)
+	jobRepo := repository.NewJobRepository(db.Database)
+	appRepo := repository.NewApplicationRepository(db.Database)
+
+	testCompany := testutil.CreateTestCompany("Confirm Co", "confirm.com")
+	createdCompany, err := companyRepo.CreateCompany(testCompany)
+	require.NoError(t, err)
+
+	testJob := testutil.CreateTestJob(createdCompany.ID, "Confirm Job", "Description")
+	createdJob, err := jobRepo.CreateJob(testUser.ID, testJob)
+	require.NoError(t, err)
+
+	var statusID uuid.UUID
+	err = db.Get(&statusID, "SELECT id FROM application_status LIMIT 1")
+	require.NoError(t, err)
+
+	testApp := testutil.CreateTestApplication(testUser.ID, createdJob.ID, statusID)
+	createdApp, err := appRepo.CreateApplication(testUser.ID, testApp)
+	require.NoError(t, err)
+
+	fileRepo := repository.NewFileRepository(db.Database)
+	handler := NewFileHandler(fileRepo, mock)
+
+	router := gin.New()
+	router.Use(func(c *gin.Context) {
+		c.Set("user_id", testUser.ID)
+		c.Next()
+	})
+
+	router.POST("/api/files/confirm-upload", handler.ConfirmUpload)
+
+	return router, fileRepo, testUser.ID, createdApp.ID
+}
+
 func TestFileHandler_ConfirmUpload(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test - requires LocalStack")
-	}
-
 	t.Run("FileNotInS3", func(t *testing.T) {
-		router, _, userID, appID, _ := setupFileHandlerTest(t)
+		mock := &mockS3Service{
+			headObjectFn: func(ctx context.Context, s3Key string) (bool, error) {
+				return false, nil
+			},
+		}
+		router, _, userID, appID := setupFileHandlerTestWithMockS3(t, mock)
 
-		// Use a non-existent S3 key
 		s3Key := s3service.GenerateS3Key(userID, "nonexistent.pdf")
 
 		payload := map[string]interface{}{
@@ -214,6 +286,33 @@ func TestFileHandler_ConfirmUpload(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("FileExistsInS3", func(t *testing.T) {
+		mock := &mockS3Service{
+			headObjectFn: func(ctx context.Context, s3Key string) (bool, error) {
+				return true, nil
+			},
+		}
+		router, _, userID, appID := setupFileHandlerTestWithMockS3(t, mock)
+
+		s3Key := s3service.GenerateS3Key(userID, "exists.pdf")
+
+		payload := map[string]interface{}{
+			"s3_key":         s3Key,
+			"file_name":      "resume.pdf",
+			"file_type":      "application/pdf",
+			"file_size":      1024000,
+			"application_id": appID.String(),
+		}
+		jsonPayload, _ := json.Marshal(payload)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/api/files/confirm-upload", bytes.NewBuffer(jsonPayload))
+		req.Header.Set("Content-Type", "application/json")
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
 

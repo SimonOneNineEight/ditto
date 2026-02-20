@@ -39,7 +39,7 @@ export const DocumentsCard = ({
             const fetchedFiles = await listFiles(applicationId, interviewId);
             setFiles(fetchedFiles);
         } catch {
-            toast.error('Failed to load files');
+            // Handled by axios interceptor
         } finally {
             setIsLoading(false);
         }
@@ -76,8 +76,8 @@ export const DocumentsCard = ({
             );
             setFiles((prev) => [fileRecord, ...prev]);
             toast.success('File uploaded successfully');
-        } catch (err) {
-            toast.error(err instanceof Error ? err.message : 'Upload failed');
+        } catch {
+            // Handled by axios interceptor
         } finally {
             setIsUploading(false);
         }
@@ -90,7 +90,7 @@ export const DocumentsCard = ({
             setFiles((prev) => prev.filter((f) => f.id !== fileId));
             toast.success('File deleted');
         } catch {
-            toast.error('Failed to delete file');
+            // Handled by axios interceptor
         } finally {
             setDeletingId(null);
         }

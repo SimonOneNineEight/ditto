@@ -1,19 +1,15 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Upload, X, FileText, Loader2, Archive } from 'lucide-react';
+import { Upload, X, FileText, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     validateAssessmentFile,
-    getPresignedUploadUrl,
-    uploadToS3,
-    confirmUpload,
-    formatFileSize,
     ASSESSMENT_ALLOWED_EXTENSIONS,
 } from '@/lib/file-service';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { UploadProgress } from '@/components/file-upload/upload-progress';
 import { toast } from 'sonner';
-
-type UploadStatus = 'idle' | 'validating' | 'uploading' | 'confirming' | 'success' | 'error';
 
 interface AssessmentFileUploadProps {
     applicationId: string;
@@ -31,73 +27,40 @@ export const AssessmentFileUpload = ({
     disabled = false,
 }: AssessmentFileUploadProps) => {
     const [isDragging, setIsDragging] = useState(false);
-    const [status, setStatus] = useState<UploadStatus>('idle');
-    const [progress, setProgress] = useState(0);
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [validationError, setValidationError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const resetState = useCallback(() => {
-        setStatus('idle');
-        setProgress(0);
-        setSelectedFile(null);
-        setError(null);
-    }, []);
+    const uploadState = useFileUpload({
+        applicationId,
+        submissionContext: 'assessment',
+        onComplete: (fileRecord) => {
+            toast.success('File uploaded');
+            onUploadComplete(fileRecord.id, fileRecord.file_name);
+        },
+    });
+
+    const isIdle = uploadState.status === 'idle';
 
     const handleFile = useCallback(
         async (file: File) => {
-            setError(null);
-            setStatus('validating');
+            setValidationError(null);
 
             const validation = validateAssessmentFile(file);
             if (!validation.valid) {
-                setError(validation.error || 'Invalid file');
-                setStatus('error');
+                setValidationError(validation.error || 'Invalid file');
                 toast.error(validation.error || 'Invalid file');
                 return;
             }
 
-            setSelectedFile(file);
-
-            try {
-                setStatus('uploading');
-                setProgress(0);
-
-                const presigned = await getPresignedUploadUrl(
-                    file.name,
-                    file.type,
-                    file.size,
-                    applicationId,
-                    undefined,
-                    'assessment'
-                );
-
-                await uploadToS3(presigned.presigned_url, file, setProgress);
-
-                setStatus('confirming');
-
-                const fileRecord = await confirmUpload(
-                    presigned.s3_key,
-                    file.name,
-                    file.type,
-                    file.size,
-                    applicationId,
-                    undefined,
-                    'assessment'
-                );
-
-                setStatus('success');
-                toast.success('File uploaded');
-                onUploadComplete(fileRecord.id, fileRecord.file_name);
-            } catch (err) {
-                setStatus('error');
-                const message = err instanceof Error ? err.message : 'Upload failed';
-                setError(message);
-                toast.error(message);
-            }
+            await uploadState.upload(file);
         },
-        [applicationId, onUploadComplete]
+        [uploadState]
     );
+
+    const handleCancel = useCallback(() => {
+        uploadState.cancel();
+        setTimeout(() => uploadState.reset(), 0);
+    }, [uploadState]);
 
     const handleDragOver = useCallback(
         (e: React.DragEvent) => {
@@ -146,18 +109,15 @@ export const AssessmentFileUpload = ({
     );
 
     const handleClick = useCallback(() => {
-        if (!disabled && status === 'idle' && !uploadedFileName) {
+        if (!disabled && isIdle && !uploadedFileName) {
             inputRef.current?.click();
         }
-    }, [disabled, status, uploadedFileName]);
+    }, [disabled, isIdle, uploadedFileName]);
 
     const handleRemove = useCallback(() => {
-        resetState();
+        uploadState.reset();
         onFileRemoved();
-    }, [resetState, onFileRemoved]);
-
-    const isUploading = status === 'uploading' || status === 'confirming';
-    const showProgress = isUploading;
+    }, [uploadState, onFileRemoved]);
 
     const isZipFile = (fileName: string) => {
         return fileName.toLowerCase().endsWith('.zip');
@@ -187,6 +147,8 @@ export const AssessmentFileUpload = ({
         );
     }
 
+    const showUploadProgress = uploadState.status !== 'idle';
+
     return (
         <div>
             <input
@@ -207,29 +169,21 @@ export const AssessmentFileUpload = ({
                     relative rounded-lg border-2 border-dashed p-6 transition-all cursor-pointer
                     ${isDragging ? 'border-primary bg-primary/5' : 'border-border/40 hover:border-border'}
                     ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-                    ${status === 'error' ? 'border-destructive/50' : ''}
+                    ${validationError ? 'border-destructive/50' : ''}
                 `}
             >
-                {showProgress ? (
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                            <Loader2 className="h-5 w-5 animate-spin text-secondary" />
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm truncate">{selectedFile?.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {selectedFile && formatFileSize(selectedFile.size)}
-                                    {status === 'confirming' && ' • Confirming...'}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="h-1.5 w-full bg-muted/40 rounded-full overflow-hidden">
-                            <div
-                                className="h-full transition-all duration-300 rounded-full bg-secondary"
-                                style={{ width: `${progress}%` }}
-                            />
-                        </div>
-                    </div>
+                {showUploadProgress && uploadState.fileName ? (
+                    <UploadProgress
+                        fileName={uploadState.fileName}
+                        progress={uploadState.progress}
+                        status={uploadState.status}
+                        error={uploadState.error}
+                        speed={uploadState.speed}
+                        estimatedTimeRemaining={uploadState.estimatedTimeRemaining}
+                        totalBytes={uploadState.totalBytes}
+                        onCancel={handleCancel}
+                        onRetry={uploadState.retry}
+                    />
                 ) : (
                     <div className="flex flex-col items-center gap-2 text-center">
                         <Upload className="h-8 w-8 text-muted-foreground/60" />
@@ -244,8 +198,10 @@ export const AssessmentFileUpload = ({
                     </div>
                 )}
 
-                {error && status === 'error' && (
-                    <p className="text-xs text-destructive mt-2 text-center">{error}</p>
+                {validationError && (
+                    <p className="text-xs text-destructive mt-2 text-center" role="alert">
+                        {validationError}
+                    </p>
                 )}
             </div>
         </div>

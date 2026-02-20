@@ -32,7 +32,7 @@ export function UserFilesList({ files, isLoading, onFileDeleted }: UserFilesList
             toast.success('File deleted successfully');
             onFileDeleted();
         } catch {
-            toast.error('Failed to delete file');
+            // Handled by axios interceptor
         } finally {
             setIsDeleting(false);
             setDeleteDialogOpen(false);

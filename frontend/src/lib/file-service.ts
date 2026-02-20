@@ -113,22 +113,32 @@ export async function getPresignedUploadUrl(
         application_id: applicationId,
         ...(interviewId && { interview_id: interviewId }),
         ...(submissionContext && { submission_context: submissionContext }),
-    });
+    }, { _suppressToast: true });
     return response.data.data;
+}
+
+export interface UploadProgressEvent {
+    percent: number;
+    loaded: number;
+    total: number;
 }
 
 export async function uploadToS3(
     presignedUrl: string,
     file: File,
-    onProgress?: (percent: number) => void
+    onProgress?: (event: UploadProgressEvent) => void,
+    signal?: AbortSignal,
 ): Promise<void> {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
 
         xhr.upload.addEventListener('progress', (event) => {
             if (event.lengthComputable && onProgress) {
-                const percent = Math.round((event.loaded / event.total) * 100);
-                onProgress(percent);
+                onProgress({
+                    percent: Math.round((event.loaded / event.total) * 100),
+                    loaded: event.loaded,
+                    total: event.total,
+                });
             }
         });
 
@@ -147,6 +157,10 @@ export async function uploadToS3(
         xhr.addEventListener('abort', () => {
             reject(new Error('Upload cancelled'));
         });
+
+        if (signal) {
+            signal.addEventListener('abort', () => xhr.abort());
+        }
 
         xhr.open('PUT', presignedUrl);
         xhr.setRequestHeader('Content-Type', file.type);
@@ -171,7 +185,7 @@ export async function confirmUpload(
         application_id: applicationId,
         ...(interviewId && { interview_id: interviewId }),
         ...(submissionContext && { submission_context: submissionContext }),
-    });
+    }, { _suppressToast: true });
     return response.data.data;
 }
 
