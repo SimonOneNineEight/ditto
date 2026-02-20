@@ -3,8 +3,9 @@
 import { useState, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useRouter } from 'next/navigation';
+import { applicationSchema, type ApplicationFormData } from '@/lib/schemas/application';
+import { isValidationError, getFieldErrors } from '@/lib/errors';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -44,30 +45,7 @@ const PLATFORMS = [
     { value: 'other', label: 'Other' },
 ] as const;
 
-const companySchema = z.object({
-    id: z.string().optional(),
-    name: z.string().min(1, 'Company is required'),
-    domain: z.string().optional(),
-    logoUrl: z.string().optional(),
-    website: z.string().optional(),
-});
-
-const formSchema = z.object({
-    company: companySchema,
-    position: z.string().min(1, 'Position is required'),
-    location: z.string().optional(),
-    jobType: z
-        .enum(['full-time', 'part-time', 'contract', 'internship'])
-        .optional(),
-    minSalary: z.string().optional(),
-    maxSalary: z.string().optional(),
-    description: z.string().optional(),
-    sourceUrl: z.string().url().optional().or(z.literal('')),
-    platform: z.string().optional(),
-    notes: z.string().optional(),
-});
-
-type FormData = z.infer<typeof formSchema>;
+type FormData = ApplicationFormData;
 
 const STAGGER_DELAY = 150; // ms between each field
 
@@ -104,9 +82,11 @@ const ApplicationForm = ({
         control,
         handleSubmit,
         setValue,
-        formState: { isSubmitting, errors },
+        setError,
+        formState: { isSubmitting, isValid, errors },
     } = useForm<FormData>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(applicationSchema),
+        mode: 'onChange',
         defaultValues: {
             company: initialData?.company || { name: '' },
             position: initialData?.position || '',
@@ -241,12 +221,15 @@ const ApplicationForm = ({
             }
 
             router.push(mode === 'edit' ? `/applications/${applicationId}` : '/applications');
-        } catch {
-            toast.error(
-                mode === 'edit'
-                    ? 'Failed to update application'
-                    : 'Failed to save application'
-            );
+        } catch (error) {
+            if (isValidationError(error)) {
+                const fieldErrors = getFieldErrors(error);
+                if (fieldErrors) {
+                    Object.entries(fieldErrors).forEach(([field, message]) => {
+                        setError(field as keyof FormData, { message });
+                    });
+                }
+            }
         }
     };
 
@@ -378,6 +361,7 @@ const ApplicationForm = ({
                 inputMode="url"
                 autoComplete="url"
                 highlight={highlightedFields.has('sourceUrl')}
+                error={errors.sourceUrl?.message}
                 {...register('sourceUrl')}
             />
 
@@ -418,7 +402,7 @@ const ApplicationForm = ({
                 <Button type="button" variant="ghost" onClick={handleCancel} className="w-full sm:w-auto">
                     Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+                <Button type="submit" disabled={!isValid || isSubmitting} aria-disabled={!isValid || isSubmitting} className="w-full sm:w-auto">
                     {isSubmitting
                         ? mode === 'edit'
                             ? 'Updating...'

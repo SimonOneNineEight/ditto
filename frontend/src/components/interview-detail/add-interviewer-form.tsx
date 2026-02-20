@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'sonner';
+import { interviewerFormSchema, type InterviewerFormData } from '@/lib/schemas/interviewer';
+import { isValidationError, getFieldErrors } from '@/lib/errors';
 import { Plus } from 'lucide-react';
 
 import {
@@ -25,16 +26,7 @@ import {
     Interviewer,
 } from '@/services/interview-service';
 
-const interviewerSchema = z.object({
-    name: z.string().min(1, 'Name is required'),
-    role: z.string().optional(),
-});
-
-const formSchema = z.object({
-    interviewers: z.array(interviewerSchema).min(1),
-});
-
-type FormData = z.infer<typeof formSchema>;
+type FormData = InterviewerFormData;
 
 interface AddInterviewerFormProps {
     interviewId: string;
@@ -56,9 +48,11 @@ export const AddInterviewerForm = ({
         control,
         handleSubmit,
         reset,
-        formState: { errors },
+        setError,
+        formState: { errors, isValid },
     } = useForm<FormData>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(interviewerFormSchema),
+        mode: 'onChange',
         defaultValues: {
             interviewers: [{ name: '', role: '' }],
         },
@@ -114,8 +108,20 @@ export const AddInterviewerForm = ({
             reset({ interviewers: [{ name: '', role: '' }] });
             onOpenChange(false);
             onSuccess?.(created);
-        } catch {
-            toast.error('Failed to add interviewer(s)');
+        } catch (error) {
+            if (isValidationError(error)) {
+                const fieldErrors = getFieldErrors(error);
+                if (fieldErrors) {
+                    const fieldMap: Record<string, 'interviewers.0.name' | 'interviewers.0.role'> = {
+                        name: 'interviewers.0.name',
+                        role: 'interviewers.0.role',
+                    };
+                    Object.entries(fieldErrors).forEach(([field, message]) => {
+                        const formField = fieldMap[field];
+                        if (formField) setError(formField, { message });
+                    });
+                }
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -162,16 +168,19 @@ export const AddInterviewerForm = ({
                                             htmlFor={`interviewers.${index}.name`}
                                             className="text-sm text-muted-foreground"
                                         >
-                                            Name *
+                                            Name <span className="text-destructive">*</span>
                                         </Label>
                                         <Input
                                             id={`interviewers.${index}.name`}
                                             placeholder="e.g., John Smith"
                                             disabled={isSubmitting}
+                                            aria-required="true"
+                                            aria-invalid={!!errors.interviewers?.[index]?.name}
+                                            aria-describedby={errors.interviewers?.[index]?.name ? `interviewers-${index}-name-error` : undefined}
                                             {...register(`interviewers.${index}.name`)}
                                         />
                                         {errors.interviewers?.[index]?.name && (
-                                            <p className="text-sm text-destructive">
+                                            <p id={`interviewers-${index}-name-error`} role="alert" className="text-sm text-destructive">
                                                 {errors.interviewers[index]?.name?.message}
                                             </p>
                                         )}
@@ -221,7 +230,7 @@ export const AddInterviewerForm = ({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button type="submit" disabled={isSubmitting || !isValid} aria-disabled={isSubmitting || !isValid}>
                             {isSubmitting
                                 ? 'Saving...'
                                 : fields.length > 1

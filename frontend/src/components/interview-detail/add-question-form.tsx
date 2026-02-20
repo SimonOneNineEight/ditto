@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'sonner';
+import { questionFormSchema, type QuestionFormData } from '@/lib/schemas/question';
+import { isValidationError, getFieldErrors } from '@/lib/errors';
 import { Plus } from 'lucide-react';
 
 import {
@@ -25,16 +26,7 @@ import {
     InterviewQuestion,
 } from '@/services/interview-service';
 
-const questionSchema = z.object({
-    question_text: z.string().min(1, 'Question is required'),
-    answer_text: z.string().optional(),
-});
-
-const formSchema = z.object({
-    questions: z.array(questionSchema).min(1),
-});
-
-type FormData = z.infer<typeof formSchema>;
+type FormData = QuestionFormData;
 
 interface AddQuestionFormProps {
     interviewId: string;
@@ -56,9 +48,11 @@ export const AddQuestionForm = ({
         control,
         handleSubmit,
         reset,
-        formState: { errors },
+        setError,
+        formState: { errors, isValid },
     } = useForm<FormData>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(questionFormSchema),
+        mode: 'onChange',
         defaultValues: {
             questions: [{ question_text: '', answer_text: '' }],
         },
@@ -114,8 +108,20 @@ export const AddQuestionForm = ({
             reset({ questions: [{ question_text: '', answer_text: '' }] });
             onOpenChange(false);
             onSuccess?.(created);
-        } catch {
-            toast.error('Failed to add question(s)');
+        } catch (error) {
+            if (isValidationError(error)) {
+                const fieldErrors = getFieldErrors(error);
+                if (fieldErrors) {
+                    const fieldMap: Record<string, 'questions.0.question_text' | 'questions.0.answer_text'> = {
+                        question_text: 'questions.0.question_text',
+                        answer_text: 'questions.0.answer_text',
+                    };
+                    Object.entries(fieldErrors).forEach(([field, message]) => {
+                        const formField = fieldMap[field];
+                        if (formField) setError(formField, { message });
+                    });
+                }
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -159,19 +165,22 @@ export const AddQuestionForm = ({
                                             htmlFor={`questions.${index}.question_text`}
                                             className="text-sm text-muted-foreground"
                                         >
-                                            Question *
+                                            Question <span className="text-destructive">*</span>
                                         </Label>
                                         <Textarea
                                             id={`questions.${index}.question_text`}
                                             placeholder="What question were you asked?"
                                             disabled={isSubmitting}
                                             className="min-h-[80px] resize-none"
+                                            aria-required="true"
+                                            aria-invalid={!!errors.questions?.[index]?.question_text}
+                                            aria-describedby={errors.questions?.[index]?.question_text ? `questions-${index}-text-error` : undefined}
                                             {...register(
                                                 `questions.${index}.question_text`
                                             )}
                                         />
                                         {errors.questions?.[index]?.question_text && (
-                                            <p className="text-sm text-destructive">
+                                            <p id={`questions-${index}-text-error`} role="alert" className="text-sm text-destructive">
                                                 {
                                                     errors.questions[index]
                                                         ?.question_text?.message
@@ -228,7 +237,7 @@ export const AddQuestionForm = ({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button type="submit" disabled={isSubmitting || !isValid} aria-disabled={isSubmitting || !isValid}>
                             {isSubmitting
                                 ? 'Saving...'
                                 : fields.length > 1

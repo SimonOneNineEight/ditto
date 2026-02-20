@@ -5,7 +5,8 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { addRoundSchema, type AddRoundFormData } from '@/lib/schemas/interview';
+import { isValidationError, getFieldErrors } from '@/lib/errors';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -40,21 +41,6 @@ const DURATION_OPTIONS = [
     { value: '120', label: '120 minutes' },
 ];
 
-const addRoundSchema = z.object({
-    interview_type: z.enum([
-        'phone_screen',
-        'technical',
-        'behavioral',
-        'panel',
-        'onsite',
-        'other',
-    ]),
-    scheduled_date: z.date({ required_error: 'Date is required' }),
-    scheduled_time: z.string().optional(),
-    duration_minutes: z.string().optional(),
-});
-
-type AddRoundFormData = z.infer<typeof addRoundSchema>;
 
 interface AddRoundDialogProps {
     open: boolean;
@@ -69,6 +55,7 @@ export function AddRoundDialog({ open, onOpenChange, applicationId }: AddRoundDi
         control,
         handleSubmit,
         reset,
+        setError,
         formState: { errors, isSubmitting, isValid },
     } = useForm<AddRoundFormData>({
         resolver: zodResolver(addRoundSchema),
@@ -93,8 +80,15 @@ export function AddRoundDialog({ open, onOpenChange, applicationId }: AddRoundDi
             onOpenChange(false);
             reset();
             router.push(`/interviews/${newInterview.id}`);
-        } catch {
-            toast.error('Failed to add interview round');
+        } catch (error) {
+            if (isValidationError(error)) {
+                const fieldErrors = getFieldErrors(error);
+                if (fieldErrors) {
+                    Object.entries(fieldErrors).forEach(([field, message]) => {
+                        setError(field as keyof AddRoundFormData, { message });
+                    });
+                }
+            }
         }
     };
 
@@ -119,7 +113,7 @@ export function AddRoundDialog({ open, onOpenChange, applicationId }: AddRoundDi
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <DialogBody className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="round-type">Interview Type</Label>
+                            <Label htmlFor="round-type">Interview Type <span className="text-destructive">*</span></Label>
                             <Controller
                                 name="interview_type"
                                 control={control}
@@ -158,7 +152,7 @@ export function AddRoundDialog({ open, onOpenChange, applicationId }: AddRoundDi
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="round-date">Scheduled Date</Label>
+                            <Label htmlFor="round-date">Scheduled Date <span className="text-destructive">*</span></Label>
                             <Controller
                                 name="scheduled_date"
                                 control={control}
@@ -238,6 +232,7 @@ export function AddRoundDialog({ open, onOpenChange, applicationId }: AddRoundDi
                         <Button
                             type="submit"
                             disabled={isSubmitting || !isValid}
+                            aria-disabled={isSubmitting || !isValid}
                         >
                             {isSubmitting ? 'Adding...' : 'Add Round'}
                         </Button>

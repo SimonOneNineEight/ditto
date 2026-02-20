@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { urlImportSchema } from '@/lib/schemas/application';
 
 interface UrlImportProps {
     onImport: (data: {
@@ -45,11 +46,17 @@ const platformDisplayNames: Record<string, string> = {
 const UrlImport = ({ onImport }: UrlImportProps) => {
     const [url, setUrl] = useState('');
     const [status, setStatus] = useState<ImportStatus>('idle');
+    const [urlError, setUrlError] = useState<string | null>(null);
 
-    const isValidUrl = url.startsWith('http');
+    const isValidUrl = urlImportSchema.safeParse({ url }).success;
 
     const handleImport = async () => {
-        if (!isValidUrl) return;
+        const result = urlImportSchema.safeParse({ url });
+        if (!result.success) {
+            setUrlError(result.error.errors[0]?.message || 'Invalid URL');
+            return;
+        }
+        setUrlError(null);
 
         setStatus('loading');
 
@@ -73,10 +80,8 @@ const UrlImport = ({ onImport }: UrlImportProps) => {
             if (response.data.warnings && response.data.warnings.length > 0) {
                 toast.warning(response.data.warnings.join(', '));
             }
-        } catch (error: unknown) {
+        } catch {
             setStatus('error');
-            const message = error instanceof Error ? error.message : 'Failed to extract job details';
-            toast.error(message);
         }
     };
 
@@ -102,16 +107,25 @@ const UrlImport = ({ onImport }: UrlImportProps) => {
     return (
         <div className={getContainerClasses()}>
             <Link2 className="h-4 w-4 text-muted-foreground/60 flex-shrink-0" />
-            <Input
-                type="url"
-                value={url}
-                onChange={(e) => {
-                    setUrl(e.target.value);
-                    if (status !== 'idle') setStatus('idle');
-                }}
-                placeholder="Paste LinkedIn or Indeed URL to import..."
-                className="flex-1"
-            />
+            <div className="flex-1">
+                <Input
+                    type="url"
+                    value={url}
+                    onChange={(e) => {
+                        setUrl(e.target.value);
+                        if (urlError) setUrlError(null);
+                        if (status !== 'idle') setStatus('idle');
+                    }}
+                    placeholder="Paste LinkedIn or Indeed URL to import..."
+                    aria-invalid={!!urlError}
+                    aria-describedby={urlError ? 'url-import-error' : undefined}
+                />
+                {urlError && (
+                    <p id="url-import-error" role="alert" className="text-xs text-destructive mt-1">
+                        {urlError}
+                    </p>
+                )}
+            </div>
             <Button
                 variant="outline"
                 size="sm"

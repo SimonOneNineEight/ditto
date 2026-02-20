@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'sonner';
+import { submissionSchema, type SubmissionFormData } from '@/lib/schemas/submission';
+import { isValidationError, getFieldErrors } from '@/lib/errors';
 
 import {
     Dialog,
@@ -34,58 +35,7 @@ import {
 } from '@/services/assessment-service';
 import { AssessmentFileUpload } from './assessment-file-upload';
 
-const formSchema = z
-    .object({
-        submission_type: z.enum(['github', 'file_upload', 'notes'], {
-            required_error: 'Please select a submission type',
-        }),
-        github_url: z.string().optional(),
-        file_id: z.string().optional(),
-        notes: z.string().optional(),
-    })
-    .refine(
-        (data) => {
-            if (data.submission_type === 'github') {
-                return (
-                    data.github_url &&
-                    data.github_url.trim() !== '' &&
-                    (data.github_url.startsWith('http://') ||
-                        data.github_url.startsWith('https://'))
-                );
-            }
-            return true;
-        },
-        {
-            message: 'Please enter a valid URL starting with http:// or https://',
-            path: ['github_url'],
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.submission_type === 'notes') {
-                return data.notes && data.notes.trim() !== '';
-            }
-            return true;
-        },
-        {
-            message: 'Please enter submission notes',
-            path: ['notes'],
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.submission_type === 'file_upload') {
-                return data.file_id && data.file_id.trim() !== '';
-            }
-            return true;
-        },
-        {
-            message: 'Please upload a file',
-            path: ['file_id'],
-        }
-    );
-
-type FormData = z.infer<typeof formSchema>;
+type FormData = SubmissionFormData;
 
 interface SubmissionFormModalProps {
     assessmentId: string;
@@ -110,9 +60,10 @@ export const SubmissionFormModal = ({
         watch,
         reset,
         setValue,
+        setError,
         formState: { errors, isSubmitting, isValid },
     } = useForm<FormData>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(submissionSchema),
         mode: 'onChange',
         defaultValues: {
             submission_type: 'github',
@@ -145,8 +96,15 @@ export const SubmissionFormModal = ({
             setUploadedFileName(null);
             onOpenChange(false);
             onSuccess?.(submission);
-        } catch {
-            toast.error('Failed to add submission');
+        } catch (error) {
+            if (isValidationError(error)) {
+                const fieldErrors = getFieldErrors(error);
+                if (fieldErrors) {
+                    Object.entries(fieldErrors).forEach(([field, message]) => {
+                        setError(field as keyof FormData, { message });
+                    });
+                }
+            }
         }
     };
 
@@ -178,7 +136,7 @@ export const SubmissionFormModal = ({
                   <DialogBody className="space-y-4">
                     <div className="space-y-1.5">
                         <Label htmlFor="submission-type" className="text-xs font-medium text-muted-foreground">
-                            Submission Type
+                            Submission Type <span className="text-destructive">*</span>
                         </Label>
                         <Controller
                             name="submission_type"
@@ -196,6 +154,7 @@ export const SubmissionFormModal = ({
                                 >
                                     <SelectTrigger
                                         id="submission-type"
+                                        aria-required="true"
                                         aria-invalid={!!errors.submission_type}
                                         aria-describedby={errors.submission_type ? 'submission-type-error' : undefined}
                                     >
@@ -224,7 +183,7 @@ export const SubmissionFormModal = ({
                     {submissionType === 'github' && (
                         <div className="space-y-1.5">
                             <Label htmlFor="submission-github-url" className="text-xs font-medium text-muted-foreground">
-                                GitHub URL
+                                GitHub URL <span className="text-destructive">*</span>
                             </Label>
                             <Controller
                                 name="github_url"
@@ -286,9 +245,16 @@ export const SubmissionFormModal = ({
                                         rows={4}
                                         disabled={isSubmitting}
                                         aria-required="true"
+                                        aria-invalid={!!errors.notes}
+                                        aria-describedby={errors.notes ? 'submission-notes-error' : undefined}
                                     />
                                 )}
                             />
+                            {errors.notes && (
+                                <p id="submission-notes-error" className="text-sm text-destructive" role="alert">
+                                    {errors.notes.message}
+                                </p>
+                            )}
                         </div>
                     )}
                   </DialogBody>
@@ -305,6 +271,7 @@ export const SubmissionFormModal = ({
                         <Button
                             type="submit"
                             disabled={isSubmitting || !isValid}
+                            aria-disabled={isSubmitting || !isValid}
                         >
                             {isSubmitting ? 'Saving...' : 'Save Submission'}
                         </Button>

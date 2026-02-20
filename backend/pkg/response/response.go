@@ -14,9 +14,10 @@ type ApiResponse struct {
 }
 
 type ErrorDetail struct {
-	Message string   `json:"error"`
-	Code    string   `json:"code"`
-	Details []string `json:"details,omitempty"`
+	Message     string            `json:"error"`
+	Code        string            `json:"code"`
+	Details     []string          `json:"details,omitempty"`
+	FieldErrors map[string]string `json:"field_errors,omitempty"`
 }
 
 func Success(c *gin.Context, data interface{}) {
@@ -44,9 +45,10 @@ func Error(c *gin.Context, error *errors.AppError) {
 	c.JSON(error.Status, ApiResponse{
 		Success: false,
 		Error: &ErrorDetail{
-			Message: error.Message,
-			Code:    string(error.Code),
-			Details: error.Details,
+			Message:     error.Message,
+			Code:        string(error.Code),
+			Details:     error.Details,
+			FieldErrors: error.FieldErrors,
 		},
 	})
 }

@@ -63,7 +63,7 @@ func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 
 	var req CreateInterviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid request body"))
+		HandleError(c, err)
 		return
 	}
 
@@ -196,7 +196,7 @@ func (h *InterviewHandler) UpdateInterview(c *gin.Context) {
 
 	var req UpdateInterviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid request body"))
+		HandleError(c, err)
 		return
 	}
 

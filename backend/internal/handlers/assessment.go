@@ -83,7 +83,7 @@ func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 
 	var req CreateAssessmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid request body"))
+		HandleError(c, err)
 		return
 	}
 
@@ -221,7 +221,7 @@ func (h *AssessmentHandler) UpdateAssessment(c *gin.Context) {
 
 	var req UpdateAssessmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid request body"))
+		HandleError(c, err)
 		return
 	}
 
@@ -309,7 +309,7 @@ func (h *AssessmentHandler) UpdateStatus(c *gin.Context) {
 
 	var req UpdateStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid request body"))
+		HandleError(c, err)
 		return
 	}
 
@@ -345,7 +345,7 @@ func (h *AssessmentHandler) CreateSubmission(c *gin.Context) {
 
 	var req CreateSubmissionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid request body"))
+		HandleError(c, err)
 		return
 	}
 

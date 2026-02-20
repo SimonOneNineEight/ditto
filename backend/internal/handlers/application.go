@@ -28,7 +28,7 @@ type UpdateApplicationStatusReq struct {
 type QuickCreateApplicationReq struct {
 	CompanyName string `json:"company_name" binding:"required"`
 	Title       string `json:"title" binding:"required"`
-	Description string `json:"description"`
+	Description string `json:"description" binding:"max=10000"`
 	Location    string `json:"location"`
 	JobType     string `json:"job_type" binding:"omitempty,oneof=full-time part-time contract internship"`
 	SourceURL   string `json:"source_url" binding:"omitempty,url,max=2048"`
@@ -182,7 +182,7 @@ func (h *ApplicationHandler) QuickCreateApplication(c *gin.Context) {
 
 	var req QuickCreateApplicationReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		HandleError(c, errors.New(errors.ErrorBadRequest, "company_name and title are required"))
+		HandleError(c, err)
 		return
 	}
 
@@ -222,7 +222,7 @@ func (h *ApplicationHandler) QuickCreateApplication(c *gin.Context) {
 
 	appliedStatusID, err := h.applicationRepo.GetApplicationStatusIDByName("Applied")
 	if err != nil {
-		HandleError(c, errors.New(errors.ErrorInternalServer, err.Error()))
+		HandleErrorWithMessage(c, err, "failed to resolve application status")
 		return
 	}
 
@@ -263,7 +263,7 @@ func (h *ApplicationHandler) UpdateApplication(c *gin.Context) {
 
 	var req QuickCreateApplicationReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		HandleError(c, errors.New(errors.ErrorBadRequest, "invalid request body"))
+		HandleError(c, err)
 		return
 	}
 

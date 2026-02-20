@@ -69,7 +69,7 @@ const SubmissionItem = ({ submission, onDeleted }: SubmissionItemProps) => {
             const response = await getFileDownloadUrl(submission.file_id);
             window.open(response.presigned_url, '_blank');
         } catch {
-            toast.error('Failed to download file');
+            // Handled by axios interceptor
         }
     };
 
@@ -80,7 +80,7 @@ const SubmissionItem = ({ submission, onDeleted }: SubmissionItemProps) => {
             toast.success('Submission deleted');
             onDeleted?.(submission.id);
         } catch {
-            toast.error('Failed to delete submission');
+            // Handled by axios interceptor
         } finally {
             setIsDeleting(false);
             setIsDeleteOpen(false);

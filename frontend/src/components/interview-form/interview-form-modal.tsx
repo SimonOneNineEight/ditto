@@ -2,9 +2,10 @@
 
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { interviewFormSchema, type InterviewFormData } from '@/lib/schemas/interview';
+import { isValidationError, getFieldErrors } from '@/lib/errors';
 
 import {
     Dialog,
@@ -47,19 +48,7 @@ const DURATION_OPTIONS = [
     { value: '120', label: '120 minutes' },
 ];
 
-const formSchema = z.object({
-    interview_type: z.enum(
-        ['phone_screen', 'technical', 'behavioral', 'panel', 'onsite', 'other'],
-        {
-            required_error: 'Please select an interview type',
-        }
-    ),
-    scheduled_date: z.date({ required_error: 'Date is required' }),
-    scheduled_time: z.string().optional(),
-    duration_minutes: z.string().optional(),
-});
-
-type FormData = z.infer<typeof formSchema>;
+type FormData = InterviewFormData;
 
 interface InterviewFormModalProps {
     applicationId: string;
@@ -80,9 +69,10 @@ export const InterviewFormModal = ({
         control,
         handleSubmit,
         reset,
+        setError,
         formState: { errors, isSubmitting, isValid },
     } = useForm<FormData>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(interviewFormSchema),
         mode: 'onChange',
         defaultValues: {
             scheduled_date: new Date(),
@@ -108,8 +98,15 @@ export const InterviewFormModal = ({
             reset();
             onOpenChange(false);
             onSuccess?.(interview);
-        } catch {
-            toast.error('Failed to create interview');
+        } catch (error) {
+            if (isValidationError(error)) {
+                const fieldErrors = getFieldErrors(error);
+                if (fieldErrors) {
+                    Object.entries(fieldErrors).forEach(([field, message]) => {
+                        setError(field as keyof FormData, { message });
+                    });
+                }
+            }
         }
     };
 
@@ -129,7 +126,7 @@ export const InterviewFormModal = ({
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label htmlFor="interview-type" className="text-xs font-medium text-muted-foreground">Interview Type</Label>
+                            <Label htmlFor="interview-type" className="text-xs font-medium text-muted-foreground">Interview Type <span className="text-destructive">*</span></Label>
                             <Controller
                                 name="interview_type"
                                 control={control}
@@ -169,7 +166,7 @@ export const InterviewFormModal = ({
 
                         <div className="flex gap-3">
                             <div className="flex-1 space-y-1.5">
-                                <Label htmlFor="interview-date" className="text-xs font-medium text-muted-foreground">Date</Label>
+                                <Label htmlFor="interview-date" className="text-xs font-medium text-muted-foreground">Date <span className="text-destructive">*</span></Label>
                                 <Controller
                                     name="scheduled_date"
                                     control={control}
@@ -250,6 +247,7 @@ export const InterviewFormModal = ({
                         <Button
                             type="submit"
                             disabled={isSubmitting || !isValid}
+                            aria-disabled={isSubmitting || !isValid}
                         >
                             {isSubmitting ? 'Adding...' : 'Add Interview'}
                         </Button>

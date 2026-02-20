@@ -2,9 +2,10 @@
 
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { assessmentSchema, type AssessmentFormData } from '@/lib/schemas/assessment';
+import { isValidationError, getFieldErrors } from '@/lib/errors';
 
 import {
     Dialog,
@@ -35,30 +36,7 @@ import {
     type AssessmentType,
 } from '@/services/assessment-service';
 
-const formSchema = z.object({
-    assessment_type: z.enum(
-        [
-            'take_home_project',
-            'live_coding',
-            'system_design',
-            'data_structures',
-            'case_study',
-            'other',
-        ],
-        {
-            required_error: 'Please select an assessment type',
-        }
-    ),
-    title: z
-        .string()
-        .min(1, 'Title is required')
-        .max(255, 'Title must be 255 characters or less'),
-    due_date: z.date({ required_error: 'Due date is required' }),
-    instructions: z.string().optional(),
-    requirements: z.string().optional(),
-});
-
-type FormData = z.infer<typeof formSchema>;
+type FormData = AssessmentFormData;
 
 interface AssessmentFormModalProps {
     applicationId: string;
@@ -78,9 +56,10 @@ export const AssessmentFormModal = ({
         register,
         handleSubmit,
         reset,
+        setError,
         formState: { errors, isSubmitting, isValid },
     } = useForm<FormData>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(assessmentSchema),
         mode: 'onChange',
         defaultValues: {
             title: '',
@@ -104,8 +83,15 @@ export const AssessmentFormModal = ({
             reset();
             onOpenChange(false);
             onSuccess?.(assessment);
-        } catch {
-            toast.error('Failed to create assessment');
+        } catch (error) {
+            if (isValidationError(error)) {
+                const fieldErrors = getFieldErrors(error);
+                if (fieldErrors) {
+                    Object.entries(fieldErrors).forEach(([field, message]) => {
+                        setError(field as keyof FormData, { message });
+                    });
+                }
+            }
         }
     };
 
@@ -119,7 +105,7 @@ export const AssessmentFormModal = ({
                     <DialogBody className="space-y-4">
                         <div className="space-y-1.5">
                             <Label htmlFor="assessment-type" className="text-xs font-medium text-muted-foreground">
-                                Assessment Type
+                                Assessment Type <span className="text-destructive">*</span>
                             </Label>
                             <Controller
                                 name="assessment_type"
@@ -132,6 +118,7 @@ export const AssessmentFormModal = ({
                                     >
                                         <SelectTrigger
                                             id="assessment-type"
+                                            aria-required="true"
                                             aria-invalid={!!errors.assessment_type}
                                             aria-describedby={errors.assessment_type ? 'assessment-type-error' : undefined}
                                         >
@@ -159,7 +146,7 @@ export const AssessmentFormModal = ({
 
                         <div className="space-y-1.5">
                             <Label htmlFor="assessment-title" className="text-xs font-medium text-muted-foreground">
-                                Title
+                                Title <span className="text-destructive">*</span>
                             </Label>
                             <Input
                                 id="assessment-title"
@@ -179,7 +166,7 @@ export const AssessmentFormModal = ({
 
                         <div className="space-y-1.5">
                             <Label htmlFor="assessment-due-date" className="text-xs font-medium text-muted-foreground">
-                                Due Date
+                                Due Date <span className="text-destructive">*</span>
                             </Label>
                             <Controller
                                 name="due_date"
@@ -241,6 +228,7 @@ export const AssessmentFormModal = ({
                         <Button
                             type="submit"
                             disabled={isSubmitting || !isValid}
+                            aria-disabled={isSubmitting || !isValid}
                         >
                             {isSubmitting ? 'Creating...' : 'Create Assessment'}
                         </Button>
