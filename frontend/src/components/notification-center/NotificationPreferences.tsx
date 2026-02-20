@@ -32,7 +32,7 @@ export function NotificationPreferences() {
     useEffect(() => {
         notificationService.getPreferences()
             .then(setPreferences)
-            .catch(() => toast.error('Failed to load notification preferences'))
+            .catch(() => {})
             .finally(() => setIsLoading(false));
     }, []);
 
@@ -54,7 +54,6 @@ export function NotificationPreferences() {
                 toast.success('Preference saved');
             } catch {
                 setPreferences(preferences);
-                toast.error('Failed to save preference');
             }
         },
         [preferences]

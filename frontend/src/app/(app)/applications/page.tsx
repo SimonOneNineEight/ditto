@@ -91,7 +91,6 @@ const ApplicationPageContent = () => {
             setTotal(result.total || 0);
             setPage(result.page || 1);
         } catch {
-            toast.error('Failed to load applications');
             setApplications([]);
             setTotal(0);
         } finally {
@@ -158,7 +157,7 @@ const ApplicationPageContent = () => {
             const filters = getFiltersFromURL();
             fetchApplications(filters);
         } catch {
-            toast.error('Failed to delete application');
+            // Handled by axios interceptor
         } finally {
             setDeleting(false);
             setDeleteId(null);

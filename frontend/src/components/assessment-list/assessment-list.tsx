@@ -105,10 +105,10 @@ export const AssessmentList = ({
 
         try {
             await updateAssessmentStatus(assessmentId, newStatus);
+            toast.success(`Status updated to ${newStatus.replace(/_/g, ' ')}`);
             onStatusUpdate?.(assessmentId, newStatus);
         } catch {
             setLocalStatuses((prev) => ({ ...prev, [assessmentId]: currentStatus }));
-            toast.error('Failed to update status');
         } finally {
             setUpdatingId(null);
         }

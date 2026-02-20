@@ -8,16 +8,17 @@ import {
     X,
     ChevronUp,
     ChevronDown,
-    Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { InterviewDetailCard } from './interview-detail-card';
+import { AutoSaveIndicator } from '@/components/auto-save-indicator';
 import { AddQuestionForm } from './add-question-form';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 
+import type { AutoSaveStatus } from '@/hooks/useAutoSave';
 import {
     InterviewQuestion,
     updateQuestion,
@@ -36,8 +37,6 @@ interface EditingState {
     question_text: string;
     answer_text: string;
 }
-
-type AutoSaveStatus = 'idle' | 'saving' | 'saved';
 
 export const QuestionsCard = ({
     questions,
@@ -89,7 +88,7 @@ export const QuestionsCard = ({
             setAutoSaveStatus('saved');
             onUpdate();
         } catch {
-            setAutoSaveStatus('idle');
+            setAutoSaveStatus('error');
         }
     }, [editing, onUpdate]);
 
@@ -168,7 +167,7 @@ export const QuestionsCard = ({
             lastSavedRef.current = null;
             onUpdate();
         } catch {
-            toast.error('Failed to update question');
+            // Handled by axios interceptor
         } finally {
             setIsSaving(false);
         }
@@ -184,7 +183,7 @@ export const QuestionsCard = ({
             setDeleteTarget(null);
             onUpdate();
         } catch {
-            toast.error('Failed to delete question');
+            // Handled by axios interceptor
         } finally {
             setIsDeleting(false);
         }
@@ -209,7 +208,7 @@ export const QuestionsCard = ({
             );
             onUpdate();
         } catch {
-            toast.error('Failed to reorder questions');
+            // Handled by axios interceptor
         } finally {
             setIsReordering(false);
         }
@@ -234,7 +233,7 @@ export const QuestionsCard = ({
             );
             onUpdate();
         } catch {
-            toast.error('Failed to reorder questions');
+            // Handled by axios interceptor
         } finally {
             setIsReordering(false);
         }
@@ -270,17 +269,10 @@ export const QuestionsCard = ({
                                                 Question {index + 1}
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                {autoSaveStatus === 'saving' && (
-                                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                                        Saving...
-                                                    </span>
-                                                )}
-                                                {autoSaveStatus === 'saved' && (
-                                                    <span className="text-xs text-green-600">
-                                                        Saved
-                                                    </span>
-                                                )}
+                                                <AutoSaveIndicator
+                                                    status={autoSaveStatus}
+                                                    onRetry={performAutoSave}
+                                                />
                                             </div>
                                         </div>
                                         <Textarea

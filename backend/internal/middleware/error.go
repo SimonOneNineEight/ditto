@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func ErrorHandler() gin.HandlerFunc {
@@ -38,7 +39,9 @@ func logError(c *gin.Context, err *errors.AppError) {
 	}
 
 	if userID, exists := c.Get("user_id"); exists {
-		attrs = append(attrs, slog.String("user_id", userID.(string)))
+		if uid, ok := userID.(uuid.UUID); ok {
+			attrs = append(attrs, slog.String("user_id", uid.String()))
+		}
 	}
 
 	if err.Cause != nil {
@@ -49,7 +52,7 @@ func logError(c *gin.Context, err *errors.AppError) {
 	case "auth", "validation":
 		slog.LogAttrs(c.Request.Context(), slog.LevelWarn, "Client error", attrs...)
 	case "not_found":
-		slog.LogAttrs(c.Request.Context(), slog.LevelInfo, "Resourse not found", attrs...)
+		slog.LogAttrs(c.Request.Context(), slog.LevelInfo, "Resource not found", attrs...)
 	default:
 		slog.LogAttrs(c.Request.Context(), slog.LevelError, "Server error", attrs...)
 	}

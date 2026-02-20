@@ -27,10 +27,10 @@ func ConvertError(err error) *AppError {
 	}
 
 	if valErr, ok := err.(validator.ValidationErrors); ok {
-		return NewValidationError(formatValidationErrors(valErr))
+		return NewFieldValidationError(formatValidationFieldErrors(valErr))
 	}
 
-	return New(ErrorUnexpected, err.Error())
+	return Wrap(ErrorUnexpected, "Something went wrong. Please try again.", err)
 }
 
 func convertPQError(pqErr *pq.Error) *AppError {
@@ -50,23 +50,50 @@ func convertPQError(pqErr *pq.Error) *AppError {
 	}
 }
 
-func formatValidationErrors(errs validator.ValidationErrors) string {
-	var messages []string
-
+func formatValidationFieldErrors(errs validator.ValidationErrors) map[string]string {
+	fieldErrors := make(map[string]string, len(errs))
 	for _, err := range errs {
+		field := toSnakeCase(err.Field())
+		label := humanizeFieldName(field)
 		switch err.Tag() {
 		case "required":
-			messages = append(messages, fmt.Sprintf("%s is required", err.Field()))
+			fieldErrors[field] = fmt.Sprintf("%s is required", label)
 		case "email":
-			messages = append(messages, fmt.Sprintf("%s must be a valid email", err.Field()))
+			fieldErrors[field] = fmt.Sprintf("%s must be a valid email", label)
 		case "min":
-			messages = append(messages, fmt.Sprintf("%s must be at least %s characters", err.Field(), err.Param()))
+			fieldErrors[field] = fmt.Sprintf("%s must be at least %s characters", label, err.Param())
 		case "max":
-			messages = append(messages, fmt.Sprintf("%s must be at most %s characters", err.Field(), err.Param()))
-
+			fieldErrors[field] = fmt.Sprintf("%s must be at most %s characters", label, err.Param())
+		case "url":
+			fieldErrors[field] = fmt.Sprintf("%s must be a valid URL", label)
+		case "oneof":
+			fieldErrors[field] = fmt.Sprintf("%s must be one of: %s", label, err.Param())
 		default:
-			messages = append(messages, fmt.Sprintf("%s is invalid", err.Field()))
+			fieldErrors[field] = fmt.Sprintf("%s is invalid", label)
 		}
 	}
-	return strings.Join(messages, ", ")
+	return fieldErrors
+}
+
+func humanizeFieldName(snakeCase string) string {
+	humanized := strings.ReplaceAll(snakeCase, "_", " ")
+	if len(humanized) > 0 {
+		return strings.ToUpper(humanized[:1]) + humanized[1:]
+	}
+	return humanized
+}
+
+func toSnakeCase(s string) string {
+	var result strings.Builder
+	for i, r := range s {
+		if r >= 'A' && r <= 'Z' {
+			if i > 0 {
+				result.WriteByte('_')
+			}
+			result.WriteRune(r + 32)
+		} else {
+			result.WriteRune(r)
+		}
+	}
+	return result.String()
 }

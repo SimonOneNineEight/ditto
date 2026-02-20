@@ -170,7 +170,6 @@ const InterviewDetailPage = () => {
             fetchInterview();
         } catch (err) {
             console.error('Failed to update interview:', err);
-            toast.error('Failed to update interview');
         }
     };
 
@@ -182,7 +181,6 @@ const InterviewDetailPage = () => {
             router.push('/interviews');
         } catch (err) {
             console.error('Failed to delete interview:', err);
-            toast.error('Failed to delete interview');
         } finally {
             setIsDeleting(false);
             setIsDeleteOpen(false);

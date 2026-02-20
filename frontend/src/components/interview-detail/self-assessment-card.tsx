@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { InterviewDetailCard } from './interview-detail-card';
+import { AutoSaveIndicator } from '@/components/auto-save-indicator';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -134,7 +133,6 @@ export const SelfAssessmentCard = ({
             onUpdate();
         } catch {
             setAutoSaveStatus('error');
-            toast.error('Failed to save self-assessment');
         }
     }, [
         interview.id,
@@ -173,7 +171,6 @@ export const SelfAssessmentCard = ({
             onUpdate();
         } catch {
             setAutoSaveStatus('error');
-            toast.error('Failed to save overall feeling');
         }
     };
 
@@ -187,7 +184,6 @@ export const SelfAssessmentCard = ({
             onUpdate();
         } catch {
             setAutoSaveStatus('error');
-            toast.error('Failed to save confidence level');
         }
     };
 
@@ -246,20 +242,11 @@ export const SelfAssessmentCard = ({
     };
 
     const headerAction = (
-        <div className="h-4" aria-live="polite" data-testid="autosave-status">
-            {autoSaveStatus === 'saving' && (
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Saving...
-                </span>
-            )}
-            {autoSaveStatus === 'saved' && (
-                <span className="text-xs text-green-600">Saved</span>
-            )}
-            {autoSaveStatus === 'error' && (
-                <span className="text-xs text-red-600">Error saving</span>
-            )}
-        </div>
+        <AutoSaveIndicator
+            status={autoSaveStatus}
+            onRetry={() => performAutoSaveRef.current?.()}
+            data-testid="autosave-status"
+        />
     );
 
     return (

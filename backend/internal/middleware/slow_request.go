@@ -13,6 +13,7 @@ const SlowRequestThresholdMs = 500
 func SlowRequestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
+		c.Set("request_start", start)
 
 		c.Next()
 

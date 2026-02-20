@@ -6,11 +6,12 @@ import (
 )
 
 type AppError struct {
-	Code    ErrorCode `json:"code"`
-	Message string    `json:"message"`
-	Status  int       `json:"-"`
-	Cause   error     `json:"-"`
-	Details []string  `json:"-"`
+	Code        ErrorCode         `json:"code"`
+	Message     string            `json:"message"`
+	Status      int               `json:"-"`
+	Cause       error             `json:"-"`
+	Details     []string          `json:"-"`
+	FieldErrors map[string]string `json:"-"`
 }
 
 type ErrorCode string
@@ -28,7 +29,8 @@ const (
 	ErrorUserNotFound ErrorCode = "USER_NOT_FOUND"
 	ErrorJobNotFound  ErrorCode = "JOB_NOT_FOUND"
 
-	ErrorConflict ErrorCode = "CONFLICT"
+	ErrorForbidden ErrorCode = "FORBIDDEN"
+	ErrorConflict  ErrorCode = "CONFLICT"
 
 	ErrorInternalServer ErrorCode = "INTERNAL_SERVER_ERROR"
 	ErrorDatabaseError  ErrorCode = "DATABASE_ERROR"
@@ -68,6 +70,8 @@ func (code ErrorCode) HTTPStatus() int {
 		return http.StatusConflict
 	case ErrorNotFound, ErrorUserNotFound, ErrorJobNotFound, ErrorRoleNotFound:
 		return http.StatusNotFound
+	case ErrorForbidden, ErrorQuotaExceeded:
+		return http.StatusForbidden
 	case ErrorValidationFailed, ErrorBadRequest, ErrorUnsupportedPlatform:
 		return http.StatusBadRequest
 	case ErrorTimeout:
@@ -76,8 +80,6 @@ func (code ErrorCode) HTTPStatus() int {
 		return http.StatusUnprocessableEntity
 	case ErrorNetworkFailure:
 		return http.StatusBadGateway
-	case ErrorQuotaExceeded:
-		return http.StatusForbidden
 	case ErrorExpired:
 		return http.StatusGone
 
@@ -88,7 +90,7 @@ func (code ErrorCode) HTTPStatus() int {
 
 func (code ErrorCode) Category() string {
 	switch code {
-	case ErrorInvalidCredentials, ErrorUnauthorized, ErrorEmailAlreadyExists, ErrorRoleNotFound:
+	case ErrorInvalidCredentials, ErrorUnauthorized, ErrorEmailAlreadyExists, ErrorRoleNotFound, ErrorForbidden:
 		return "auth"
 	case ErrorValidationFailed, ErrorBadRequest:
 		return "validation"
@@ -136,6 +138,15 @@ func NewUserNotFound(id string) *AppError {
 
 func NewValidationError(message string) *AppError {
 	return New(ErrorValidationFailed, message)
+}
+
+func NewFieldValidationError(fieldErrors map[string]string) *AppError {
+	return &AppError{
+		Code:        ErrorValidationFailed,
+		Message:     "Validation failed",
+		Status:      ErrorValidationFailed.HTTPStatus(),
+		FieldErrors: fieldErrors,
+	}
 }
 
 func IsNotFoundError(err error) bool {

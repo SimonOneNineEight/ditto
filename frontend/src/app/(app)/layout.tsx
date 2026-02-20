@@ -8,6 +8,8 @@ import LayoutWrapper from '@/components/layout-wrapper';
 import { Toaster } from '@/components/ui/sonner';
 import { ResponsiveHeader } from '@/components/layout';
 import { AuthGuard } from '@/components/auth-guard';
+import { ErrorBoundary } from '@/components/error-boundary';
+import { NetworkStatusMonitor } from '@/components/network-status-monitor';
 
 const geistSans = localFont({
     src: '../fonts/GeistVF.woff',
@@ -61,11 +63,14 @@ export default function RootLayout({
                             </div>
                             <Navbar />
                             <AuthGuard>
-                                <LayoutWrapper>{children}</LayoutWrapper>
+                                <ErrorBoundary>
+                                    <LayoutWrapper>{children}</LayoutWrapper>
+                                </ErrorBoundary>
                             </AuthGuard>
                         </SidebarInset>
                     </SidebarProvider>
                     <Toaster />
+                    <NetworkStatusMonitor />
                 </ThemeProvider>
             </body>
         </html>

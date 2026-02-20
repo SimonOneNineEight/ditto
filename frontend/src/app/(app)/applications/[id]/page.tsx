@@ -223,7 +223,7 @@ const ApplicationPage = () => {
             toast.success('Application deleted');
             router.push('/applications');
         } catch {
-            toast.error('Failed to delete application');
+            // Handled by axios interceptor
         } finally {
             setIsDeleting(false);
             setIsDeleteOpen(false);

@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 
+import { AutoSaveIndicator } from '@/components/auto-save-indicator';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -105,7 +104,6 @@ export const SelfAssessmentSection = ({
             onUpdate();
         } catch {
             setAutoSaveStatus('error');
-            toast.error('Failed to save self-assessment');
         }
     }, [interview.id, overallFeeling, wentWell, couldImprove, confidenceLevel, hasChanges, onUpdate]);
 
@@ -137,7 +135,6 @@ export const SelfAssessmentSection = ({
             onUpdate();
         } catch {
             setAutoSaveStatus('error');
-            toast.error('Failed to save overall feeling');
         }
     };
 
@@ -151,26 +148,16 @@ export const SelfAssessmentSection = ({
             onUpdate();
         } catch {
             setAutoSaveStatus('error');
-            toast.error('Failed to save confidence level');
         }
     };
 
     return (
         <div className="space-y-6">
-            {/* Auto-save status indicator */}
-            <div className="flex justify-end h-4">
-                {autoSaveStatus === 'saving' && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Saving...
-                    </span>
-                )}
-                {autoSaveStatus === 'saved' && (
-                    <span className="text-xs text-green-600">Saved</span>
-                )}
-                {autoSaveStatus === 'error' && (
-                    <span className="text-xs text-red-600">Error saving</span>
-                )}
+            <div className="flex justify-end">
+                <AutoSaveIndicator
+                    status={autoSaveStatus}
+                    onRetry={performAutoSave}
+                />
             </div>
 
             {/* Overall Feeling */}

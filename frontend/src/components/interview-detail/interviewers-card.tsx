@@ -77,7 +77,7 @@ export const InterviewersCard = ({
             setEditing(null);
             onUpdate();
         } catch {
-            toast.error('Failed to update interviewer');
+            // Handled by axios interceptor
         } finally {
             setIsSaving(false);
         }
@@ -93,7 +93,7 @@ export const InterviewersCard = ({
             setDeleteTarget(null);
             onUpdate();
         } catch {
-            toast.error('Failed to delete interviewer');
+            // Handled by axios interceptor
         } finally {
             setIsDeleting(false);
         }

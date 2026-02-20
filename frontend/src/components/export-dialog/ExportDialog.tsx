@@ -76,7 +76,6 @@ export function ExportDialog({
       onOpenChange(false);
     } catch (error) {
       console.error('Export failed:', error);
-      toast.error('Failed to export data. Please try again.');
     } finally {
       setIsExporting(false);
     }

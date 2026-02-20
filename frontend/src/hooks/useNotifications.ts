@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { toast } from 'sonner';
 import type { Notification } from '@/types/notification';
 import * as notificationService from '@/services/notification-service';
 
@@ -78,6 +79,7 @@ export const useNotifications = (options?: UseNotificationsOptions): UseNotifica
             await notificationService.markAllAsRead();
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
             setUnreadCount(0);
+            toast.success('All notifications marked as read');
         } catch (err) {
             console.error('Failed to mark all notifications as read:', err);
             throw err;

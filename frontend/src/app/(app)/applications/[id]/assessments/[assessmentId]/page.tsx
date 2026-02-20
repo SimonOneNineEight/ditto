@@ -92,7 +92,6 @@ const AssessmentDetailPage = () => {
         } catch {
             // Revert on error
             setAssessment({ ...assessment, status: previousStatus });
-            toast.error('Failed to update status');
         } finally {
             setIsUpdatingStatus(false);
         }
@@ -117,7 +116,7 @@ const AssessmentDetailPage = () => {
             toast.success('Assessment deleted');
             router.push(`/applications/${applicationId}`);
         } catch {
-            toast.error('Failed to delete assessment');
+            // Handled by axios interceptor
         } finally {
             setIsDeleting(false);
             setIsDeleteOpen(false);

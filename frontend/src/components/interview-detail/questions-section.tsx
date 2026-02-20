@@ -9,10 +9,10 @@ import {
     ChevronUp,
     ChevronDown,
     HelpCircle,
-    Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { AutoSaveIndicator } from '@/components/auto-save-indicator';
 import { CollapsibleSection } from './collapsible-section';
 import { AddQuestionForm } from './add-question-form';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+import type { AutoSaveStatus } from '@/hooks/useAutoSave';
 import {
     InterviewQuestion,
     updateQuestion,
@@ -38,8 +39,6 @@ interface EditingState {
     question_text: string;
     answer_text: string;
 }
-
-type AutoSaveStatus = 'idle' | 'saving' | 'saved';
 
 export const QuestionsSection = ({
     questions,
@@ -94,7 +93,7 @@ export const QuestionsSection = ({
             setAutoSaveStatus('saved');
             onUpdate();
         } catch {
-            setAutoSaveStatus('idle');
+            setAutoSaveStatus('error');
         }
     }, [editing, onUpdate]);
 
@@ -177,7 +176,7 @@ export const QuestionsSection = ({
             lastSavedRef.current = null;
             onUpdate();
         } catch {
-            toast.error('Failed to update question');
+            // Handled by axios interceptor
         } finally {
             setIsSaving(false);
         }
@@ -193,7 +192,7 @@ export const QuestionsSection = ({
             setDeleteTarget(null);
             onUpdate();
         } catch {
-            toast.error('Failed to delete question');
+            // Handled by axios interceptor
         } finally {
             setIsDeleting(false);
         }
@@ -215,7 +214,7 @@ export const QuestionsSection = ({
             );
             onUpdate();
         } catch {
-            toast.error('Failed to reorder questions');
+            // Handled by axios interceptor
         } finally {
             setIsReordering(false);
         }
@@ -237,7 +236,7 @@ export const QuestionsSection = ({
             );
             onUpdate();
         } catch {
-            toast.error('Failed to reorder questions');
+            // Handled by axios interceptor
         } finally {
             setIsReordering(false);
         }
@@ -270,19 +269,10 @@ export const QuestionsSection = ({
                                             <HelpCircle className="h-3 w-3" />
                                             Question {index + 1}
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            {autoSaveStatus === 'saving' && (
-                                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                                    Saving...
-                                                </span>
-                                            )}
-                                            {autoSaveStatus === 'saved' && (
-                                                <span className="text-xs text-green-600">
-                                                    Saved
-                                                </span>
-                                            )}
-                                        </div>
+                                        <AutoSaveIndicator
+                                            status={autoSaveStatus}
+                                            onRetry={performAutoSave}
+                                        />
                                     </div>
                                     <Textarea
                                         value={editing.question_text}
