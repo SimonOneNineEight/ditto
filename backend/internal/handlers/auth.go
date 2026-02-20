@@ -42,6 +42,7 @@ type AuthResponse struct {
 	User         *models.User `json:"user"`
 	AccessToken  string       `json:"access_token"`
 	RefreshToken string       `json:"refresh_token"`
+	ExpiresIn    int          `json:"expires_in"`
 }
 
 type RefreshTokenRequest struct {
@@ -97,13 +98,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := auth.GenerateToken(user.ID, user.Email)
+	refreshToken, err := auth.GenerateRefreshToken(user.ID, user.Email)
 	if err != nil {
 		HandleErrorWithMessage(c, err, "failed to generate refresh token")
 		return
 	}
 
-	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	expiresAt := time.Now().Add(auth.RefreshTokenTTL)
 	if err := h.userRepo.UpdateRefreshToken(user.ID, refreshToken, expiresAt); err != nil {
 		HandleError(c, err)
 		return
@@ -113,6 +114,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		User:         user,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
+		ExpiresIn:    int(auth.AccessTokenTTL.Seconds()),
 	}
 
 	response.Success(c, authResponse)
@@ -166,13 +168,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := auth.GenerateToken(user.ID, user.Email)
+	refreshToken, err := auth.GenerateRefreshToken(user.ID, user.Email)
 	if err != nil {
 		HandleErrorWithMessage(c, err, "failed to generate refresh token")
 		return
 	}
 
-	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	expiresAt := time.Now().Add(auth.RefreshTokenTTL)
 	if err := h.userRepo.UpdateRefreshToken(user.ID, refreshToken, expiresAt); err != nil {
 		HandleError(c, err)
 		return
@@ -182,6 +184,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		User:         user,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
+		ExpiresIn:    int(auth.AccessTokenTTL.Seconds()),
 	}
 
 	response.Success(c, authResponse)
@@ -218,7 +221,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 
 	claims, err := auth.ValidateToken(req.RefreshToken)
 	if err != nil {
-		HandleError(c, errors.New(errors.ErrorUnauthorized, "invalid refresh token"))
+		HandleError(c, errors.New(errors.ErrorUnauthorized, "Refresh token expired"))
 		return
 	}
 
@@ -229,7 +232,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	}
 
 	if !valid {
-		HandleError(c, errors.New(errors.ErrorUnauthorized, "invalid refresh token"))
+		HandleError(c, errors.New(errors.ErrorUnauthorized, "Refresh token expired"))
 		return
 	}
 
@@ -239,8 +242,22 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
+	newRefreshToken, err := auth.GenerateRefreshToken(claims.UserID, claims.Email)
+	if err != nil {
+		HandleErrorWithMessage(c, err, "failed to generate refresh token")
+		return
+	}
+
+	expiresAt := time.Now().Add(auth.RefreshTokenTTL)
+	if err := h.userRepo.UpdateRefreshToken(claims.UserID, newRefreshToken, expiresAt); err != nil {
+		HandleError(c, err)
+		return
+	}
+
 	response.Success(c, gin.H{
-		"access_token": accessToken,
+		"access_token":  accessToken,
+		"refresh_token": newRefreshToken,
+		"expires_in":    int(auth.AccessTokenTTL.Seconds()),
 	})
 }
 
@@ -295,15 +312,14 @@ func (h *AuthHandler) OAuthLogin(c *gin.Context) {
 		return
 	}
 
-	refresh_token, err := auth.GenerateToken(user.ID, user.Email)
+	refreshToken, err := auth.GenerateRefreshToken(user.ID, user.Email)
 	if err != nil {
 		HandleErrorWithMessage(c, err, "failed to generate refresh token")
 		return
 	}
 
-	expiresAt := time.Now().Add(7 * 24 * time.Hour)
-
-	if err := h.userRepo.UpdateRefreshToken(user.ID, refresh_token, expiresAt); err != nil {
+	expiresAt := time.Now().Add(auth.RefreshTokenTTL)
+	if err := h.userRepo.UpdateRefreshToken(user.ID, refreshToken, expiresAt); err != nil {
 		HandleError(c, err)
 		return
 	}
@@ -311,7 +327,8 @@ func (h *AuthHandler) OAuthLogin(c *gin.Context) {
 	authResponse := &AuthResponse{
 		User:         user,
 		AccessToken:  accessToken,
-		RefreshToken: refresh_token,
+		RefreshToken: refreshToken,
+		ExpiresIn:    int(auth.AccessTokenTTL.Seconds()),
 	}
 
 	response.Success(c, authResponse)

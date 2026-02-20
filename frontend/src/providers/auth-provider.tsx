@@ -6,7 +6,11 @@ type Props = {
 };
 
 const AuthProvider = ({ children }: Props) => {
-    return <SessionProvider>{children}</SessionProvider>;
+    return (
+        <SessionProvider refetchOnWindowFocus={true} refetchInterval={240}>
+            {children}
+        </SessionProvider>
+    );
 };
 
 export default AuthProvider;

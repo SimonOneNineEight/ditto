@@ -13,10 +13,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useSession, signOut } from 'next-auth/react';
+import api from '@/lib/axios';
 
 export function NavUser() {
     const { isMobile } = useSidebar();
     const { data: session } = useSession();
+
+    const handleLogout = async () => {
+        try {
+            await api.post('/api/logout');
+        } catch (error) {
+            console.warn('Backend logout failed, proceeding with client-side signOut:', error instanceof Error ? error.message : 'Unknown error');
+        }
+        await signOut({ callbackUrl: '/login' });
+    };
 
     if (!session?.user) {
         return null;
@@ -86,7 +96,7 @@ export function NavUser() {
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut()}>
+                <DropdownMenuItem onClick={handleLogout}>
                     <LogOut />
                     Log out
                 </DropdownMenuItem>

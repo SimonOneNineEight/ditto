@@ -24,11 +24,12 @@ async function refreshAccessToken(refreshToken: string) {
 
         const data = await response.json();
         return {
-            accessToken: data.data.access_token,
-            accessTokenExpires: Date.now() + ACCESS_TOKEN_TTL,
+            accessToken: data.data.access_token as string,
+            refreshToken: data.data.refresh_token as string,
+            accessTokenExpires: Date.now() + (data.data.expires_in * 1000),
         };
     } catch (error) {
-        console.error('Token refresh failed:', error);
+        console.error('Token refresh failed:', error instanceof Error ? error.message : 'Unknown error');
         return null;
     }
 }
@@ -61,7 +62,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         image: response.user.avatar_url || null,
                         accessToken: response.access_token,
                         refreshToken: response.refresh_token,
-                        accessTokenExpires: Date.now() + ACCESS_TOKEN_TTL,
+                        accessTokenExpires: Date.now() + (response.expires_in ? response.expires_in * 1000 : ACCESS_TOKEN_TTL),
                         backendUserId: response.user.id,
                     };
                 } catch {
@@ -95,7 +96,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         const data = await response.json();
                         user.accessToken = data.data.access_token;
                         user.refreshToken = data.data.refresh_token;
-                        user.accessTokenExpires = Date.now() + ACCESS_TOKEN_TTL;
+                        user.accessTokenExpires = Date.now() + (data.data.expires_in ? data.data.expires_in * 1000 : ACCESS_TOKEN_TTL);
                         user.backendUserId = data.data.user.id;
                     } else {
                         console.error('Backend OAuth failed:', response.status, await response.text());
@@ -127,6 +128,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 const refreshed = await refreshAccessToken(token.refreshToken as string);
                 if (refreshed) {
                     token.accessToken = refreshed.accessToken;
+                    token.refreshToken = refreshed.refreshToken;
                     token.accessTokenExpires = refreshed.accessTokenExpires;
                     return token;
                 }

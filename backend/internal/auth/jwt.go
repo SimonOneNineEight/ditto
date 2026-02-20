@@ -9,6 +9,11 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	AccessTokenTTL  = 24 * time.Hour
+	RefreshTokenTTL = 7 * 24 * time.Hour
+)
+
 type Claims struct {
 	UserID uuid.UUID
 	Email  string
@@ -16,6 +21,14 @@ type Claims struct {
 }
 
 func GenerateToken(userID uuid.UUID, email string) (string, error) {
+	return generateTokenWithTTL(userID, email, AccessTokenTTL)
+}
+
+func GenerateRefreshToken(userID uuid.UUID, email string) (string, error) {
+	return generateTokenWithTTL(userID, email, RefreshTokenTTL)
+}
+
+func generateTokenWithTTL(userID uuid.UUID, email string, ttl time.Duration) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 
 	if secret == "" {
@@ -26,7 +39,7 @@ func GenerateToken(userID uuid.UUID, email string) (string, error) {
 		UserID: userID,
 		Email:  email,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(ttl)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}

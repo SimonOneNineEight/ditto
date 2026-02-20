@@ -21,11 +21,21 @@ import {
 } from '@/components/ui/sheet';
 import { useSession, signOut } from 'next-auth/react';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
+import api from '@/lib/axios';
 
 export function UserAvatar() {
     const { data: session } = useSession();
     const breakpoint = useBreakpoint();
     const [sheetOpen, setSheetOpen] = useState(false);
+
+    const handleLogout = async () => {
+        try {
+            await api.post('/api/logout');
+        } catch (error) {
+            console.warn('Backend logout failed, proceeding with client-side signOut:', error instanceof Error ? error.message : 'Unknown error');
+        }
+        await signOut({ callbackUrl: '/login' });
+    };
 
     if (!session?.user) {
         return null;
@@ -103,7 +113,7 @@ export function UserAvatar() {
                             </div>
                             <div className="my-2 h-px bg-border" />
                             <button
-                                onClick={() => signOut()}
+                                onClick={handleLogout}
                                 className="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-sm hover:bg-muted transition-colors"
                             >
                                 <LogOut className="h-4 w-4" />
@@ -139,7 +149,7 @@ export function UserAvatar() {
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut()}>
+                <DropdownMenuItem onClick={handleLogout}>
                     <LogOut />
                     Log out
                 </DropdownMenuItem>

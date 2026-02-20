@@ -23,7 +23,6 @@ export default function SettingsPage() {
             toast.success('Full backup downloaded successfully');
         } catch (error) {
             console.error('Backup failed:', error);
-            toast.error('Failed to download backup. Please try again.');
         } finally {
             setIsExportingBackup(false);
         }
