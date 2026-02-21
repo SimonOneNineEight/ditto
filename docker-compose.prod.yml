@@ -46,7 +46,7 @@ services:
       - ditto-network
 
   frontend:
-    image: ghcr.io/simononenineight/ditto-frontend:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/ditto-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
