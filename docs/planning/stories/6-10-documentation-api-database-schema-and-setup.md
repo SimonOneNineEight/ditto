@@ -1,6 +1,6 @@
 # Story 6.10: Documentation - API, Database Schema, and Setup
 
-Status: review
+Status: done
 
 ## Story
 
@@ -138,16 +138,141 @@ Claude Opus 4.6
 - **docs/api-contracts-backend.md**: Complete rewrite documenting 82 endpoints across 16 domains. Each endpoint includes HTTP method, path, auth requirements, request body schema (with types/validation), response schema (with JSON examples), query parameters, and error codes. Documented the ApiResponse envelope, all 18 error codes with HTTP status mappings, and rate limits (auth IP-based, file upload 50/day, extract 30/day).
 - **docs/database-schema.md**: Complete rewrite documenting all 20+ tables from 13 migrations. Includes rate_limits, files, interviewers, interview_questions, interview_notes, assessments, assessment_submissions, notifications, user_notification_preferences. Documented self-assessment fields, FTS infrastructure (4 tsvector columns with GIN indexes and triggers), performance indexes (6 composite indexes from migration 000013), entity relationship diagram, and full migration history.
 - **Validation**: Cross-referenced all env vars against code, all API paths against route registrations, all table/column names against migration SQL. Confirmed pnpm usage throughout and verified all README doc links.
+- ✅ Resolved review finding [Med]: Removed unused JWT_REFRESH_SECRET from README env vars
+- ✅ Resolved review finding [Low]: Added DATABASE_URL as commented-out alternative connection string
+- ✅ Resolved review finding [Low]: Added GIN_MODE env var with production description
+- ✅ Resolved review finding [Low]: Updated NextAuth v5 → v5 beta in tech stack table
+- ✅ Resolved review finding [Low]: Added contexts/ directory to frontend project structure tree
 
 ### File List
 
-- README.md (modified) — Rewrote root README with accurate project documentation
+- README.md (modified) — Rewrote root README with accurate project documentation; fixed review findings (env vars, structure tree, version note)
 - docs/api-contracts-backend.md (modified) — Complete API reference for 82 endpoints
 - docs/database-schema.md (modified) — Complete schema documentation for all tables from 13 migrations
-- docs/sprint-status.yaml (modified) — Story status: ready-for-dev → in-progress → review
-- docs/stories/6-10-documentation-api-database-schema-and-setup.md (modified) — Story task checkboxes, dev agent record, file list, change log
+- docs/planning/sprint-status.yaml (modified) — Story status tracking
+- docs/planning/stories/6-10-documentation-api-database-schema-and-setup.md (modified) — Story task checkboxes, dev agent record, review section, change log
 
 ## Change Log
 
 - 2026-02-20: Story drafted from tech-spec-epic-6.md, epics.md, architecture docs, database-schema.md, api-contracts-backend.md, and previous story 6-9 learnings
 - 2026-02-20: Implementation complete — rewrote README.md, api-contracts-backend.md, and database-schema.md from source-of-truth codebase analysis
+- 2026-02-20: Senior Developer Review notes appended
+- 2026-02-20: Addressed code review findings — 5 items resolved (1 Med, 4 Low)
+- 2026-02-20: Re-review approved — all action items verified, story marked done
+
+## Senior Developer Re-Review (AI)
+
+### Reviewer
+Simon
+
+### Date
+2026-02-20
+
+### Outcome: APPROVE
+
+All 5 action items from the initial review have been correctly resolved. No new issues introduced.
+
+**Verification:**
+- `JWT_REFRESH_SECRET`: Removed from env vars section
+- `DATABASE_URL`: Added as commented-out alternative with example connection string
+- `GIN_MODE`: Added with `debug` default and production note
+- NextAuth: Correctly labeled "v5 beta" in tech stack table
+- `contexts/`: Added to frontend project structure tree
+- No regressions: pnpm used throughout, zero stale references
+
+## Senior Developer Review (AI)
+
+### Reviewer
+Simon
+
+### Date
+2026-02-20
+
+### Outcome: CHANGES REQUESTED
+
+Minor accuracy issues in environment variable documentation and project structure tree. API contracts and database schema documentation are flawless. No HIGH severity findings.
+
+### Summary
+
+Strong documentation story. The API contracts rewrite (82 endpoints) and database schema rewrite (23 tables, 13 migrations, FTS infrastructure) were both verified against the actual codebase with zero discrepancies. The README provides a clean onboarding experience with a 6-step quickstart. The only gaps are in environment variable cross-referencing — one unused var documented, two used vars undocumented — and minor structural/version notes.
+
+### Key Findings
+
+**MEDIUM Severity:**
+
+1. **`JWT_REFRESH_SECRET` documented but unused** — README.md:94 documents this env var, but `os.Getenv("JWT_REFRESH_SECRET")` appears zero times in the backend codebase. Misleading for onboarding developers who may think it's required.
+
+**LOW Severity:**
+
+2. **`DATABASE_URL` used but undocumented** — `backend/pkg/database/connection.go:22` reads `DATABASE_URL` as an alternative connection method for Docker/production deployments. Not documented in README.
+
+3. **`GIN_MODE` used but undocumented** — `backend/internal/middleware/security_headers.go:10` reads `GIN_MODE` to determine production behavior for security headers. Not documented in README.
+
+4. **NextAuth version is beta** — README tech stack table says "NextAuth v5" but `package.json` has `next-auth@5.0.0-beta.29`. Should note beta status.
+
+5. **Project structure tree incomplete** — `frontend/src/contexts/` directory exists alongside `providers/` but is not shown in the README structure tree.
+
+### Acceptance Criteria Coverage
+
+| AC# | Description | Status | Evidence |
+|-----|-------------|--------|----------|
+| 1 | Root README with project overview and setup | IMPLEMENTED | README.md:1-233 |
+| 2 | API endpoints documented with request/response schemas | IMPLEMENTED | docs/api-contracts-backend.md — 82/82 endpoints verified against 17 route files |
+| 3 | Database schema documented with current tables | IMPLEMENTED | docs/database-schema.md — 23 tables, 35+ indexes, 4 FTS tables, 13 migrations verified |
+| 4 | Setup instructions enable <30 min onboarding | IMPLEMENTED | README.md:40-149 — 6-step quickstart with prerequisites, env config, migrations, start, verify |
+| 5 | All documentation lives in /docs folder | IMPLEMENTED | README.md:219-229 — 7 doc links verified, all files exist |
+
+**Summary: 5 of 5 acceptance criteria fully implemented**
+
+### Task Completion Validation
+
+| Task | Marked | Verified | Evidence |
+|------|--------|----------|----------|
+| 1.1 Project overview | [x] | VERIFIED | README.md:1-8 |
+| 1.2 Tech stack table | [x] | VERIFIED | README.md:19-29 |
+| 1.3 Prerequisites | [x] | VERIFIED | README.md:32-38 |
+| 1.4 Quick start instructions | [x] | VERIFIED | README.md:42-149 |
+| 1.5 Environment variables | [x] | QUESTIONABLE | JWT_REFRESH_SECRET unused; DATABASE_URL, GIN_MODE undocumented |
+| 1.6 Running tests section | [x] | VERIFIED | README.md:151-182 |
+| 1.7 Links to /docs | [x] | VERIFIED | README.md:219-229, all 7 files exist |
+| 1.8 Walkthrough test | [x] | VERIFIED | README instructions are followable end-to-end |
+| 2.1-2.8 API docs | [x] | VERIFIED | 82/82 endpoints match across 17 route files |
+| 3.1-3.7 DB schema docs | [x] | VERIFIED | 23 tables, all migrations, FTS, indexes, triggers match |
+| 4.1 Env var cross-reference | [x] | QUESTIONABLE | Missed 3 discrepancies (JWT_REFRESH_SECRET, DATABASE_URL, GIN_MODE) |
+| 4.2 API paths match routes | [x] | VERIFIED | 82/82 match |
+| 4.3 DB names match migrations | [x] | VERIFIED | Complete match |
+| 4.4 README links to docs | [x] | VERIFIED | 7/7 links valid |
+| 4.5 pnpm documented | [x] | VERIFIED | pnpm used throughout, zero npm references |
+
+**Summary: 15 of 15 completed tasks verified, 2 questionable, 0 falsely marked complete**
+
+### Test Coverage and Gaps
+
+N/A — Documentation-only story with no application code changes.
+
+### Architectural Alignment
+
+Documentation accurately reflects the current architecture built through Epics 1-6. API contracts, database schema, and project structure all align with the implemented codebase.
+
+### Security Notes
+
+- README correctly uses placeholder values for secrets, not real credentials
+- Removing the unused `JWT_REFRESH_SECRET` documentation eliminates a false requirement that could confuse production deployments
+
+### Best-Practices and References
+
+- Go project documentation conventions: README should document all env vars consumed by the application
+- Gin framework: `GIN_MODE=release` is a standard production configuration worth documenting
+
+### Action Items
+
+**Code Changes Required:**
+- [x] [Med] Remove `JWT_REFRESH_SECRET` from README env vars — unused in codebase [file: README.md:94]
+- [x] [Low] Add `DATABASE_URL` as optional env var (alternative to individual DB_* vars) [file: README.md:77]
+- [x] [Low] Add `GIN_MODE` as optional env var with description (set to "release" for production) [file: README.md:97]
+- [x] [Low] Note NextAuth v5 beta status in tech stack table [file: README.md:27]
+- [x] [Low] Add `contexts/` to frontend project structure tree [file: README.md:205]
+
+**Advisory Notes:**
+- Note: Additional docs exist (accessibility-standards.md, design-system-principles.md, frontend-components.md) that could optionally be linked from README
+- Note: API contracts and database schema documentation are excellent — verified with zero discrepancies across 82 endpoints and 23 tables

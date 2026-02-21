@@ -24,7 +24,7 @@ Job searching means juggling dozens of applications, interview rounds, coding ch
 | Frontend | Next.js 14 / React 18 / TypeScript |
 | Database | PostgreSQL 15+ |
 | File Storage | AWS S3 |
-| Auth | JWT + NextAuth v5 (GitHub, Google OAuth) |
+| Auth | JWT + NextAuth v5 beta (GitHub, Google OAuth) |
 | Styling | Tailwind CSS v4 / shadcn/ui |
 | Testing | Go `testify` / Jest + React Testing Library |
 
@@ -91,10 +91,13 @@ TEST_DB_NAME=ditto_test
 
 # Auth
 JWT_SECRET=your-jwt-secret-change-in-production
-JWT_REFRESH_SECRET=your-refresh-secret-change-in-production
 
 # Server
 PORT=8081
+GIN_MODE=debug                # Set to "release" for production
+
+# Database connection string (alternative to individual DB_* vars above)
+# DATABASE_URL=postgres://user:pass@host:5432/dbname?sslmode=disable
 
 # File storage (S3 or LocalStack)
 AWS_REGION=us-east-1
@@ -203,6 +206,7 @@ ditto/
 │   │   ├── components/      # React components
 │   │   ├── hooks/           # Custom React hooks
 │   │   ├── lib/             # Utilities, API client, schemas
+│   │   ├── contexts/        # React contexts
 │   │   ├── providers/       # Context providers
 │   │   └── types/           # TypeScript type definitions
 │   └── __mocks__/           # Jest mocks
