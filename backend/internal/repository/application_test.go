@@ -74,7 +74,7 @@ func TestApplicationRepository(t *testing.T) {
 	require.NoError(t, err)
 
 	createdApp2 := testutil.CreateTestApplication(testUser2.ID, createdJob.ID, statusID)
-	createdApp2, err = applicationRepo.CreateApplication(testUser2.ID, createdApp2)
+	_, err = applicationRepo.CreateApplication(testUser2.ID, createdApp2)
 	require.NoError(t, err)
 
 	t.Run("GetApplicationByID", func(t *testing.T) {

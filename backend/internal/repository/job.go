@@ -44,7 +44,7 @@ func (r *JobRepository) CreateJob(userID uuid.UUID, job *models.Job) (*models.Jo
 	if err != nil {
 		return nil, errors.ConvertError(err)
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck
 
 	job.ID = uuid.New()
 	job.CreatedAt = time.Now()
@@ -347,7 +347,6 @@ func (r *JobRepository) GetJobCount(userID uuid.UUID, filters *JobFilters) (int,
 	if filters.CompanyID != nil {
 		query += fmt.Sprintf(" AND j.company_id = $%d", argIndex)
 		args = append(args, filters.CompanyID)
-		argIndex++
 	}
 
 	var count int

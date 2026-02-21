@@ -18,7 +18,7 @@ import (
 func TestFetchURL_SuccessFirstAttempt(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("test response"))
+		_, _ = w.Write([]byte("test response"))
 	}))
 	defer server.Close()
 
@@ -43,7 +43,7 @@ func TestFetchURL_SuccessAfterRetry(t *testing.T) {
 		}
 		// Second attempt succeeds
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("success after retry"))
+		_, _ = w.Write([]byte("success after retry"))
 	}))
 	defer server.Close()
 

@@ -25,7 +25,7 @@ func (r *UserRepository) CreateUser(email, name, passwordHash string) (*models.U
 	if err != nil {
 		return nil, errors.NewDatabaseError("failed to begin transaction", err)
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck
 
 	userID := uuid.New()
 	user := &models.User{
@@ -170,7 +170,7 @@ func (r *UserRepository) SoftDeleteUser(userID uuid.UUID) error {
 	if err != nil {
 		return errors.NewDatabaseError("failed to begin transaction", err)
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck
 
 	now := time.Now()
 
@@ -272,7 +272,7 @@ func (r *UserRepository) CreateOrUpdateOAuthUser(email, name, provider, avatarUR
 		return nil, errors.NewDatabaseError("failed to begin transaction", err)
 	}
 
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck
 
 	existingUser, err := r.GetUserByEmail(email)
 	if err != nil && !errors.IsNotFoundError(err) {

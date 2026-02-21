@@ -64,7 +64,6 @@ func (r *FileRepository) GetUserFiles(userID uuid.UUID, applicationID, interview
 	if interviewID != nil {
 		query += fmt.Sprintf(" AND interview_id = $%d", argIndex)
 		args = append(args, *interviewID)
-		argIndex++
 	}
 
 	query += ` ORDER BY uploaded_at DESC`

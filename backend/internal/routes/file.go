@@ -8,7 +8,6 @@ import (
 	"ditto-backend/internal/utils"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -65,16 +64,3 @@ func getEnv(key, defaultValue string) string {
 	return value
 }
 
-func getEnvDuration(key string, defaultValue time.Duration) time.Duration {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-
-	seconds, err := strconv.Atoi(value)
-	if err != nil {
-		return defaultValue
-	}
-
-	return time.Duration(seconds) * time.Second
-}

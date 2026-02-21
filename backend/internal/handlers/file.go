@@ -494,7 +494,7 @@ func (h *FileHandler) ConfirmReplace(c *gin.Context) {
 		return
 	}
 
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck
 
 	if err := h.fileRepo.SoftDeleteFileTx(tx, fileID, userID); err != nil {
 		HandleError(c, err)
