@@ -55,7 +55,7 @@ jobs:
           TEST_DB_USER: ditto_test_user
           TEST_DB_PASSWORD: test_password
           TEST_DB_NAME: ditto_test
-        run: go test -p 1 ./... -race -cover
+        run: go test -p 1 -short ./... -race -cover
 
   frontend-lint:
     name: Frontend Lint

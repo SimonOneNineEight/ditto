@@ -402,7 +402,7 @@ func TestApplicationRepository(t *testing.T) {
 	})
 
 	t.Run("InvalidateStatusCache", func(t *testing.T) {
-		applicationRepo.GetApplicationStatusCached()
+		_, _ = applicationRepo.GetApplicationStatusCached()
 		applicationRepo.InvalidateStatusCache()
 
 		statuses, err := applicationRepo.GetApplicationStatusCached()

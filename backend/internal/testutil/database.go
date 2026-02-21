@@ -388,7 +388,7 @@ func (td *TestDatabase) RunMigrations(t *testing.T) {
 // Truncate truncates all tables for clean test state
 func (td *TestDatabase) Truncate(t *testing.T) {
 	// Drop rate_limits if it exists with wrong ownership (created by a different user)
-	td.Exec("DROP TABLE IF EXISTS rate_limits CASCADE")
+	_, _ = td.Exec("DROP TABLE IF EXISTS rate_limits CASCADE")
 
 	tables := []string{
 		"rate_limits",
