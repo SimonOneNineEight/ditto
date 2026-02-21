@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -32,9 +33,9 @@ func NewConnection() (*Database, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	db.SetMaxOpenConns(25)
-	db.SetMaxIdleConns(25)
-	db.Unsafe().SetConnMaxLifetime(5 * time.Minute)
+	db.SetMaxOpenConns(getEnvInt("DB_MAX_OPEN_CONNS", 25))
+	db.SetMaxIdleConns(getEnvInt("DB_MAX_IDLE_CONNS", 5))
+	db.SetConnMaxLifetime(time.Duration(getEnvInt("DB_CONN_MAX_LIFETIME_MIN", 5)) * time.Minute)
 
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
@@ -50,4 +51,13 @@ func (d *Database) Close() error {
 
 func (d *Database) IsConnectionValid() bool {
 	return d.Ping() == nil
+}
+
+func getEnvInt(key string, defaultValue int) int {
+	if v := os.Getenv(key); v != "" {
+		if i, err := strconv.Atoi(v); err == nil {
+			return i
+		}
+	}
+	return defaultValue
 }

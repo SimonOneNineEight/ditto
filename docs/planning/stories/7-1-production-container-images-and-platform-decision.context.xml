@@ -1,0 +1,401 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>7</epicId>
+    <storyId>1</storyId>
+    <title>Production Container Images &amp; Platform Decision</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-20</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/planning/stories/7-1-production-container-images-and-platform-decision.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer</asA>
+    <iWant>production-optimized Docker images for all services and a chosen deployment platform</iWant>
+    <soThat>Ditto can be deployed to a production environment reliably and efficiently within budget</soThat>
+    <tasks>
+      <task id="1" ac="1">Create backend/Dockerfile — Production multi-stage build
+        <subtask>Stage 1: golang:1.24-alpine — compile static binary with CGO_ENABLED=0</subtask>
+        <subtask>Stage 1: Copy and install golang-migrate CLI</subtask>
+        <subtask>Stage 2: alpine:3.20 — copy binary, migrations, migrate CLI only</subtask>
+        <subtask>Stage 2: Add non-root user, set HEALTHCHECK, configure entrypoint</subtask>
+        <subtask>Entrypoint: wait for DB → run migrations → start server</subtask>
+      </task>
+      <task id="2" ac="1">Update frontend/next.config.mjs — Add output: 'standalone'</task>
+      <task id="3" ac="1">Replace frontend/Dockerfile with production build
+        <subtask>Move current dev content to frontend/Dockerfile.dev</subtask>
+        <subtask>Stage 1 (deps): node:20-alpine — install pnpm, install dependencies</subtask>
+        <subtask>Stage 2 (build): copy source + deps, run pnpm build</subtask>
+        <subtask>Stage 3 (runtime): node:20-alpine — copy standalone output only, non-root user</subtask>
+        <subtask>CMD: node server.js</subtask>
+      </task>
+      <task id="4" ac="1">Update services/scrape-service/Dockerfile — Add multi-stage build, non-root user, health check</task>
+      <task id="5" ac="2">Create docker-compose.prod.yml
+        <subtask>PostgreSQL 15 service with healthcheck (data volume, no port exposure)</subtask>
+        <subtask>Backend service (depends on db, production env vars, healthcheck via /health)</subtask>
+        <subtask>Frontend service (production build, port 3000 internal)</subtask>
+        <subtask>Scrape-service (internal network only, not publicly exposed)</subtask>
+        <subtask>Caddy reverse proxy (ports 80/443 exposed, routes to services)</subtask>
+        <subtask>Internal Docker network for all inter-service communication</subtask>
+      </task>
+      <task id="6" ac="2">Create Caddyfile
+        <subtask>Route /api/* → backend:8081</subtask>
+        <subtask>Route / → frontend:3000</subtask>
+        <subtask>Automatic HTTPS via Let's Encrypt</subtask>
+        <subtask>GZIP compression, security headers</subtask>
+      </task>
+      <task id="7" ac="3">Create .env.example files
+        <subtask>Root .env.example — all production env vars with descriptions</subtask>
+        <subtask>backend/.env.example — backend-specific (DB, JWT, AWS, PORT, GIN_MODE)</subtask>
+        <subtask>frontend/.env.example — frontend-specific (API URL, auth, OAuth)</subtask>
+      </task>
+      <task id="8" ac="5">Update backend/cmd/server/main.go — Configurable CORS origins
+        <subtask>Read CORS_ORIGINS env var (comma-separated list)</subtask>
+        <subtask>Fall back to localhost origins if not set (dev mode)</subtask>
+        <subtask>Add production domain to allowed origins</subtask>
+      </task>
+      <task id="9" ac="6">Update backend/pkg/database/connection.go — Connection pool tuning
+        <subtask>Add DB_MAX_OPEN_CONNS (default 25), DB_MAX_IDLE_CONNS (default 5), DB_CONN_MAX_LIFETIME (default 5m)</subtask>
+        <subtask>Apply settings after database connection</subtask>
+      </task>
+      <task id="10" ac="4">Evaluate deployment platforms and document decision
+        <subtask>Compare Hetzner Cloud (Ashburn), Fly.io, Railway, Render</subtask>
+        <subtask>Score against: cost (&lt;$10/mo), PostgreSQL, backups, setup complexity, US region</subtask>
+        <subtask>Document decision with rationale in story completion notes</subtask>
+      </task>
+      <task id="11" ac="2">Verify full production stack runs locally
+        <subtask>Build all images</subtask>
+        <subtask>docker compose -f docker-compose.prod.yml up</subtask>
+        <subtask>Verify inter-service communication</subtask>
+        <subtask>Verify health checks pass</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Given production Dockerfiles exist for backend, frontend, and scrape-service, when built with docker build, then each image compiles successfully and the backend image is &lt;50MB, frontend image is &lt;200MB, and scrape-service image is &lt;200MB.</ac>
+    <ac id="2">Given docker-compose.prod.yml exists with all services (Caddy, backend, frontend, scrape-service, PostgreSQL), when docker compose -f docker-compose.prod.yml up runs locally, then all services start, communicate via internal Docker network, and health checks pass within 60 seconds.</ac>
+    <ac id="3">Given .env.example, backend/.env.example, and frontend/.env.example files exist, then every required production environment variable is documented with a description, expected format, and example value.</ac>
+    <ac id="4">Given a deployment platform evaluation comparing at least 3 options against criteria (cost &lt;$10/mo, PostgreSQL availability, US region, setup complexity), then a platform is chosen and the decision is documented with rationale.</ac>
+    <ac id="5">Given the backend container starts, when the CORS_ORIGINS environment variable is set, then CORS allows requests from the configured origins (production domain + localhost for dev).</ac>
+    <ac id="6">Given the backend connects to PostgreSQL in production mode, then connection pool settings are configured (max open connections, max idle connections, connection max lifetime) for concurrent multi-user access.</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/planning/tech-spec.md</path>
+        <title>Epic 7 Technical Specification</title>
+        <section>Full document — primary context</section>
+        <snippet>Comprehensive tech spec for CI/CD Pipeline &amp; Production Deployment. Contains architecture diagram, multi-stage Dockerfile strategy, CI/CD pipeline design, backup strategy, platform comparison matrices, and implementation guide.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/epic-7.md</path>
+        <title>Epic 7: CI/CD Pipeline &amp; Production Deployment</title>
+        <section>Story Map</section>
+        <snippet>Epic breakdown with 3-story dependency chain (7.1→7.2→7.3). Story 7.1 is foundational with no dependencies. Total 13 story points, 1.5-2 weeks estimated.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/retrospectives/epic-6-retro-2026-02-20.md</path>
+        <title>Epic 6 Retrospective</title>
+        <section>Deployment Platform Comparison, Action Items for Epic 7</section>
+        <snippet>Platform comparison table (Hetzner, Railway, Fly.io, AWS). Key decision: deployment and backup infrastructure are the only remaining production gates. Budget target &lt;$10/month.</snippet>
+      </doc>
+      <doc>
+        <path>docs/development-guide.md</path>
+        <title>Development Guide</title>
+        <section>Local setup, Docker, testing, database management</section>
+        <snippet>Documents current dev setup with docker-compose.yml, environment variables, and local development workflow. Reference for production configuration patterns.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Overview</title>
+        <section>System design, project structure, naming conventions</section>
+        <snippet>Documents the 3-service architecture (Go backend, Next.js frontend, Python scrape-service), project structure conventions, and architectural decision records.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-backend.md</path>
+        <title>Backend Architecture</title>
+        <section>Go/Gin layers, middleware, error handling</section>
+        <snippet>Documents backend layered architecture (routes → handlers → services → repositories), middleware stack, and env var patterns using getEnv(key, default) helper.</snippet>
+      </doc>
+      <doc>
+        <path>docs/database-schema.md</path>
+        <title>Database Schema</title>
+        <section>All tables, indexes, migration history</section>
+        <snippet>23 tables, 13 migration pairs. PostgreSQL 15 with full-text search vectors and composite performance indexes. Migration path: backend/migrations/.</snippet>
+      </doc>
+      <doc>
+        <path>docs/integration-architecture.md</path>
+        <title>Integration Architecture</title>
+        <section>Frontend-backend communication, auth flow, CORS</section>
+        <snippet>Documents CORS configuration, JWT auth flow with dual-layer token refresh, and S3 file storage integration. Critical reference for CORS_ORIGINS configuration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/api-contracts-backend.md</path>
+        <title>API Contracts</title>
+        <section>Health endpoint, all 82 REST endpoints</section>
+        <snippet>GET /health returns {"status":"ok"}. All API routes under /api/ prefix. Documents request/response schemas for Caddy routing configuration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/deployment-guide.md</path>
+        <title>Deployment Guide</title>
+        <section>Production deployment, Docker, monitoring</section>
+        <snippet>Existing deployment documentation to be updated with production Docker setup, Caddy configuration, and environment variable documentation.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>backend/cmd/server/main.go</path>
+        <kind>entrypoint</kind>
+        <symbol>main</symbol>
+        <lines>1-93</lines>
+        <reason>CORS configuration (lines 40-47) hardcoded to localhost — must read CORS_ORIGINS env var. Health endpoint at line 50-52 used for Docker HEALTHCHECK. PORT reading at lines 77-80. Graceful shutdown at lines 82-89.</reason>
+      </file>
+      <file>
+        <path>backend/pkg/database/connection.go</path>
+        <kind>database</kind>
+        <symbol>NewConnection</symbol>
+        <lines>18-45</lines>
+        <reason>Connection pool settings hardcoded at lines 35-37 (MaxOpenConns=25, MaxIdleConns=25, ConnMaxLifetime=5m). Must be made configurable via env vars. DATABASE_URL takes priority over individual DB_* vars (line 22).</reason>
+      </file>
+      <file>
+        <path>backend/internal/config/database.go</path>
+        <kind>config</kind>
+        <symbol>getEnv, GetDatabaseConfig</symbol>
+        <lines>26-47</lines>
+        <reason>getEnv(key, default) helper at lines 41-47 — follow this pattern for new env vars (DB_MAX_OPEN_CONNS, etc). DB config reads DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SSLMODE with defaults.</reason>
+      </file>
+      <file>
+        <path>backend/internal/middleware/security_headers.go</path>
+        <kind>middleware</kind>
+        <symbol>SecurityHeaders</symbol>
+        <lines>10</lines>
+        <reason>GIN_MODE=release check gates HSTS header. Production Dockerfile must set GIN_MODE=release.</reason>
+      </file>
+      <file>
+        <path>backend/internal/routes/file.go</path>
+        <kind>routes</kind>
+        <symbol>RegisterFileRoutes</symbol>
+        <lines>21-26</lines>
+        <reason>S3 env vars read here: AWS_REGION, AWS_S3_BUCKET, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_ENDPOINT. Must be documented in .env.example.</reason>
+      </file>
+      <file>
+        <path>backend/internal/auth/jwt.go</path>
+        <kind>auth</kind>
+        <symbol>GenerateTokenPair, ValidateToken</symbol>
+        <lines>32,52</lines>
+        <reason>JWT_SECRET env var used for both access and refresh tokens. JWT_REFRESH_SECRET in .env is unused by code — document this in .env.example.</reason>
+      </file>
+      <file>
+        <path>backend/internal/utils/state.go</path>
+        <kind>initialization</kind>
+        <symbol>NewAppState</symbol>
+        <lines>14-28</lines>
+        <reason>App initialization: DB connection + migration run + sanitizer. Migrations run at every startup via RunMigrations. Migration path is "migrations" (relative).</reason>
+      </file>
+      <file>
+        <path>backend/pkg/database/migrations.go</path>
+        <kind>database</kind>
+        <symbol>RunMigrations</symbol>
+        <lines>13-41</lines>
+        <reason>Uses golang-migrate to run migrations at startup. Migration files in backend/migrations/ (13 pairs, 26 files). Production entrypoint must ensure migrations directory is copied.</reason>
+      </file>
+      <file>
+        <path>backend/docker-entrypoint.sh</path>
+        <kind>entrypoint</kind>
+        <symbol>N/A</symbol>
+        <lines>1-38</lines>
+        <reason>Dev entrypoint with hardcoded pg_isready args (db, ditto_user, ditto_dev at line 10). Production entrypoint must use env vars. GIN_MODE branching at line 18.</reason>
+      </file>
+      <file>
+        <path>backend/Dockerfile.dev</path>
+        <kind>dockerfile</kind>
+        <symbol>N/A</symbol>
+        <lines>1-67</lines>
+        <reason>Dev Dockerfile using golang:1.23-alpine (go.mod says 1.24). Installs golang-migrate v4.17.0. Production Dockerfile should use golang:1.24-alpine and match migrate version.</reason>
+      </file>
+      <file>
+        <path>frontend/Dockerfile</path>
+        <kind>dockerfile</kind>
+        <symbol>N/A</symbol>
+        <lines>1-15</lines>
+        <reason>Dev Dockerfile — single stage, runs pnpm dev. Must be replaced with multi-stage production build. Current content moves to frontend/Dockerfile.dev.</reason>
+      </file>
+      <file>
+        <path>frontend/next.config.mjs</path>
+        <kind>config</kind>
+        <symbol>nextConfig</symbol>
+        <lines>1-4</lines>
+        <reason>Currently empty config. Must add output: 'standalone' for minimal production image with self-contained server.</reason>
+      </file>
+      <file>
+        <path>services/scrape-service/Dockerfile</path>
+        <kind>dockerfile</kind>
+        <symbol>N/A</symbol>
+        <lines>1-23</lines>
+        <reason>Single-stage Python image. Needs multi-stage build (separate dep install from app), non-root user, and HEALTHCHECK directive. Runs on port 8082.</reason>
+      </file>
+      <file>
+        <path>services/scrape-service/app/main.py</path>
+        <kind>entrypoint</kind>
+        <symbol>app</symbol>
+        <lines>N/A</lines>
+        <reason>FastAPI app. GET / returns {"message":"Hello FastAPI"} — not a proper /health endpoint. Consider adding /health for Docker HEALTHCHECK consistency.</reason>
+      </file>
+      <file>
+        <path>services/scrape-service/config.py</path>
+        <kind>config</kind>
+        <symbol>Settings</symbol>
+        <lines>N/A</lines>
+        <reason>Only env var: DATABASE_URL (mandatory, no default). Uses pydantic BaseSettings with .env file support.</reason>
+      </file>
+      <file>
+        <path>docker-compose.yml</path>
+        <kind>compose</kind>
+        <symbol>N/A</symbol>
+        <lines>1-67</lines>
+        <reason>Dev compose with PostgreSQL 15 and backend only. No frontend or scrape-service. Production compose must add all services + Caddy. Note: backend_go/migrations volume mount is stale — migrations are in backend/migrations/.</reason>
+      </file>
+      <file>
+        <path>frontend/src/lib/axios.ts</path>
+        <kind>http-client</kind>
+        <symbol>apiClient</symbol>
+        <lines>41</lines>
+        <reason>NEXT_PUBLIC_API_URL env var with localhost:8081 fallback. Production must set this to the Caddy-proxied URL or internal service URL.</reason>
+      </file>
+      <file>
+        <path>frontend/src/auth.ts</path>
+        <kind>auth</kind>
+        <symbol>authOptions</symbol>
+        <lines>13,79</lines>
+        <reason>Uses NEXT_PUBLIC_API_URL for backend calls during OAuth. Also uses AUTH_SECRET, NEXTAUTH_URL, AUTH_GITHUB_ID/SECRET, AUTH_GOOGLE_ID/SECRET.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <go>
+        <module>go 1.24.0 (toolchain go1.24.4)</module>
+        <dep>github.com/gin-gonic/gin v1.10.1</dep>
+        <dep>github.com/gin-contrib/cors v1.7.6</dep>
+        <dep>github.com/gin-contrib/gzip v1.2.3</dep>
+        <dep>github.com/golang-migrate/migrate/v4 v4.18.3</dep>
+        <dep>github.com/jmoiron/sqlx v1.4.0</dep>
+        <dep>github.com/lib/pq v1.10.9</dep>
+        <dep>github.com/aws/aws-sdk-go-v2 v1.36.3</dep>
+        <dep>github.com/golang-jwt/jwt/v5 v5.2.2</dep>
+        <dep>github.com/go-playground/validator/v10 v10.26.0</dep>
+        <dep>github.com/microcosm-cc/bluemonday v1.0.27</dep>
+        <dep>github.com/joho/godotenv v1.5.1</dep>
+        <dep>github.com/stretchr/testify v1.10.0</dep>
+      </go>
+      <node>
+        <runtime>node:20-alpine</runtime>
+        <packageManager>pnpm</packageManager>
+        <dep>next@14.2.15</dep>
+        <dep>react@18.x</dep>
+        <dep>next-auth@5.0.0-beta.29</dep>
+        <dep>axios@1.7.9</dep>
+        <dep>@radix-ui/* (multiple)</dep>
+        <dep>tailwindcss@4.x</dep>
+        <dep>jest@30.2.0</dep>
+        <dep>@testing-library/react@16.3.2</dep>
+      </node>
+      <python>
+        <runtime>python:3.12-slim</runtime>
+        <dep>fastapi==0.115.0</dep>
+        <dep>uvicorn==0.31.0</dep>
+        <dep>SQLAlchemy==2.0.35</dep>
+        <dep>psycopg2==2.9.9</dep>
+        <dep>alembic==1.13.3</dep>
+        <dep>pydantic-settings==2.5.2</dep>
+        <dep>APScheduler==3.10.4</dep>
+        <dep>beautifulsoup4==4.12.3</dep>
+        <dep>httpx==0.27.2</dep>
+      </python>
+      <infrastructure>
+        <dep>PostgreSQL 15</dep>
+        <dep>Caddy (reverse proxy, auto-HTTPS)</dep>
+        <dep>Docker + Docker Compose</dep>
+      </infrastructure>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Follow getEnv(key, default) pattern in backend/internal/config/database.go for all new environment variables</constraint>
+    <constraint type="pattern">Use os.Getenv() directly in main.go for CORS_ORIGINS — consistent with PORT reading pattern</constraint>
+    <constraint type="pattern">DATABASE_URL takes priority over individual DB_* vars — maintain this pattern in production entrypoint</constraint>
+    <constraint type="security">Production containers must run as non-root user</constraint>
+    <constraint type="security">GIN_MODE=release must be set in production for HSTS headers</constraint>
+    <constraint type="security">JWT_SECRET must be a strong random value in production (not the dev default)</constraint>
+    <constraint type="security">PostgreSQL port must NOT be exposed to host in production compose</constraint>
+    <constraint type="size">Backend image &lt;50MB (multi-stage with alpine:3.20 runtime)</constraint>
+    <constraint type="size">Frontend image &lt;200MB (Next.js standalone output)</constraint>
+    <constraint type="size">Scrape-service image &lt;200MB (multi-stage with python:3.12-slim)</constraint>
+    <constraint type="compatibility">Go version in Dockerfile must match go.mod: golang:1.24-alpine (not 1.23)</constraint>
+    <constraint type="compatibility">Migrations run at startup via NewAppState() — entrypoint should wait for DB but NOT run migrate CLI separately</constraint>
+    <constraint type="budget">Total monthly infrastructure cost &lt;$10</constraint>
+    <constraint type="network">All inter-service communication via internal Docker network — only Caddy ports (80/443) exposed</constraint>
+    <constraint type="convention">Comments explain WHY, not WHAT. Code should be self-documenting.</constraint>
+    <constraint type="convention">Use pnpm as package manager for frontend (not npm/yarn)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Health Check</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /health → {"status":"ok"} (200)</signature>
+      <path>backend/cmd/server/main.go:50-52</path>
+    </interface>
+    <interface>
+      <name>API Routes</name>
+      <kind>REST endpoint group</kind>
+      <signature>All routes under /api/* prefix (82 endpoints)</signature>
+      <path>backend/cmd/server/main.go:54-72</path>
+    </interface>
+    <interface>
+      <name>CORS Configuration</name>
+      <kind>middleware</kind>
+      <signature>cors.Config with AllowOrigins, AllowMethods, AllowHeaders, AllowCredentials</signature>
+      <path>backend/cmd/server/main.go:40-47</path>
+    </interface>
+    <interface>
+      <name>Database Connection</name>
+      <kind>function</kind>
+      <signature>database.NewConnection() (*Database, error) — uses DATABASE_URL or DB_* env vars</signature>
+      <path>backend/pkg/database/connection.go:18-45</path>
+    </interface>
+    <interface>
+      <name>Frontend API Client</name>
+      <kind>HTTP client</kind>
+      <signature>axios baseURL from NEXT_PUBLIC_API_URL || 'http://localhost:8081'</signature>
+      <path>frontend/src/lib/axios.ts:41</path>
+    </interface>
+    <interface>
+      <name>Scrape Service</name>
+      <kind>internal service</kind>
+      <signature>FastAPI on port 8082, accessed by backend only (internal network)</signature>
+      <path>services/scrape-service/app/main.py</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Backend uses testify v1.10.0 with table-driven tests following Go conventions. Tests live alongside source files as *_test.go. Frontend uses Jest 30.2.0 + React Testing Library v16.3.2 with test files in __tests__/ directories. 72% backend repository coverage, 122 frontend tests across 13 suites. This story has no new automated tests — verification is via manual docker compose up and health check validation.</standards>
+    <locations>
+      <location>backend/**/*_test.go</location>
+      <location>frontend/src/**/__tests__/</location>
+      <location>services/scrape-service/tests/</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Build each Dockerfile and verify image sizes with docker images — backend &lt;50MB, frontend &lt;200MB, scrape-service &lt;200MB</idea>
+      <idea ac="2">Run docker compose -f docker-compose.prod.yml up and verify all 5 services reach healthy state within 60s via docker compose ps</idea>
+      <idea ac="2">Verify Caddy routes: curl localhost/health → backend, curl localhost → frontend HTML</idea>
+      <idea ac="3">Verify every env var referenced by os.Getenv/process.env in codebase appears in corresponding .env.example</idea>
+      <idea ac="4">Document platform evaluation with scored comparison matrix</idea>
+      <idea ac="5">Set CORS_ORIGINS=http://test.example.com and verify CORS response headers include that origin</idea>
+      <idea ac="5">Verify fallback to localhost origins when CORS_ORIGINS is not set</idea>
+      <idea ac="6">Verify connection pool settings are applied by checking DB config with configurable env vars</idea>
+    </ideas>
+  </tests>
+</story-context>

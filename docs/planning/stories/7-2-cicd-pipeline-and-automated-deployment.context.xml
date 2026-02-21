@@ -1,0 +1,187 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>7</epicId>
+    <storyId>2</storyId>
+    <title>CI/CD Pipeline & Automated Deployment</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-20</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/planning/stories/7-2-cicd-pipeline-and-automated-deployment.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>automated testing and deployment on every push</iWant>
+    <soThat>code changes are validated and deployed without manual intervention</soThat>
+    <tasks>
+      <task id="1" ac="1,4">Create `.github/workflows/ci.yml`
+        <subtask>Configure trigger: pull_request and push to any branch</subtask>
+        <subtask>Job: backend-lint — checkout, setup Go 1.24, run golangci-lint</subtask>
+        <subtask>Job: backend-test — checkout, setup Go 1.24, start PostgreSQL 15 service container, run migrations, run go test ./... -race -cover</subtask>
+        <subtask>Job: frontend-lint — checkout, setup Node 20, install pnpm, install deps, run pnpm lint</subtask>
+        <subtask>Job: frontend-test — checkout, setup Node 20, install pnpm, install deps, run pnpm test -- --ci</subtask>
+        <subtask>Job: docker-build — build backend + frontend images (verify compilation)</subtask>
+        <subtask>All jobs run in parallel for speed</subtask>
+        <subtask>Ensure clear error output on failure</subtask>
+      </task>
+      <task id="2" ac="2,3,4">Create `.github/workflows/deploy.yml`
+        <subtask>Configure trigger: push to main branch only</subtask>
+        <subtask>Job: build-and-push — build production Docker images, push to GHCR (ghcr.io/simon198/ditto-*)</subtask>
+        <subtask>Job: deploy — SSH into Hetzner production host, pull latest images, run docker compose -f docker-compose.prod.yml up -d</subtask>
+        <subtask>Configure deploy to depend on build-and-push</subtask>
+        <subtask>Store SSH key, host IP, and env vars as GitHub Actions secrets</subtask>
+      </task>
+      <task id="3" ac="3">Create `scripts/smoke-test.sh`
+        <subtask>Test GET /health returns HTTP 200 with {"status": "ok"}</subtask>
+        <subtask>Test frontend loads (HTTP 200 on /)</subtask>
+        <subtask>Test HTTPS certificate is valid</subtask>
+        <subtask>Exit non-zero on any failure for CI visibility</subtask>
+      </task>
+      <task id="4" ac="2">Configure GitHub Actions secrets
+        <subtask>Document required secrets: SSH_PRIVATE_KEY, SSH_HOST, SSH_USER, GHCR_TOKEN (or use GITHUB_TOKEN)</subtask>
+        <subtask>Document any env vars needed for CI test database</subtask>
+      </task>
+      <task id="5" ac="1">Test CI pipeline on a PR
+        <subtask>Create a test branch, push, verify all CI jobs run and pass</subtask>
+        <subtask>Verify failure output is clear when a test fails</subtask>
+      </task>
+      <task id="6" ac="2,3">Test deploy pipeline
+        <subtask>Merge to main, verify images are built and pushed to GHCR</subtask>
+        <subtask>Verify SSH deployment runs and smoke tests pass</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">CI pipeline runs on PRs — Given code is pushed to a PR, when CI runs, then Go lint, Go tests, frontend lint, and frontend tests all execute and report pass/fail results.</ac>
+    <ac id="2">CD pipeline deploys on merge to main — Given code is merged to main, when the deploy workflow runs, then production images are built, pushed to GHCR, and deployed to the production host.</ac>
+    <ac id="3">Smoke tests verify deployment — Given deployment completes, when smoke tests run, then /health returns 200, frontend loads, and HTTPS is valid.</ac>
+    <ac id="4">Failures are visible — Given CI or deployment fails, then the failure is visible in GitHub Actions with clear error output.</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/planning/tech-spec.md" title="Technical Specification" section="CI/CD Pipeline Design" snippet="Two GitHub Actions workflows: ci.yml (PR/push — 5 parallel jobs: backend-lint, backend-test, frontend-lint, frontend-test, docker-build) and deploy.yml (push to main — build-and-push to GHCR, then SSH deploy). Backend tests require PostgreSQL 15 service container." />
+      <doc path="docs/planning/tech-spec.md" title="Technical Specification" section="Implementation Guide — Story 7.2" snippet="Create ci.yml, deploy.yml, configure GitHub Actions secrets, create smoke-test.sh, test CI on PR, test deploy on push to main." />
+      <doc path="docs/planning/tech-spec.md" title="Technical Specification" section="Deployment Strategy" snippet="Push to main triggers deploy.yml. CI tests pass first. Production Docker images built and pushed to GHCR. SSH into host, pull images, docker compose up -d. Backend runs migrations at startup. Smoke test verifies deployment." />
+      <doc path="docs/planning/tech-spec.md" title="Technical Specification" section="Project Stack" snippet="Backend: Go 1.24, Gin, PostgreSQL 15, testify. Frontend: Next.js 14, React 18, TypeScript 5, Jest 30.2.0, RTL 16.3.2, pnpm. 72% backend coverage, 122 frontend tests across 13 suites." />
+      <doc path="docs/planning/tech-spec.md" title="Technical Specification" section="Security Considerations" snippet="All secrets as GitHub Actions secrets. Docker images run as non-root. Only Caddy port exposed. PostgreSQL not exposed externally. CORS restricted to production domain." />
+      <doc path="docs/planning/epic-7.md" title="Epic 7 Breakdown" section="Story 7.2: CI/CD Pipeline" snippet="3 story points. Dependencies: Story 7.1. Deliverables: GitHub Actions CI + CD pipelines, smoke tests. PostgreSQL service container for tests, GHCR for image storage, SSH-based deployment." />
+      <doc path="docs/planning/stories/7-1-production-container-images-and-platform-decision.md" title="Story 7.1 (Predecessor)" section="Completion Notes" snippet="Platform: Hetzner Cloud CX22 Ashburn VA ~$5/mo. Backend image 29.7MB, Frontend 159MB. Scrape-service archived. 4 services: db, backend, frontend, caddy. CORS_ORIGINS env var added. pnpm@10.20.0 pinned." />
+      <doc path="docker-compose.prod.yml" title="Production Docker Compose" section="Full file" snippet="4 services: db (postgres:15), backend (Go, depends on db healthy), frontend (Next.js standalone), caddy (reverse proxy, ports 80/443). Internal ditto-network. GHCR images will replace build: directives in CD." />
+      <doc path="Caddyfile" title="Caddy Configuration" section="Full file" snippet="Routes /health and /api/* to backend:8081, / to frontend:3000. Auto HTTPS via DOMAIN env var. Gzip, security headers (X-Content-Type-Options, X-Frame-Options DENY, Referrer-Policy)." />
+      <doc path=".env.example" title="Production Environment Template" section="Full file" snippet="Documents all required env vars: DOMAIN, DB_USER/PASSWORD/NAME, JWT_SECRET, CORS_ORIGINS, NEXT_PUBLIC_API_URL, AUTH_SECRET, NEXTAUTH_URL, OAuth vars, AWS S3 vars." />
+      <doc path="docs/deployment-guide.md" title="Deployment Guide" section="CI/CD Pipeline Example" snippet="Skeleton GitHub Actions deploy workflow example with build and push steps. Backup strategy with pg_dump and S3 upload." />
+      <doc path="docs/development-guide.md" title="Development Guide" section="Testing" snippet="Backend: go test ./... with coverage. Frontend: pnpm test. Test DB: ditto_test with auto-setup. Jest in watch mode or CI mode." />
+    </docs>
+    <code>
+      <file path="backend/cmd/server/main.go" kind="entrypoint" symbol="main" lines="28-102" reason="Health endpoint at line 59 (GET /health → {status:ok}) is the smoke test target. CORS_ORIGINS env var at line 42. Graceful shutdown at line 91." />
+      <file path="backend/Dockerfile" kind="dockerfile" symbol="multi-stage build" lines="1-32" reason="Production backend image (golang:1.24-alpine → alpine:3.20, 29.7MB). CI docker-build job builds this. CD pushes this to GHCR." />
+      <file path="frontend/Dockerfile" kind="dockerfile" symbol="multi-stage build" lines="1-39" reason="Production frontend image (node:20-alpine3.20, 3-stage, pnpm@10.20.0 pinned, standalone output, 159MB). CI docker-build job builds this. CD pushes this to GHCR." />
+      <file path="docker-compose.prod.yml" kind="compose" symbol="production stack" lines="1-93" reason="CD deploy job runs 'docker compose -f docker-compose.prod.yml up -d' on production host. 4 services: db, backend, frontend, caddy." />
+      <file path="Caddyfile" kind="config" symbol="reverse proxy" lines="1-22" reason="Caddy routes /health and /api/* to backend, / to frontend. Smoke test hits these routes through Caddy." />
+      <file path="backend/go.mod" kind="config" symbol="module definition" lines="1-5" reason="Go 1.24.0 with toolchain go1.24.4. CI must use matching Go version. Module name: ditto-backend." />
+      <file path="frontend/package.json" kind="config" symbol="scripts" lines="5-13" reason="CI scripts: 'lint' runs 'next lint', 'test' runs 'jest'. pnpm is the package manager. Node 20 required." />
+      <file path="backend/pkg/database/connection.go" kind="service" symbol="NewConnection" lines="19-46" reason="DATABASE_URL env var for DB connection. CI backend-test needs PostgreSQL service container with this URL pattern." />
+      <file path="backend/internal/testutil/database.go" kind="test-helper" symbol="NewTestDatabase" lines="20-41" reason="Test DB uses TEST_DB_* env vars (host, port, user, password, name). Defaults: host=localhost, port=5432, user=ditto_test_user, password=test_password, name=ditto_test. CI must configure these." />
+      <file path="backend/internal/testutil/database.go" kind="test-helper" symbol="RunMigrations" lines="59-386" reason="Tests run inline migrations (not golang-migrate files). Creates full schema including triggers and search vectors. No separate migration step needed in CI." />
+      <file path=".env.example" kind="config" symbol="env template" lines="1-43" reason="Reference for all production env vars needed as GitHub Actions secrets for CD." />
+      <file path="backend/.env.example" kind="config" symbol="backend env" lines="1-38" reason="Backend env var reference. CI backend-test needs DATABASE_URL or TEST_DB_* vars." />
+      <file path="frontend/.env.example" kind="config" symbol="frontend env" lines="1-17" reason="Frontend env var reference. CI frontend-test may need NEXT_PUBLIC_API_URL for build." />
+      <file path=".github/pull_request_template.md" kind="config" symbol="PR template" lines="*" reason="Existing PR template. CI runs on pull_request events." />
+    </code>
+    <dependencies>
+      <ecosystem name="Go" manifest="backend/go.mod">
+        <pkg name="go" version="1.24.0" note="toolchain go1.24.4" />
+        <pkg name="github.com/gin-gonic/gin" version="v1.10.1" />
+        <pkg name="github.com/jmoiron/sqlx" version="v1.4.0" />
+        <pkg name="github.com/lib/pq" version="v1.10.9" />
+        <pkg name="github.com/golang-migrate/migrate/v4" version="v4.18.3" />
+        <pkg name="github.com/stretchr/testify" version="v1.10.0" />
+        <pkg name="github.com/gin-contrib/cors" version="v1.7.6" />
+        <pkg name="github.com/gin-contrib/gzip" version="v1.2.3" />
+        <pkg name="github.com/golang-jwt/jwt/v5" version="v5.2.2" />
+        <pkg name="github.com/aws/aws-sdk-go-v2" version="v1.41.0" />
+        <pkg name="github.com/microcosm-cc/bluemonday" version="v1.0.27" />
+        <pkg name="github.com/go-playground/validator/v10" version="v10.26.0" />
+      </ecosystem>
+      <ecosystem name="Node.js" manifest="frontend/package.json">
+        <pkg name="node" version="20" note="alpine3.20 in Dockerfile" />
+        <pkg name="pnpm" version="10.20.0" note="pinned in Dockerfile via corepack" />
+        <pkg name="next" version="14.2.15" />
+        <pkg name="react" version="^18" />
+        <pkg name="typescript" version="^5" />
+        <pkg name="jest" version="^30.2.0" />
+        <pkg name="@testing-library/react" version="^16.3.2" />
+        <pkg name="@swc/jest" version="^0.2.39" />
+        <pkg name="eslint" version="^8" />
+        <pkg name="eslint-config-next" version="14.2.15" />
+        <pkg name="tailwindcss" version="^4.1.10" />
+      </ecosystem>
+      <ecosystem name="Docker" manifest="docker-compose.prod.yml">
+        <pkg name="postgres" version="15" />
+        <pkg name="caddy" version="2-alpine" />
+        <pkg name="golang" version="1.24-alpine" note="build stage" />
+        <pkg name="alpine" version="3.20" note="backend runtime" />
+        <pkg name="node" version="20-alpine3.20" note="frontend build and runtime" />
+      </ecosystem>
+      <ecosystem name="CI Tools" manifest=".github/workflows/">
+        <pkg name="golangci-lint" version="latest" note="Go linter for backend-lint job" />
+        <pkg name="actions/checkout" version="v4" />
+        <pkg name="actions/setup-go" version="v5" />
+        <pkg name="actions/setup-node" version="v4" />
+        <pkg name="docker/login-action" version="v3" note="GHCR auth" />
+        <pkg name="docker/build-push-action" version="v6" note="build and push images" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">CI creates new files only (.github/workflows/ci.yml, .github/workflows/deploy.yml, scripts/smoke-test.sh). No existing source code is modified.</constraint>
+    <constraint type="pattern">GitHub Actions secrets for all sensitive values — never hardcode secrets in workflow files or repo.</constraint>
+    <constraint type="pattern">Backend tests use TEST_DB_* env vars with defaults (host=localhost, port=5432, user=ditto_test_user, password=test_password, name=ditto_test). CI PostgreSQL service container must match.</constraint>
+    <constraint type="pattern">Frontend uses pnpm (not npm). CI must install pnpm via corepack or standalone installer. Pinned version: pnpm@10.20.0.</constraint>
+    <constraint type="pattern">Backend Go version: 1.24.0 (toolchain go1.24.4). CI must use matching Go version.</constraint>
+    <constraint type="pattern">Frontend Node version: 20. CI must use matching Node version.</constraint>
+    <constraint type="pattern">Docker images pushed to GHCR at ghcr.io/simon198/ditto-backend and ghcr.io/simon198/ditto-frontend.</constraint>
+    <constraint type="pattern">Deploy via SSH to Hetzner CX22 host. Pull images, then docker compose -f docker-compose.prod.yml up -d.</constraint>
+    <constraint type="pattern">Scrape-service is archived — do NOT build or deploy it.</constraint>
+    <constraint type="pattern">Backend runs migrations at startup via NewAppState() — no separate migration step in CD.</constraint>
+    <constraint type="security">GITHUB_TOKEN has automatic GHCR write permission for the repo owner — can use instead of separate GHCR_TOKEN.</constraint>
+    <constraint type="budget">Production host: Hetzner Cloud CX22 (Ashburn, VA) ~$5/mo. Single Docker Compose host.</constraint>
+  </constraints>
+  <interfaces>
+    <interface name="Health Check" kind="REST endpoint" signature="GET /health → 200 {&quot;status&quot;: &quot;ok&quot;}" path="backend/cmd/server/main.go:59" />
+    <interface name="GHCR Backend Image" kind="container registry" signature="ghcr.io/simon198/ditto-backend:latest (and :sha-xxxxx)" path="backend/Dockerfile" />
+    <interface name="GHCR Frontend Image" kind="container registry" signature="ghcr.io/simon198/ditto-frontend:latest (and :sha-xxxxx)" path="frontend/Dockerfile" />
+    <interface name="SSH Deploy" kind="remote execution" signature="ssh user@host 'cd /app &amp;&amp; docker compose -f docker-compose.prod.yml pull &amp;&amp; docker compose -f docker-compose.prod.yml up -d'" path="docker-compose.prod.yml" />
+    <interface name="GitHub Actions Secrets" kind="configuration" signature="SSH_PRIVATE_KEY, SSH_HOST, SSH_USER, plus production env vars from .env.example" path=".env.example" />
+  </interfaces>
+  <tests>
+    <standards>No new unit or integration tests are written in this story. CI runs ALL existing tests automatically. Backend uses Go testing + testify v1.10.0 with table-driven tests and a testutil package for DB helpers. Tests connect to a PostgreSQL test database via TEST_DB_* env vars. Frontend uses Jest 30.2.0 + React Testing Library v16.3.2 with SWC for fast compilation. The smoke test script (scripts/smoke-test.sh) is a new shell-based deployment verification — not a unit test framework. CI must fail the build on any test failure for clear visibility (AC #4).</standards>
+    <locations>
+      <location>backend/internal/handlers/*_test.go — handler tests (auth, application, assessment, interview, extract, file)</location>
+      <location>backend/internal/repository/*_test.go — repository tests (user, company, application, job, file, interview, assessment, dashboard, notification, search, timeline, rate_limit)</location>
+      <location>backend/internal/services/**/*_test.go — service tests (urlextractor parsers, s3, sanitizer)</location>
+      <location>backend/internal/middleware/*_test.go — middleware tests (rate_limit)</location>
+      <location>backend/internal/testutil/ — test helpers (database.go, fixtures.go)</location>
+      <location>frontend/src/**/__tests__/*.test.{ts,tsx} — frontend component and unit tests (13 suites, 122 tests)</location>
+      <location>scripts/smoke-test.sh — NEW: post-deployment verification script</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Verify ci.yml triggers on pull_request and push events by creating a test branch and pushing a commit</idea>
+      <idea ac="1">Verify all 5 CI jobs (backend-lint, backend-test, frontend-lint, frontend-test, docker-build) run in parallel and report individual pass/fail</idea>
+      <idea ac="1">Verify backend-test job successfully connects to PostgreSQL service container and runs all tests with -race -cover</idea>
+      <idea ac="1">Verify frontend-test job installs pnpm, dependencies, and runs pnpm test -- --ci successfully</idea>
+      <idea ac="2">Verify deploy.yml triggers only on push to main (not PRs or other branches)</idea>
+      <idea ac="2">Verify build-and-push job builds both images and pushes to GHCR with correct tags</idea>
+      <idea ac="2">Verify deploy job SSHs into production host and runs docker compose pull + up -d</idea>
+      <idea ac="3">Verify smoke-test.sh returns exit 0 when /health returns 200 with {"status":"ok"}</idea>
+      <idea ac="3">Verify smoke-test.sh returns exit 0 when frontend at / returns HTTP 200</idea>
+      <idea ac="3">Verify smoke-test.sh checks HTTPS certificate validity</idea>
+      <idea ac="3">Verify smoke-test.sh exits non-zero on any check failure</idea>
+      <idea ac="4">Intentionally fail a test to verify CI reports clear error output in GitHub Actions</idea>
+      <idea ac="4">Verify deploy failures are visible with clear error messages in GitHub Actions logs</idea>
+    </ideas>
+  </tests>
+</story-context>

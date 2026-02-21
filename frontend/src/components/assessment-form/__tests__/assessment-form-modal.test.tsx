@@ -52,6 +52,7 @@ jest.mock("@/components/ui/dialog", () => ({
 }));
 
 jest.mock("@/components/ui/select", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const R = require("react");
   const Ctx = R.createContext<{
     onValueChange?: (v: string) => void;

@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -37,8 +38,16 @@ func main() {
 	r.Use(middleware.SecurityHeaders())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	r.Use(middleware.SlowRequestLogger())
+	corsOrigins := []string{"http://localhost:8080", "http://localhost:8082", "http://localhost:3000"}
+	if origins := os.Getenv("CORS_ORIGINS"); origins != "" {
+		parts := strings.Split(origins, ",")
+		corsOrigins = make([]string, len(parts))
+		for i, o := range parts {
+			corsOrigins[i] = strings.TrimSpace(o)
+		}
+	}
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:8080", "http://localhost:8082", "http://localhost:3000"},
+		AllowOrigins:     corsOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-CSRF-Token"},
 		ExposeHeaders:    []string{"Content-Length", "X-CSRF-Token"},

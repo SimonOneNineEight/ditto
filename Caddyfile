@@ -1,0 +1,22 @@
+{$DOMAIN:localhost} {
+    encode gzip
+
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+
+    handle /health {
+        reverse_proxy backend:8081
+    }
+
+    handle /api/* {
+        reverse_proxy backend:8081
+    }
+
+    handle {
+        reverse_proxy frontend:3000
+    }
+}

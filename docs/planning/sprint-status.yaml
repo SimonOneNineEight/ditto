@@ -112,5 +112,12 @@ development_status:
   6-7-file-upload-performance-and-progress: done
   6-8-session-management-and-token-refresh: done
   6-9-testing-infrastructure-unit-and-integration-tests: done
-  6-10-documentation-api-database-schema-and-setup: review
-  epic-6-retrospective: optional
+  6-10-documentation-api-database-schema-and-setup: done
+  epic-6-retrospective: done
+
+  # Epic 7: CI/CD Pipeline & Production Deployment
+  epic-7: contexted
+  7-1-production-container-images-and-platform-decision: done
+  7-2-cicd-pipeline-and-automated-deployment: in-progress
+  7-3-production-launch-dns-https-backup-and-storage: backlog
+  epic-7-retrospective: optional
