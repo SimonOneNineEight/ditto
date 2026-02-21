@@ -17,7 +17,7 @@ services:
       - ditto-network
 
   backend:
-    image: ghcr.io/simon198/ditto-backend:latest
+    image: ghcr.io/simononenineight/ditto-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -46,7 +46,7 @@ services:
       - ditto-network
 
   frontend:
-    image: ghcr.io/simon198/ditto-frontend:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/ditto-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
