@@ -46,9 +46,9 @@ so that code changes are validated and deployed without manual intervention.
   - [x] Document required secrets: `SSH_PRIVATE_KEY`, `SSH_HOST`, `SSH_USER`, `GHCR_TOKEN` (or use `GITHUB_TOKEN`)
   - [x] Document any env vars needed for CI test database
 
-- [ ] **Test CI pipeline on a PR** (AC: #1)
-  - [ ] Create a test branch, push, verify all CI jobs run and pass
-  - [ ] Verify failure output is clear when a test fails (AC: #4)
+- [x] **Test CI pipeline on a PR** (AC: #1)
+  - [x] Create a test branch, push, verify all CI jobs run and pass
+  - [x] Verify failure output is clear when a test fails (AC: #4)
 
 - [ ] **Test deploy pipeline** (AC: #2, #3)
   - [ ] Merge to main, verify images are built and pushed to GHCR
