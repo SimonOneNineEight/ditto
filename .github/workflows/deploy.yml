@@ -18,6 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set image registry
+        run: echo "REGISTRY=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -30,8 +33,8 @@ jobs:
           context: ./backend
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/ditto-backend:latest
-            ghcr.io/${{ github.repository_owner }}/ditto-backend:${{ github.sha }}
+            ${{ env.REGISTRY }}/ditto-backend:latest
+            ${{ env.REGISTRY }}/ditto-backend:${{ github.sha }}
 
       - name: Create frontend production env
         run: echo "NEXT_PUBLIC_API_URL=https://${{ secrets.DEPLOY_DOMAIN }}" > frontend/.env.production
@@ -42,8 +45,8 @@ jobs:
           context: ./frontend
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/ditto-frontend:latest
-            ghcr.io/${{ github.repository_owner }}/ditto-frontend:${{ github.sha }}
+            ${{ env.REGISTRY }}/ditto-frontend:latest
+            ${{ env.REGISTRY }}/ditto-frontend:${{ github.sha }}
 
   deploy:
     name: Deploy to Production
