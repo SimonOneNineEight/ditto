@@ -11,11 +11,9 @@ import (
 )
 
 const (
-	PlatformLinkedIn  = "linkedin"
-	PlatformIndeed    = "indeed"
-	PlatformGlassdoor = "glassdoor"
-	PlatformAngelList = "angellist"
-	PlatformGeneric   = "generic"
+	PlatformLinkedIn = "linkedin"
+	PlatformIndeed   = "indeed"
+	PlatformGeneric  = "generic"
 )
 
 type Extractor interface {

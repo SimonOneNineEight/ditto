@@ -25,10 +25,10 @@ func newIndeedParser(logger *log.Logger, fetcher HTTPFetcher) Parser {
 }
 
 type indeedJobSchema struct {
-	Type           string `json:"@type"`
-	Title          string `json:"title"`
-	Description    string `json:"description"`
-	EmploymentType string `json:"employmentType"`
+	Type           string          `json:"@type"`
+	Title          string          `json:"title"`
+	Description    string          `json:"description"`
+	EmploymentType json.RawMessage `json:"employmentType"`
 	HiringOrg      struct {
 		Name string `json:"name"`
 	} `json:"hiringOrganization"`
@@ -38,6 +38,21 @@ type indeedJobSchema struct {
 			AddressRegion   string `json:"addressRegion"`
 		} `json:"address"`
 	} `json:"jobLocation"`
+}
+
+func parseEmploymentType(raw json.RawMessage) string {
+	if len(raw) == 0 {
+		return ""
+	}
+	var s string
+	if json.Unmarshal(raw, &s) == nil {
+		return s
+	}
+	var arr []string
+	if json.Unmarshal(raw, &arr) == nil && len(arr) > 0 {
+		return arr[0]
+	}
+	return ""
 }
 
 func (p *indeedParser) FetchAndParse(ctx context.Context, url string) (*ExtractedJobData, []string, error) {
@@ -113,7 +128,7 @@ func (p *indeedParser) extractFromJSONLD(doc *goquery.Document) (*ExtractedJobDa
 			Company:     cleanText(schema.HiringOrg.Name),
 			Location:    cleanText(location),
 			Description: extractDescription(sanitizeHTML(schema.Description)),
-			JobType:     normalizeJobType(schema.EmploymentType),
+			JobType:     normalizeJobType(parseEmploymentType(schema.EmploymentType)),
 			Platform:    "indeed",
 		}
 	})

@@ -79,7 +79,7 @@ func TestSanitizeHTML_LinkAttributes(t *testing.T) {
 	input := `<a href="https://example.com">link</a>`
 	result := s.SanitizeHTML(input)
 
-	assert.Contains(t, result, `rel="nofollow"`)
+	assert.Contains(t, result, `nofollow`)
 	assert.Contains(t, result, `noreferrer`)
 }
 

@@ -74,7 +74,7 @@ func TestApplicationRepository(t *testing.T) {
 	require.NoError(t, err)
 
 	createdApp2 := testutil.CreateTestApplication(testUser2.ID, createdJob.ID, statusID)
-	createdApp2, err = applicationRepo.CreateApplication(testUser2.ID, createdApp2)
+	_, err = applicationRepo.CreateApplication(testUser2.ID, createdApp2)
 	require.NoError(t, err)
 
 	t.Run("GetApplicationByID", func(t *testing.T) {
@@ -402,7 +402,7 @@ func TestApplicationRepository(t *testing.T) {
 	})
 
 	t.Run("InvalidateStatusCache", func(t *testing.T) {
-		applicationRepo.GetApplicationStatusCached()
+		_, _ = applicationRepo.GetApplicationStatusCached()
 		applicationRepo.InvalidateStatusCache()
 
 		statuses, err := applicationRepo.GetApplicationStatusCached()
