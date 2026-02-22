@@ -1,0 +1,1 @@
+-- No-op: removing seed data could break existing applications referencing these statuses
