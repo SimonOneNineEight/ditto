@@ -26,27 +26,17 @@ jobs:
 
       - name: Save and compress images
         run: |
-          docker save ditto-backend:latest | gzip > /tmp/ditto-backend.tar.gz
-          docker save ditto-frontend:latest | gzip > /tmp/ditto-frontend.tar.gz
+          docker save ditto-backend:latest | gzip > ditto-backend.tar.gz
+          docker save ditto-frontend:latest | gzip > ditto-frontend.tar.gz
 
-      - name: Copy images and config to server
+      - name: Copy files to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "scripts/,docker-compose.prod.yml,Caddyfile"
+          source: "scripts/,docker-compose.prod.yml,Caddyfile,ditto-backend.tar.gz,ditto-frontend.tar.gz"
           target: /home/${{ secrets.SSH_USER }}/ditto
-
-      - name: Copy image archives to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "/tmp/ditto-backend.tar.gz,/tmp/ditto-frontend.tar.gz"
-          target: /tmp
-          strip_components: 1
 
       - name: Load images and restart
         uses: appleboy/ssh-action@v1
@@ -55,10 +45,11 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            gzip -dc /tmp/ditto-backend.tar.gz | docker load
-            gzip -dc /tmp/ditto-frontend.tar.gz | docker load
-            rm -f /tmp/ditto-backend.tar.gz /tmp/ditto-frontend.tar.gz
+            set -euo pipefail
             cd /home/${{ secrets.SSH_USER }}/ditto
+            gzip -dc ditto-backend.tar.gz | docker load
+            gzip -dc ditto-frontend.tar.gz | docker load
+            rm -f ditto-backend.tar.gz ditto-frontend.tar.gz
             docker compose -f docker-compose.prod.yml up -d
 
       - name: Wait for services to start
