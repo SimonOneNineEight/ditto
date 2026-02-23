@@ -23,6 +23,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -35,7 +38,10 @@ jobs:
         with:
           context: ./backend
           push: true
+          provenance: false
           tags: ${{ env.BACKEND_IMAGE }}:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
       - name: Create frontend env
         run: echo "NEXT_PUBLIC_API_URL=https://${{ secrets.DEPLOY_DOMAIN }}" > frontend/.env.production
@@ -45,7 +51,10 @@ jobs:
         with:
           context: ./frontend
           push: true
+          provenance: false
           tags: ${{ env.FRONTEND_IMAGE }}:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
       - name: Copy config to server
         uses: appleboy/scp-action@v0.1.7
