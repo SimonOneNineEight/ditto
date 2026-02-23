@@ -17,7 +17,8 @@ services:
       - ditto-network
 
   backend:
-    image: ghcr.io/simononenineight/ditto-backend:latest
+    image: ditto-backend:latest
+    pull_policy: never
     restart: unless-stopped
     environment:
       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
@@ -43,7 +44,8 @@ services:
       - ditto-network
 
   frontend:
-    image: ghcr.io/simononenineight/ditto-frontend:latest
+    image: ditto-frontend:latest
+    pull_policy: never
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
