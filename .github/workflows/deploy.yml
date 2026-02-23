@@ -8,23 +8,55 @@ concurrency:
   group: deploy
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  packages: write
+
+env:
+  BACKEND_IMAGE: ghcr.io/simononenineight/ditto-backend
+  FRONTEND_IMAGE: ghcr.io/simononenineight/ditto-frontend
+
 jobs:
-  deploy:
-    name: Deploy to Production
+  build-and-deploy:
+    name: Build, Push & Deploy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Copy source to server
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ env.BACKEND_IMAGE }}:latest
+
+      - name: Create frontend env
+        run: echo "NEXT_PUBLIC_API_URL=https://${{ secrets.DEPLOY_DOMAIN }}" > frontend/.env.production
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ env.FRONTEND_IMAGE }}:latest
+
+      - name: Copy config to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "backend/,frontend/,docker-compose.prod.yml,Caddyfile"
+          source: "scripts/,docker-compose.prod.yml,Caddyfile"
           target: /home/${{ secrets.SSH_USER }}/ditto
 
-      - name: Create frontend env and deploy
+      - name: Pull images and restart
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -32,8 +64,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/${{ secrets.SSH_USER }}/ditto
-            echo "NEXT_PUBLIC_API_URL=https://${{ secrets.DEPLOY_DOMAIN }}" > frontend/.env.production
-            docker compose -f docker-compose.prod.yml build backend frontend
+            docker compose -f docker-compose.prod.yml pull backend frontend
             docker compose -f docker-compose.prod.yml up -d
 
       - name: Wait for services to start
