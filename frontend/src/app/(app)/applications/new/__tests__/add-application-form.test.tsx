@@ -72,6 +72,7 @@ jest.mock("../company-autocomplete", () => ({
 
 jest.mock("@/components/file-upload", () => ({
   FileUpload: () => <div data-testid="file-upload" />,
+  DocumentsSection: () => <div data-testid="documents-section" />,
 }));
 
 jest.mock("@/components/ui/select", () => ({
