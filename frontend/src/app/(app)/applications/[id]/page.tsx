@@ -42,6 +42,7 @@ import {
 } from '@/services/assessment-service';
 import { AssessmentList } from '@/components/assessment-list';
 import { AssessmentFormModal } from '@/components/assessment-form';
+import { DocumentsSection } from '@/components/file-upload';
 
 const statusVariantMap: Record<string, 'applied' | 'screening' | 'interviewing' | 'offered' | 'rejected' | 'withdrawn' | 'default'> = {
     'Applied': 'applied',
@@ -490,6 +491,13 @@ const ApplicationPage = () => {
                                     );
                                 }}
                             />
+                        </CardContent>
+                    </Card>
+
+                    {/* Documents card */}
+                    <Card>
+                        <CardContent className="p-4 md:p-5">
+                            <DocumentsSection applicationId={applicationId} title="Documents" />
                         </CardContent>
                     </Card>
                 </div>

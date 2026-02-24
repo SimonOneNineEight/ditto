@@ -28,7 +28,7 @@ const RichTextEditor = dynamic(
     () => import('@/components/rich-text-editor').then((mod) => ({ default: mod.RichTextEditor })),
     { loading: () => <Skeleton className="h-[150px] w-full rounded-lg" />, ssr: false }
 );
-import { FileUpload } from '@/components/file-upload';
+import { FileUpload, DocumentsSection } from '@/components/file-upload';
 import {
     getPresignedUploadUrl,
     uploadToS3,
@@ -182,7 +182,7 @@ const ApplicationForm = ({
                         max_salary: data.maxSalary ? parseFloat(data.maxSalary) : undefined,
                     }
                 );
-                resultApplicationId = response.data?.data?.id;
+                resultApplicationId = response.data?.data?.application?.id;
             }
 
             // Upload pending file if exists
@@ -395,7 +395,11 @@ const ApplicationForm = ({
 
             <FormFieldWrapper>
                 <FormLabel className="mb-2">Attachments</FormLabel>
-                <FileUpload onFileSelect={setPendingFile} />
+                {mode === 'edit' && applicationId ? (
+                    <DocumentsSection applicationId={applicationId} />
+                ) : (
+                    <FileUpload onFileSelect={setPendingFile} />
+                )}
             </FormFieldWrapper>
 
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end items-stretch sm:items-center gap-3 mt-12 pt-6">
