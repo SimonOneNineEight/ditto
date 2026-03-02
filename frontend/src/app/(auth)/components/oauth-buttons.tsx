@@ -1,11 +1,27 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { SiGithub, SiGoogle } from '@icons-pack/react-simple-icons';
+import { Linkedin } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 
 const OAuthButtons = () => {
     return (
         <div className="flex flex-col gap-3">
+            <Button
+                variant="outline"
+                size="full"
+                hasIcon
+                icon={
+                    <Linkedin
+                        className="h-5 w-5"
+                    />
+                }
+                iconPosition="left-center"
+                onClick={() => signIn('linkedin', { redirectTo: '/' })}
+            >
+                Continue with LinkedIn
+            </Button>
+
             <Button
                 variant="outline"
                 size="full"
