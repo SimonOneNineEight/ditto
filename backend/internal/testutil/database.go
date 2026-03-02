@@ -108,6 +108,7 @@ func (td *TestDatabase) RunMigrations(t *testing.T) {
 			password_hash TEXT NULL,
 			auth_provider TEXT NOT NULL,
 			avatar_url TEXT NULL,
+			provider_email TEXT NULL,
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			CONSTRAINT users_auth_user_provider_unique UNIQUE (user_id, auth_provider)
