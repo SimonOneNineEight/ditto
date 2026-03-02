@@ -124,6 +124,7 @@ development_status:
 
   # Epic 8: Multi-Provider Authentication & Account Security
   epic-8: contexted
-  story-auth-multiprovider-1: ready-for-dev
-  story-auth-multiprovider-2: drafted
-  story-auth-multiprovider-3: drafted
+  story-auth-multiprovider-1: done
+  story-auth-multiprovider-2: done
+  story-auth-multiprovider-3: done
+  epic-8-retrospective: done

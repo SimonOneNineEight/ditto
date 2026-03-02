@@ -1,6 +1,6 @@
 # Story 8.1: Multi-Provider Auth Backend & Rate Limit Tuning
 
-**Status:** ready-for-dev
+**Status:** done
 
 ---
 
@@ -32,34 +32,34 @@ So that I don't end up with duplicate accounts or lose access to my data.
 
 ### Tasks / Subtasks
 
-- [ ] Create migration `000015_multi_provider_auth.up.sql` (AC: #1, #2, #4)
-  - [ ] Drop `UNIQUE(user_id)` constraint on `users_auth`
-  - [ ] Add `UNIQUE(user_id, auth_provider)` composite constraint
-  - [ ] Create `user_refresh_tokens` table with `UNIQUE(user_id)`
-  - [ ] Migrate existing refresh tokens from `users_auth` to `user_refresh_tokens`
-  - [ ] Drop `refresh_token` and `refresh_token_expires_at` columns from `users_auth`
-- [ ] Create down migration `000015_multi_provider_auth.down.sql` (AC: #4)
-- [ ] Update `UserAuth` model in `models/user.go` — remove refresh token fields (AC: #4)
-- [ ] Create `UserRefreshToken` model in `models/user.go` (AC: #4)
-- [ ] Refactor `CreateOrUpdateOAuthUser()` in `repository/user.go` (AC: #1, #2, #3)
-  - [ ] Look up user by email
-  - [ ] If user exists: check if auth row for this provider exists
-    - [ ] If auth row exists: update avatar_url and name (no duplicate)
-    - [ ] If no auth row: INSERT new auth row (auto-link)
-  - [ ] If user doesn't exist: create user + auth row (signup)
-- [ ] Add `UpsertRefreshToken()` to user repository — insert/update in `user_refresh_tokens` (AC: #4)
-- [ ] Add `GetRefreshToken()` to user repository — read from `user_refresh_tokens` (AC: #4)
-- [ ] Update `RefreshToken` handler in `handlers/auth.go` to use new table (AC: #4)
-- [ ] Update `Login` handler — query `users_auth WHERE auth_provider = 'local'` for password check (AC: #1)
-- [ ] Update `OAuthLogin` handler to work with refactored repository method (AC: #1, #2, #3)
-- [ ] Increase `authIPRateLimiter` limit from 10 to 20 in `middleware/rate_limit.go` (AC: #5)
-- [ ] Create `refreshIPRateLimiter` with limit 30 in `middleware/rate_limit.go` (AC: #5)
-- [ ] Create `RateLimitRefreshIP()` middleware function (AC: #5)
-- [ ] Move refresh token route to separate rate limit group in `routes/auth.go` (AC: #5)
-- [ ] Update existing auth tests in `handlers/auth_test.go` for multi-provider (AC: #6)
-- [ ] Add new tests: multi-provider login, auto-link by email, no-duplicate on re-login (AC: #6)
-- [ ] Add tests for refresh token with new table (AC: #6)
-- [ ] Add tests for separate rate limit buckets (AC: #5, #6)
+- [x] Create migration `000015_multi_provider_auth.up.sql` (AC: #1, #2, #4)
+  - [x] Drop `UNIQUE(user_id)` constraint on `users_auth`
+  - [x] Add `UNIQUE(user_id, auth_provider)` composite constraint
+  - [x] Create `user_refresh_tokens` table with `UNIQUE(user_id)`
+  - [x] Migrate existing refresh tokens from `users_auth` to `user_refresh_tokens`
+  - [x] Drop `refresh_token` and `refresh_token_expires_at` columns from `users_auth`
+- [x] Create down migration `000015_multi_provider_auth.down.sql` (AC: #4)
+- [x] Update `UserAuth` model in `models/user.go` — remove refresh token fields (AC: #4)
+- [x] Create `UserRefreshToken` model in `models/user.go` (AC: #4)
+- [x] Refactor `CreateOrUpdateOAuthUser()` in `repository/user.go` (AC: #1, #2, #3)
+  - [x] Look up user by email
+  - [x] If user exists: check if auth row for this provider exists
+    - [x] If auth row exists: update avatar_url and name (no duplicate)
+    - [x] If no auth row: INSERT new auth row (auto-link)
+  - [x] If user doesn't exist: create user + auth row (signup)
+- [x] Add `UpsertRefreshToken()` to user repository — insert/update in `user_refresh_tokens` (AC: #4)
+- [x] Add `GetRefreshToken()` to user repository — read from `user_refresh_tokens` (AC: #4)
+- [x] Update `RefreshToken` handler in `handlers/auth.go` to use new table (AC: #4)
+- [x] Update `Login` handler — query `users_auth WHERE auth_provider = 'local'` for password check (AC: #1)
+- [x] Update `OAuthLogin` handler to work with refactored repository method (AC: #1, #2, #3)
+- [x] Increase `authIPRateLimiter` limit from 10 to 20 in `middleware/rate_limit.go` (AC: #5)
+- [x] Create `refreshIPRateLimiter` with limit 30 in `middleware/rate_limit.go` (AC: #5)
+- [x] Create `RateLimitRefreshIP()` middleware function (AC: #5)
+- [x] Move refresh token route to separate rate limit group in `routes/auth.go` (AC: #5)
+- [x] Update existing auth tests in `handlers/auth_test.go` for multi-provider (AC: #6)
+- [x] Add new tests: multi-provider login, auto-link by email, no-duplicate on re-login (AC: #6)
+- [x] Add tests for refresh token with new table (AC: #6)
+- [x] Add tests for separate rate limit buckets (AC: #5, #6)
 
 ### Technical Summary
 
@@ -122,26 +122,153 @@ The `CreateOrUpdateOAuthUser()` function is refactored from overwrite-on-match t
 
 ### Agent Model Used
 
-<!-- Will be populated during dev-story execution -->
+Claude Opus 4.6
 
 ### Debug Log References
 
-<!-- Will be populated during dev-story execution -->
+- Implemented migration 000015 to transform `users_auth` from one-to-one to one-to-many (per-provider)
+- Extracted refresh tokens to dedicated `user_refresh_tokens` table with UPSERT semantics
+- Refactored `CreateOrUpdateOAuthUser()` to check-and-insert per provider instead of ON CONFLICT overwrite
+- Added `GetUserAuthByProvider()` for provider-specific auth lookups (used by Login handler)
+- Extracted common IP rate limit middleware logic into `rateLimitIPMiddleware()` shared by both auth and refresh limiters
+- Updated testutil schema to match new DB structure (all test packages affected)
 
 ### Completion Notes
 
-<!-- Will be populated during dev-story execution -->
+All 18 tasks completed. Key changes:
+- DB migration: `UNIQUE(user_id)` → `UNIQUE(user_id, auth_provider)`, new `user_refresh_tokens` table
+- Repository: `CreateOrUpdateOAuthUser()` now inserts separate auth rows per provider; refresh token methods use new table
+- Handlers: `Login` queries by `auth_provider='local'`; `RefreshToken` uses `user_refresh_tokens`
+- Rate limits: auth 10→20/min, refresh gets own 30/min bucket
+- Tests: 3 new multi-provider handler tests, 3 new rate limit tests, updated all existing tests
 
 ### Files Modified
 
-<!-- Will be populated during dev-story execution -->
+- `backend/migrations/000015_multi_provider_auth.up.sql` (new)
+- `backend/migrations/000015_multi_provider_auth.down.sql` (new)
+- `backend/internal/models/user.go` (modified)
+- `backend/internal/repository/user.go` (modified)
+- `backend/internal/handlers/auth.go` (modified)
+- `backend/internal/middleware/rate_limit.go` (modified)
+- `backend/internal/routes/auth.go` (modified)
+- `backend/internal/handlers/auth_test.go` (modified)
+- `backend/internal/repository/user_test.go` (modified)
+- `backend/internal/middleware/rate_limit_test.go` (modified)
+- `backend/internal/testutil/database.go` (modified)
 
 ### Test Results
 
-<!-- Will be populated during dev-story execution -->
+All backend tests pass (except pre-existing S3 integration test which requires AWS credentials):
+- `internal/handlers`: PASS (68.7s)
+- `internal/middleware`: PASS (5.9s)
+- `internal/repository`: PASS (23.1s)
+- `internal/services`: PASS
+- `internal/services/urlextractor`: PASS
+
+### Change Log
+
+- 2026-02-26: Implemented multi-provider auth backend, refresh token table extraction, and rate limit tuning (Story 8.1)
+- 2026-02-26: Senior Developer Review notes appended
 
 ---
 
-## Review Notes
+## Senior Developer Review (AI)
 
-<!-- Will be populated during code review -->
+### Reviewer
+Simon
+
+### Date
+2026-02-26
+
+### Outcome
+**APPROVE** — All acceptance criteria fully implemented with evidence. All tasks verified complete. No HIGH or MEDIUM severity findings.
+
+### Summary
+Clean, well-structured implementation of multi-provider auth backend. Migration correctly transforms `users_auth` from one-to-one to one-to-many (per-provider) and extracts refresh tokens to dedicated table. Repository refactored with check-and-insert pattern. Rate limits tuned with independent buckets. Comprehensive test coverage added.
+
+### Key Findings
+
+No HIGH or MEDIUM severity findings.
+
+**LOW severity (advisory):**
+- Race condition in `CreateOrUpdateOAuthUser` — `GetUserByEmail` reads outside transaction. Mitigated by DB UNIQUE constraints. Pre-existing pattern.
+- IP rate limiter response format doesn't wrap in `{"success": false}` like user-based limiter. Pre-existing inconsistency.
+- Down migration dedup could fail if two auth rows have identical `created_at`. Extremely unlikely edge case, rollback-only.
+
+### Acceptance Criteria Coverage
+
+| AC# | Description | Status | Evidence |
+|-----|-------------|--------|----------|
+| 1 | Register+OAuth auto-links, password preserved | IMPLEMENTED | `repository/user.go:291-373`, `handlers/auth.go:145`, `auth_test.go:798-829` |
+| 2 | GitHub+Google same email = both auth rows | IMPLEMENTED | `repository/user.go:318-335`, `auth_test.go:768-796` |
+| 3 | Re-login same provider updates, no duplicate | IMPLEMENTED | `repository/user.go:326-330`, `auth_test.go:831-853` |
+| 4 | Refresh token from user_refresh_tokens table | IMPLEMENTED | `000015_up.sql:11-28`, `repository/user.go:141-183`, `handlers/auth.go:228` |
+| 5 | Auth 20/min, refresh 30/min separate buckets | IMPLEMENTED | `middleware/rate_limit.go:29-39`, `routes/auth.go:14-26`, `rate_limit_test.go:140-175` |
+| 6 | All tests pass + new multi-provider tests | IMPLEMENTED | 9 new test cases across 3 test files |
+
+**Summary: 6 of 6 acceptance criteria fully implemented.**
+
+### Task Completion Validation
+
+| Task | Marked | Verified | Evidence |
+|------|--------|----------|----------|
+| Migration 000015 (up + subtasks) | [x] | VERIFIED | File with all 5 DDL steps |
+| Down migration | [x] | VERIFIED | File with 6 rollback steps |
+| Update UserAuth model | [x] | VERIFIED | `models/user.go:22-30` |
+| Create UserRefreshToken model | [x] | VERIFIED | `models/user.go:32-38` |
+| Refactor CreateOrUpdateOAuthUser | [x] | VERIFIED | `repository/user.go:291-373` |
+| UpsertRefreshToken + GetRefreshToken | [x] | VERIFIED | `repository/user.go:141-183` |
+| Update RefreshToken handler | [x] | VERIFIED | `handlers/auth.go:209-262` |
+| Update Login handler | [x] | VERIFIED | `handlers/auth.go:145` |
+| Update OAuthLogin handler | [x] | VERIFIED | `handlers/auth.go:280-335` |
+| Auth rate limit 10→20 | [x] | VERIFIED | `middleware/rate_limit.go:31` |
+| Refresh rate limiter at 30 | [x] | VERIFIED | `middleware/rate_limit.go:35-39` |
+| RateLimitRefreshIP() middleware | [x] | VERIFIED | `middleware/rate_limit.go:119-121` |
+| Separate refresh route group | [x] | VERIFIED | `routes/auth.go:22-26` |
+| Update existing auth tests | [x] | VERIFIED | Schema updated in testutil |
+| New multi-provider tests | [x] | VERIFIED | `auth_test.go:768-853` |
+| Refresh token tests | [x] | VERIFIED | `user_test.go:157-231` |
+| Rate limit bucket tests | [x] | VERIFIED | `rate_limit_test.go:97-175` |
+
+**Summary: 18 of 18 completed tasks verified. 0 questionable. 0 false completions.**
+
+### Test Coverage and Gaps
+
+All ACs have corresponding tests:
+- AC #1, #2, #3: Handler-level integration tests (`MultiProvider_AutoLinkByEmail`, `MultiProvider_RegisterThenOAuth`, `SameProvider_NoDoublication`) + repository unit tests
+- AC #4: Refresh token lifecycle tests (create, validate, expire, clear, rotate)
+- AC #5: IP rate limit tests (allows, blocks at limit, independent buckets)
+- AC #6: All 9 new tests added, existing tests updated for new schema
+
+No significant test gaps identified.
+
+### Architectural Alignment
+
+Implementation follows the established patterns:
+- Handler → Repository → Model layering respected
+- Struct-based handlers with `NewXHandler(appState)` constructor
+- Raw SQL via sqlx with parameterized queries
+- Table-driven tests with testify assertions
+- Rate limiting via middleware applied at route group level
+- Extracted `rateLimitIPMiddleware()` reduces duplication
+
+### Security Notes
+
+No security issues found:
+- All queries use parameterized placeholders (no SQL injection risk)
+- Login scoped to `auth_provider='local'` (no auth bypass via OAuth rows)
+- Sensitive fields tagged `json:"-"` (password_hash, refresh_token)
+- Refresh token rotation via UPSERT prevents reuse
+- Rate limiting applied per route group
+
+### Best-Practices and References
+
+- Go transaction pattern with `defer tx.Rollback()` correctly used
+- PostgreSQL UPSERT via `ON CONFLICT ... DO UPDATE` for refresh tokens
+- Composite unique constraint `(user_id, auth_provider)` is the standard pattern for multi-provider auth
+
+### Action Items
+
+**Advisory Notes:**
+- Note: IP rate limiter response format inconsistency with user-based limiter is pre-existing — consider aligning in a future polish story
+- Note: Down migration dedup could theoretically fail with identical timestamps — acceptable risk for rollback scenario

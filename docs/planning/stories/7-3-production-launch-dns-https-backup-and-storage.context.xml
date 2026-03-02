@@ -1,0 +1,327 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>7</epicId>
+    <storyId>3</storyId>
+    <title>Production Launch — DNS, HTTPS, Backup &amp; Storage</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-22</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/planning/stories/7-3-production-launch-dns-https-backup-and-storage.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to access Ditto at a real domain with HTTPS, knowing my data is backed up and files are stored reliably</iWant>
+    <soThat>I can use Ditto as my primary job search tool with confidence</soThat>
+    <tasks>
+      <task id="1" ac="1">Provision and configure production host
+        <subtask>Set up Hetzner Cloud CX22 instance (Ashburn, VA)</subtask>
+        <subtask>Install Docker and Docker Compose v2 on the host</subtask>
+        <subtask>Configure firewall: allow ports 80, 443 (Caddy), 22 (SSH); block all others</subtask>
+        <subtask>Copy production environment variables to the host (.env file)</subtask>
+        <subtask>Deploy the full stack via docker compose -f docker-compose.prod.yml up -d</subtask>
+      </task>
+      <task id="2" ac="1">Configure DNS and verify HTTPS
+        <subtask>Point domain A record to Hetzner host IP address</subtask>
+        <subtask>Update DOMAIN env var on production host to the real domain</subtask>
+        <subtask>Update CORS_ORIGINS to include the production domain</subtask>
+        <subtask>Update NEXT_PUBLIC_API_URL and NEXTAUTH_URL to https://&lt;domain&gt;</subtask>
+        <subtask>Verify Caddy auto-provisions Let's Encrypt TLS certificate</subtask>
+        <subtask>Verify HTTPS works end-to-end: frontend loads, /api/health returns 200</subtask>
+        <subtask>Update DEPLOY_DOMAIN GitHub Actions secret for smoke tests</subtask>
+      </task>
+      <task id="3" ac="2">Set up production S3-compatible file storage
+        <subtask>Create Cloudflare R2 bucket (or chosen S3-compatible service) for file storage</subtask>
+        <subtask>Generate R2 API credentials (access key ID + secret access key)</subtask>
+        <subtask>Configure production env vars: AWS_REGION=auto, AWS_S3_BUCKET, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_ENDPOINT</subtask>
+        <subtask>Verify file upload flow: upload a test file via the UI, confirm it appears in R2 bucket</subtask>
+        <subtask>Verify file download flow: download the test file, confirm integrity</subtask>
+      </task>
+      <task id="4" ac="3">Create database backup script
+        <subtask>Create scripts/backup-db.sh: pg_dump from Docker container, compress, upload to S3 backup bucket with timestamped name</subtask>
+        <subtask>Create S3 backup bucket (or prefix in same bucket) for database dumps</subtask>
+        <subtask>Implement 7-day retention: delete backups older than 7 days after successful upload</subtask>
+        <subtask>Add logging to stdout for Docker log capture</subtask>
+        <subtask>Set up cron job on production host: run backup script daily at 02:00 UTC</subtask>
+        <subtask>Verify backup runs and dump file appears in S3</subtask>
+      </task>
+      <task id="5" ac="4">Create database restore script
+        <subtask>Create scripts/restore-db.sh: download backup from S3, stop backend, pg_restore into database, restart backend</subtask>
+        <subtask>Test restore procedure: take a backup, wipe the database, restore, verify all data recovered</subtask>
+        <subtask>Document the restore procedure with step-by-step instructions in script comments</subtask>
+      </task>
+      <task id="6" ac="5">Configure OAuth production callback URLs
+        <subtask>Update GitHub OAuth app: set callback URL to https://&lt;domain&gt;/api/auth/callback/github</subtask>
+        <subtask>Update Google OAuth app: set callback URL to https://&lt;domain&gt;/api/auth/callback/google</subtask>
+        <subtask>Set production OAuth secrets on host: AUTH_GITHUB_ID, AUTH_GITHUB_SECRET, AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET</subtask>
+        <subtask>Verify GitHub login flow end-to-end on production</subtask>
+        <subtask>Verify Google login flow end-to-end on production</subtask>
+      </task>
+      <task id="7" ac="1,2,3,5">Production deployment and smoke testing
+        <subtask>Trigger deploy via push to main (uses CI/CD pipeline from Story 7.2)</subtask>
+        <subtask>Run scripts/smoke-test.sh against production domain</subtask>
+        <subtask>Verify all existing features work: create application, log interview, upload file, search, export</subtask>
+        <subtask>Verify notification scheduler runs in production</subtask>
+        <subtask>Confirm total infrastructure cost is &lt;$10/month</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">HTTPS with valid TLS certificate — Given DNS is configured, when users visit the production domain, then they see Ditto over HTTPS with a valid TLS certificate issued by Let's Encrypt via Caddy.</ac>
+    <ac id="2">Production S3-compatible file storage — Given production is running, when a file is uploaded, then it is stored in production S3-compatible storage (Cloudflare R2 or equivalent), not LocalStack.</ac>
+    <ac id="3">Automated daily database backup — Given the backup cron job runs daily at 02:00 UTC, then a compressed database dump (pg_dump --format=custom --compress=9) is uploaded to S3 with naming ditto-YYYY-MM-DD.dump, and backups older than 7 days are deleted.</ac>
+    <ac id="4">Database restore from backup — Given a backup exists in S3, when the restore script (scripts/restore-db.sh) runs against a fresh database, then all data is recovered correctly.</ac>
+    <ac id="5">OAuth with production callback URLs — Given OAuth is configured with production callback URLs in GitHub and Google developer consoles, when users click GitHub/Google login, then the OAuth flow completes successfully.</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/planning/tech-spec.md</path>
+        <title>Technical Specification — Epic 7</title>
+        <section>Technical Details, Backup Strategy, S3-Compatible File Storage, Configuration Changes, Implementation Guide</section>
+        <snippet>Defines the full production Docker architecture (Caddy reverse proxy, backend, frontend, DB), daily pg_dump backup strategy with 7-day retention to S3, Cloudflare R2 as recommended S3 storage, and complete production environment variables list.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/epic-7.md</path>
+        <title>Epic 7: CI/CD Pipeline &amp; Production Deployment</title>
+        <section>Story 7.3: Production Launch, Success Criteria</section>
+        <snippet>Defines Story 7.3 acceptance criteria, success criteria (HTTPS, daily backups, S3 storage, &lt;$10/mo budget, OAuth), and story dependencies (7.2 must be complete).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Ditto Architecture Document</title>
+        <section>Authentication, File Storage, Security, CORS</section>
+        <snippet>NextAuth v5 beta for OAuth (GitHub, Google), JWT auth with 24h/7d tokens, S3 presigned URL upload flow, CORS origins currently localhost only — needs production domain.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-backend.md</path>
+        <title>Ditto Backend Architecture</title>
+        <section>S3 Service, Authentication, CORS Configuration, Startup Sequence</section>
+        <snippet>S3 service at internal/services/s3/service.go generates presigned URLs using AWS_* env vars. CORS configured in main.go. Health check at GET /health. Graceful shutdown via SIGINT/SIGTERM.</snippet>
+      </doc>
+      <doc>
+        <path>docs/database-schema.md</path>
+        <title>Ditto Database Schema</title>
+        <section>Full schema (23 tables, 13 migrations)</section>
+        <snippet>PostgreSQL 15 with UUID PKs, soft deletes, auto-timestamps, full-text search with GIN indexes. Critical context for backup/restore — pg_dump must capture all tables, triggers, indexes, and search vectors.</snippet>
+      </doc>
+      <doc>
+        <path>docs/deployment-guide.md</path>
+        <title>Ditto Deployment Guide</title>
+        <section>Production Environment Variables, Backup Strategy, Docker Deployment</section>
+        <snippet>Documents backend and frontend production env vars, Docker Compose production patterns, backup strategy with pg_dump + S3 upload, and security checklist for pre-deployment.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/stories/7-1-production-container-images-and-platform-decision.md</path>
+        <title>Story 7.1: Production Container Images &amp; Platform Decision</title>
+        <section>Dev Agent Record, Completion Notes</section>
+        <snippet>Created production Dockerfiles (backend ~25MB, frontend ~150MB), docker-compose.prod.yml with Caddy, Caddyfile, .env.example files. Chose Hetzner CX22 (Ashburn) at ~$5/mo. CORS_ORIGINS env var added.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/stories/7-2-cicd-pipeline-and-automated-deployment.md</path>
+        <title>Story 7.2: CI/CD Pipeline &amp; Automated Deployment</title>
+        <section>Tasks, Dev Notes, Learnings</section>
+        <snippet>Created ci.yml (5 parallel jobs) and deploy.yml (build-and-push → deploy). Smoke test at scripts/smoke-test.sh. GitHub Actions secrets: SSH_PRIVATE_KEY, SSH_HOST, SSH_USER, DEPLOY_DOMAIN. GITHUB_TOKEN for GHCR auth.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>NFR-7: Deployment, Monitoring, Backup</section>
+        <snippet>NFR-7 defines production deployment requirements including automated deployment, monitoring, and backup strategy as non-functional requirements for the MVP.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>docker-compose.prod.yml</path>
+        <kind>infrastructure</kind>
+        <symbol>Production Docker Compose</symbol>
+        <reason>Defines all production services (db, backend, frontend, caddy). Env vars (DOMAIN, AWS_*, CORS_ORIGINS, OAuth) must be set in .env on production host. Caddy exposes ports 80/443.</reason>
+      </file>
+      <file>
+        <path>Caddyfile</path>
+        <kind>infrastructure</kind>
+        <symbol>Caddy reverse proxy config</symbol>
+        <reason>Uses {$DOMAIN} env var for automatic HTTPS. Routes /health and /api/* to backend:8081, everything else to frontend:3000. DNS must point to host IP for Let's Encrypt to provision cert.</reason>
+      </file>
+      <file>
+        <path>.env.example</path>
+        <kind>config</kind>
+        <symbol>Production env var template</symbol>
+        <reason>Template for production .env file. All vars (DOMAIN, DB_*, JWT_SECRET, CORS_ORIGINS, NEXT_PUBLIC_API_URL, AUTH_SECRET, NEXTAUTH_URL, OAuth secrets, AWS_*) must be populated on production host.</reason>
+      </file>
+      <file>
+        <path>backend/cmd/server/main.go</path>
+        <kind>entrypoint</kind>
+        <symbol>main</symbol>
+        <lines>41-48</lines>
+        <reason>CORS_ORIGINS env var parsing — when set, overrides localhost defaults. Production domain must be in CORS_ORIGINS for frontend-to-backend communication.</reason>
+      </file>
+      <file>
+        <path>backend/internal/services/s3/service.go</path>
+        <kind>service</kind>
+        <symbol>S3Service, NewS3Service, S3ServiceInterface</symbol>
+        <reason>S3 client uses AWS_* env vars. Supports custom endpoint (cfg.Endpoint) for S3-compatible services like R2. No code changes needed — just configure env vars for R2.</reason>
+      </file>
+      <file>
+        <path>backend/Dockerfile</path>
+        <kind>infrastructure</kind>
+        <symbol>Production backend Dockerfile</symbol>
+        <reason>Multi-stage build producing ~25MB image. Alpine base, non-root user, healthcheck via /health. Runs migrations on startup via NewAppState().</reason>
+      </file>
+      <file>
+        <path>frontend/src/auth.ts</path>
+        <kind>config</kind>
+        <symbol>NextAuth configuration</symbol>
+        <lines>37-152</lines>
+        <reason>NextAuth v5 with GitHub and Google OAuth providers. Uses NEXT_PUBLIC_API_URL for backend calls, AUTH_SECRET and NEXTAUTH_URL. OAuth callback URLs must match provider console settings.</reason>
+      </file>
+      <file>
+        <path>.github/workflows/deploy.yml</path>
+        <kind>ci-cd</kind>
+        <symbol>Deploy workflow</symbol>
+        <reason>Copies source to server via SCP, builds images on server, runs docker compose up. Uses DEPLOY_DOMAIN secret for smoke tests. Must update DEPLOY_DOMAIN to real domain.</reason>
+      </file>
+      <file>
+        <path>scripts/smoke-test.sh</path>
+        <kind>script</kind>
+        <symbol>Deployment smoke tests</symbol>
+        <reason>Tests /health endpoint, frontend load, and HTTPS cert validity. Run against production domain after deployment to verify AC #1.</reason>
+      </file>
+      <file>
+        <path>backend/internal/utils/state.go</path>
+        <kind>service</kind>
+        <symbol>NewAppState</symbol>
+        <reason>Initializes DB connection, runs migrations on startup, creates S3 service from env vars. Production startup path — all env vars must be set correctly.</reason>
+      </file>
+      <file>
+        <path>backend/internal/middleware/security_headers.go</path>
+        <kind>middleware</kind>
+        <symbol>SecurityHeaders</symbol>
+        <reason>Adds HSTS header when GIN_MODE=release. Production backend must run with GIN_MODE=release for HSTS to be active.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <ecosystem name="go" manifest="backend/go.mod">
+        <package>go 1.24.0 (toolchain go1.24.4)</package>
+        <package>gin-gonic/gin v1.10.1</package>
+        <package>aws-sdk-go-v2 v1.41.0 (S3 client — used for file storage and backup uploads)</package>
+        <package>aws-sdk-go-v2/service/s3 v1.95.0</package>
+        <package>golang-migrate/migrate/v4 v4.18.3 (DB migrations — run on startup)</package>
+        <package>jmoiron/sqlx v1.4.0</package>
+        <package>lib/pq v1.10.9 (PostgreSQL driver)</package>
+        <package>golang-jwt/jwt/v5 v5.2.2</package>
+        <package>joho/godotenv v1.5.1 (env var loading — skips gracefully if no .env)</package>
+        <package>gin-contrib/cors v1.7.6</package>
+      </ecosystem>
+      <ecosystem name="node" manifest="frontend/package.json" manager="pnpm">
+        <package>next 14.2.15</package>
+        <package>next-auth 5.0.0-beta.29 (OAuth — GitHub, Google providers)</package>
+        <package>react ^18</package>
+        <package>axios ^1.7.9</package>
+        <package>jest ^30.2.0 (testing)</package>
+        <package>typescript ^5</package>
+        <package>tailwindcss ^4.1.10</package>
+      </ecosystem>
+      <ecosystem name="docker" manifest="docker-compose.prod.yml">
+        <package>postgres:15 (database)</package>
+        <package>caddy:2-alpine (reverse proxy + auto-HTTPS)</package>
+        <package>golang:1.24-alpine (backend build stage)</package>
+        <package>alpine:3.20 (backend runtime)</package>
+        <package>node:20-alpine (frontend build + runtime)</package>
+      </ecosystem>
+      <ecosystem name="infrastructure">
+        <package>Hetzner Cloud CX22 (2 vCPU, 4GB RAM, Ashburn VA) — ~$5/mo</package>
+        <package>Cloudflare R2 (S3-compatible file storage) — free tier</package>
+        <package>Let's Encrypt (TLS certificates via Caddy) — free</package>
+        <package>GitHub Actions (CI/CD) — free for public repos</package>
+        <package>GitHub Container Registry (GHCR) — free for public repos</package>
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Infrastructure budget must be &lt;$10/month total (Hetzner CX22 ~$5/mo + Cloudflare R2 free tier)</constraint>
+    <constraint>No code changes to backend or frontend — this story is infrastructure/ops only. S3 service already supports custom endpoints via AWS_ENDPOINT env var.</constraint>
+    <constraint>Backup script must use pg_dump --format=custom --compress=9 for maximum compression and flexible restore</constraint>
+    <constraint>Backup naming convention: ditto-YYYY-MM-DD.dump in S3</constraint>
+    <constraint>Backup retention: 7 days — delete older backups after successful upload</constraint>
+    <constraint>Restore must use pg_restore --clean --if-exists to handle existing data gracefully</constraint>
+    <constraint>Caddy handles TLS termination — backend receives plain HTTP internally (sslmode=disable for Docker-internal DB connection)</constraint>
+    <constraint>Only Caddy ports (80, 443) and SSH (22) exposed to internet — all other services on internal Docker network</constraint>
+    <constraint>JWT_SECRET and AUTH_SECRET must be 64+ character random strings in production</constraint>
+    <constraint>OAuth callback URLs are manual configuration in GitHub/Google developer consoles — not automatable</constraint>
+    <constraint>deploy.yml creates frontend/.env.production on server to bake NEXT_PUBLIC_API_URL into the frontend build</constraint>
+    <constraint>Scripts (backup-db.sh, restore-db.sh) must work with Docker containers — pg_dump/pg_restore via docker exec against the db container</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>Health Check</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /health → {"success": true, "data": {"status": "ok"}}</signature>
+      <path>backend/cmd/server/main.go:59</path>
+    </interface>
+    <interface>
+      <name>S3 Service Config</name>
+      <kind>constructor</kind>
+      <signature>NewS3Service(cfg Config{Region, Bucket, AccessKeyID, SecretAccessKey, URLExpiry, Endpoint}) → (*S3Service, error)</signature>
+      <path>backend/internal/services/s3/service.go:40</path>
+    </interface>
+    <interface>
+      <name>Caddy Reverse Proxy</name>
+      <kind>HTTP routing</kind>
+      <signature>{$DOMAIN} → /health, /api/* → backend:8081; /* → frontend:3000</signature>
+      <path>Caddyfile</path>
+    </interface>
+    <interface>
+      <name>NextAuth OAuth Callbacks</name>
+      <kind>OAuth redirect</kind>
+      <signature>GitHub: /api/auth/callback/github; Google: /api/auth/callback/google</signature>
+      <path>frontend/src/auth.ts</path>
+    </interface>
+    <interface>
+      <name>Backend OAuth Endpoint</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/oauth → {provider, email, name, avatar_url} → {access_token, refresh_token, expires_in, user}</signature>
+      <path>backend/internal/handlers/auth.go</path>
+    </interface>
+    <interface>
+      <name>Deploy Workflow</name>
+      <kind>CI/CD pipeline</kind>
+      <signature>Push to main → SCP source → Build on server → docker compose up → smoke-test.sh</signature>
+      <path>.github/workflows/deploy.yml</path>
+    </interface>
+    <interface>
+      <name>Smoke Test</name>
+      <kind>shell script</kind>
+      <signature>smoke-test.sh &lt;base-url&gt; → tests /health, frontend load, HTTPS cert</signature>
+      <path>scripts/smoke-test.sh</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>No new unit or integration tests in this story. The CI pipeline (ci.yml) runs all existing tests automatically on every push — 72% backend coverage (Go test + testify, table-driven tests) and 122 frontend tests (Jest 30.2 + React Testing Library). Production verification relies on scripts/smoke-test.sh for deployment health and manual end-to-end testing for file upload, OAuth, and backup/restore procedures.</standards>
+    <locations>
+      <location>backend/internal/handlers/*_test.go</location>
+      <location>backend/internal/repository/*_test.go</location>
+      <location>backend/internal/services/**/*_test.go</location>
+      <location>frontend/src/**/__tests__/</location>
+      <location>frontend/src/**/*.test.{ts,tsx}</location>
+      <location>scripts/smoke-test.sh</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Run smoke-test.sh against production domain — verify /health returns 200, frontend loads, HTTPS cert valid</idea>
+      <idea ac="1">Verify HSTS header present in production responses (GIN_MODE=release enables it)</idea>
+      <idea ac="2">Upload a file via UI on production, verify it appears in Cloudflare R2 bucket dashboard</idea>
+      <idea ac="2">Download the uploaded file, verify integrity matches original</idea>
+      <idea ac="3">Manually trigger backup-db.sh, verify .dump file appears in S3 with correct naming (ditto-YYYY-MM-DD.dump)</idea>
+      <idea ac="3">Verify backup file is a valid pg_dump custom format (pg_restore --list should succeed)</idea>
+      <idea ac="3">Wait 24h or adjust retention, verify old backups are cleaned up</idea>
+      <idea ac="4">Take a backup, drop/recreate database, run restore-db.sh, verify all data recovered by browsing the app</idea>
+      <idea ac="4">After restore, verify search vectors and full-text search still work (triggers rebuild tsvector on data load)</idea>
+      <idea ac="5">Click GitHub login on production, complete OAuth flow, verify user session created</idea>
+      <idea ac="5">Click Google login on production, complete OAuth flow, verify user session created</idea>
+      <idea ac="1,2,3,5">Full end-to-end: create application, log interview, upload file, search, export — all on production domain</idea>
+    </ideas>
+  </tests>
+</story-context>

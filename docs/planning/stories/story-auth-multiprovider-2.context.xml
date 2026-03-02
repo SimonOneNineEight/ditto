@@ -1,0 +1,295 @@
+<story-context id="story-auth-multiprovider-2" v="1.0">
+  <metadata>
+    <epicId>8</epicId>
+    <storyId>2</storyId>
+    <title>Account Management Endpoints</title>
+    <status>Draft</status>
+    <generatedAt>2026-02-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/planning/stories/story-auth-multiprovider-2.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to manage my linked login methods from my account</iWant>
+    <soThat>I can add new providers, remove ones I no longer use, and set a password as a backup</soThat>
+    <tasks>
+- [ ] Add repository methods to `repository/user.go` (AC: #1-#8)
+  - [ ] `GetUserAuthProviders(userID)` — return all auth rows for user (AC: #1)
+  - [ ] `LinkProvider(userID, provider, email, avatarURL)` — insert new auth row (AC: #2)
+  - [ ] `GetAuthByProviderEmail(provider, email)` — check if provider email belongs to another user (AC: #3)
+  - [ ] `UnlinkProvider(userID, provider)` — delete auth row (AC: #4)
+  - [ ] `CountAuthMethods(userID)` — count auth rows for lockout check (AC: #5)
+  - [ ] `HasPassword(userID)` — check if "local" auth row with password exists (AC: #6, #8)
+  - [ ] `SetPassword(userID, hashedPassword)` — create "local" auth row (AC: #6)
+  - [ ] `UpdatePassword(userID, hashedPassword)` — update existing password hash (AC: #7)
+  - [ ] `GetPasswordHash(userID)` — get hash for verification (AC: #7)
+- [ ] Create `handlers/account.go` with request/response structs (AC: #1-#8)
+  - [ ] `GetLinkedProviders` — list all providers (AC: #1)
+  - [ ] `LinkProvider` — validate + insert, check for cross-user conflict (AC: #2, #3)
+  - [ ] `UnlinkProvider` — validate lockout protection + delete (AC: #4, #5)
+  - [ ] `SetPassword` — validate no existing password + hash + create (AC: #6, #8)
+  - [ ] `ChangePassword` — verify current + hash new + update (AC: #7)
+- [ ] Create `routes/account.go` — authenticated route group (AC: #1-#8)
+  - [ ] `GET /api/account/providers` → `GetLinkedProviders`
+  - [ ] `POST /api/account/link-provider` → `LinkProvider`
+  - [ ] `DELETE /api/account/providers/:provider` → `UnlinkProvider`
+  - [ ] `POST /api/account/set-password` → `SetPassword`
+  - [ ] `PUT /api/account/change-password` → `ChangePassword`
+- [ ] Register account routes in main router setup
+- [ ] Create `handlers/account_test.go` with table-driven tests (AC: #9)
+  - [ ] Test GetLinkedProviders: returns correct provider list
+  - [ ] Test LinkProvider: happy path, duplicate provider, cross-user conflict
+  - [ ] Test UnlinkProvider: happy path, lockout protection (last method)
+  - [ ] Test SetPassword: happy path, password already exists error
+  - [ ] Test ChangePassword: happy path, wrong current password
+  - [ ] Test all endpoints: unauthenticated request returns 401
+- [ ] Add repository tests for new methods in `repository/user_test.go` (AC: #9)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+AC #1: Given an authenticated user, when they call `GET /api/account/providers`, then they receive a list of their linked providers with provider name, avatar URL, and linked date.
+
+AC #2: Given an authenticated user, when they call `POST /api/account/link-provider` with valid OAuth data, then a new auth row is created and the updated provider list is returned.
+
+AC #3: Given User A has GitHub linked, when User B tries to link the same GitHub account (same provider email), then User B receives a 409 error "This GitHub account is already linked to another account."
+
+AC #4: Given a user with 2+ auth methods, when they call `DELETE /api/account/providers/:provider`, then the auth row is removed and the updated list is returned.
+
+AC #5: Given a user with only 1 auth method remaining, when they try to unlink it, then they receive a 400 error "Cannot remove your only login method."
+
+AC #6: Given an OAuth-only user (no password), when they call `POST /api/account/set-password` with a valid password, then a "local" auth row is created with the bcrypt-hashed password.
+
+AC #7: Given a user with a password set, when they call `PUT /api/account/change-password` with correct current password and new password, then the password hash is updated.
+
+AC #8: Given a user with a password set, when they call `POST /api/account/set-password`, then they receive a 400 error "Password already set. Use change-password instead."
+
+AC #9: All new endpoints have comprehensive table-driven tests covering happy path, validation errors, auth errors, and edge cases.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/planning/tech-spec-auth-multiprovider-ratelimit.md</path>
+        <title>Multi-Provider Auth &amp; Rate Limit Tuning Tech Spec</title>
+        <section>Implementation Details — Phase 2: Account Management Endpoints</section>
+        <snippet>Contains link/unlink/set-password flow pseudocode, lockout protection logic, request/response contracts, error code patterns, and existing conventions to follow.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-backend.md</path>
+        <title>Ditto Backend Architecture</title>
+        <section>Architecture Pattern, API Design, Authentication and Security</section>
+        <snippet>Defines the Handler → Repository → Database layered architecture, response format (ApiResponse), JWT auth flow, and error handling patterns used throughout the backend.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/epics-auth-multiprovider.md</path>
+        <title>Epic 8: Multi-Provider Authentication &amp; Account Security</title>
+        <section>Story 8.2: Account Management Endpoints</section>
+        <snippet>Epic-level acceptance criteria and story map showing Story 8.2 depends on Story 8.1 (multi-provider schema). Defines link/unlink providers, set/change password, and lockout protection goals.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/stories/story-auth-multiprovider-2.md</path>
+        <title>Story 8.2: Account Management Endpoints</title>
+        <section>Implementation Details, Key Code References, Context References</section>
+        <snippet>Full story with tasks/subtasks, technical summary, project structure notes, and key code reference table mapping existing code locations to reuse patterns.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>backend/internal/handlers/auth.go</path>
+        <kind>handler</kind>
+        <symbol>AuthHandler, OAuthRequest, OAuthLogin, Login, Register</symbol>
+        <lines>1-351</lines>
+        <reason>Reference pattern for new AccountHandler struct, request/response structs, OAuthRequest struct (reuse for LinkProviderRequest), password verification with bcrypt (Login handler), and OAuth response format (OAuthLogin handler).</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/user.go</path>
+        <kind>repository</kind>
+        <symbol>UserRepository, CreateOrUpdateOAuthUser, GetUserAuthByProvider, UpdateRefreshToken</symbol>
+        <lines>1-373</lines>
+        <reason>Primary file to extend with new methods: GetUserAuthProviders, LinkProvider, GetAuthByProviderEmail, UnlinkProvider, CountAuthMethods, HasPassword, SetPassword, UpdatePassword, GetPasswordHash. Already contains multi-provider support from Story 8.1.</reason>
+      </file>
+      <file>
+        <path>backend/internal/models/user.go</path>
+        <kind>model</kind>
+        <symbol>User, UserAuth, UserRefreshToken</symbol>
+        <lines>1-38</lines>
+        <reason>UserAuth struct used for auth rows — may need a UserAuthProvider response struct for the providers listing endpoint that includes provider name, avatar URL, and linked date.</reason>
+      </file>
+      <file>
+        <path>backend/internal/routes/auth.go</path>
+        <kind>routes</kind>
+        <symbol>RegisterAuthRoutes</symbol>
+        <lines>1-37</lines>
+        <reason>Route registration pattern to follow for new RegisterAccountRoutes function — uses middleware grouping (Auth + CSRF) for protected endpoints.</reason>
+      </file>
+      <file>
+        <path>backend/internal/middleware/rate_limit.go</path>
+        <kind>middleware</kind>
+        <symbol>RateLimiter, RateLimitAuthIP, RateLimitRefreshIP, rateLimitIPMiddleware</symbol>
+        <lines>1-221</lines>
+        <reason>User-based rate limiting middleware (RateLimiter.Middleware) can be applied to account endpoints. IP-based limiters already configured from Story 8.1.</reason>
+      </file>
+      <file>
+        <path>backend/internal/constants/auth.go</path>
+        <kind>constants</kind>
+        <symbol>AuthProviderLocal, AuthProviderGithub, AuthProviderGoogle, AuthProviderLinkedin, IsValidOAuthProvider</symbol>
+        <lines>1-19</lines>
+        <reason>Valid provider constants for validation in link/unlink operations. IsValidOAuthProvider for input validation.</reason>
+      </file>
+      <file>
+        <path>backend/internal/auth/hashing.go</path>
+        <kind>utility</kind>
+        <symbol>HashPassword, CheckPassword</symbol>
+        <lines>1-18</lines>
+        <reason>Bcrypt password hashing/verification functions to use in SetPassword and ChangePassword handlers.</reason>
+      </file>
+      <file>
+        <path>backend/internal/handlers/helpers.go</path>
+        <kind>handler</kind>
+        <symbol>HandleError, HandleErrorWithMessage</symbol>
+        <lines>1-83</lines>
+        <reason>Error handling helpers used by all handlers — AccountHandler should use these same functions.</reason>
+      </file>
+      <file>
+        <path>backend/cmd/server/main.go</path>
+        <kind>entrypoint</kind>
+        <symbol>main, route registration block</symbol>
+        <lines>63-81</lines>
+        <reason>Route registration location where RegisterAccountRoutes must be added to the apiGroup.</reason>
+      </file>
+      <file>
+        <path>backend/internal/utils/state.go</path>
+        <kind>utility</kind>
+        <symbol>AppState</symbol>
+        <reason>AppState struct passed to handler constructors — AccountHandler will follow same NewAccountHandler(appState) pattern.</reason>
+      </file>
+      <file>
+        <path>backend/internal/testutil/database.go</path>
+        <kind>test-infrastructure</kind>
+        <symbol>TestDatabase, NewTestDatabase, RunMigrations</symbol>
+        <lines>1-430</lines>
+        <reason>Test database setup used by all handler and repository tests. Schema already includes multi-provider users_auth (UNIQUE user_id, auth_provider) and user_refresh_tokens from Story 8.1.</reason>
+      </file>
+      <file>
+        <path>backend/internal/handlers/auth_test.go</path>
+        <kind>test</kind>
+        <symbol>authTestEnv, newAuthTestEnv, newAuthTestEnvProtected</symbol>
+        <lines>1-80</lines>
+        <reason>Test environment setup pattern to replicate for account handler tests — creates test DB, app state, handler, and router with routes.</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/user_test.go</path>
+        <kind>test</kind>
+        <symbol>TestUserRepository</symbol>
+        <lines>1-80</lines>
+        <reason>Repository test pattern — table-driven tests with testutil.NewTestDatabase, RunMigrations, and testify assertions.</reason>
+      </file>
+      <file>
+        <path>backend/pkg/errors/errors.go</path>
+        <kind>errors</kind>
+        <symbol>AppError, ErrorCode constants</symbol>
+        <reason>Error codes to use: ErrorConflict (409), ErrorBadRequest (400), ErrorUnauthorized (401), ErrorNotFound (404). New handlers should return these standard error codes.</reason>
+      </file>
+      <file>
+        <path>backend/pkg/response/response.go</path>
+        <kind>response</kind>
+        <symbol>ApiResponse, Success, Error</symbol>
+        <reason>Response helper functions — all handlers use response.Success(c, data) and response.Error(c, appErr) for consistent JSON responses.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <go>
+        <package name="github.com/gin-gonic/gin" version="1.10.1">HTTP framework</package>
+        <package name="github.com/jmoiron/sqlx" version="1.4.0">SQL toolkit with struct scanning</package>
+        <package name="github.com/go-playground/validator/v10" version="10.26.0">Struct validation</package>
+        <package name="github.com/google/uuid" version="1.6.0">UUID generation</package>
+        <package name="github.com/stretchr/testify" version="1.10.0">Test assertions</package>
+        <package name="golang.org/x/crypto" version="0.44.0">bcrypt password hashing</package>
+        <package name="github.com/lib/pq" version="1.10.9">PostgreSQL driver</package>
+        <package name="github.com/golang-jwt/jwt/v5" version="5.2.2">JWT token handling</package>
+      </go>
+      <note>No new dependencies required — all work uses existing packages.</note>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/account/providers</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/account/providers → { success: true, data: [{ auth_provider, avatar_url, created_at }] }</signature>
+      <path>backend/internal/handlers/account.go (new)</path>
+    </interface>
+    <interface>
+      <name>POST /api/account/link-provider</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/account/link-provider { provider, email, name, avatar_url } → { success: true, data: [providers] } | 409 conflict</signature>
+      <path>backend/internal/handlers/account.go (new)</path>
+    </interface>
+    <interface>
+      <name>DELETE /api/account/providers/:provider</name>
+      <kind>REST endpoint</kind>
+      <signature>DELETE /api/account/providers/:provider → { success: true, data: [providers] } | 400 last method</signature>
+      <path>backend/internal/handlers/account.go (new)</path>
+    </interface>
+    <interface>
+      <name>POST /api/account/set-password</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/account/set-password { password } → { success: true, data: { message } } | 400 already set</signature>
+      <path>backend/internal/handlers/account.go (new)</path>
+    </interface>
+    <interface>
+      <name>PUT /api/account/change-password</name>
+      <kind>REST endpoint</kind>
+      <signature>PUT /api/account/change-password { current_password, new_password } → { success: true, data: { message } } | 401 wrong password</signature>
+      <path>backend/internal/handlers/account.go (new)</path>
+    </interface>
+    <interface>
+      <name>UserRepository (extended)</name>
+      <kind>Go interface</kind>
+      <signature>GetUserAuthProviders(userID) ([]UserAuth, error), LinkProvider(userID, provider, email, avatarURL) error, GetAuthByProviderEmail(provider, email) (*UserAuth, error), UnlinkProvider(userID, provider) error, CountAuthMethods(userID) (int, error), HasPassword(userID) (bool, error), SetPassword(userID, hash) error, UpdatePassword(userID, hash) error, GetPasswordHash(userID) (string, error)</signature>
+      <path>backend/internal/repository/user.go</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>Follow existing Handler → Repository → Database layered architecture pattern</constraint>
+    <constraint>All request structs must use `json` and `validate` tags; validate with `validator.Struct()`</constraint>
+    <constraint>Use standard response format: `{ success: true, data: {...} }` or `{ success: false, error: { error: "msg", code: "CODE" } }`</constraint>
+    <constraint>All endpoints require JWT authentication (AuthMiddleware) and CSRF protection (CSRFMiddleware)</constraint>
+    <constraint>Repository methods use raw SQL via sqlx — no ORM</constraint>
+    <constraint>Password hashing uses bcrypt via `auth.HashPassword()` and `auth.CheckPassword()`</constraint>
+    <constraint>Lockout protection: cannot remove last auth method (CountAuthMethods must be > 1 before unlink)</constraint>
+    <constraint>Handler constructor pattern: `NewAccountHandler(appState *utils.AppState)` with validator</constraint>
+    <constraint>Tests must be table-driven using testify, with testutil.NewTestDatabase for DB setup</constraint>
+    <constraint>Error handling must use HandleError/HandleErrorWithMessage from helpers.go</constraint>
+    <constraint>Provider validation must use constants.IsValidOAuthProvider()</constraint>
+    <constraint>Only add comments that explain WHY, not WHAT — code should be self-documenting</constraint>
+  </constraints>
+
+  <tests>
+    <standards>Backend tests use Go's testing package with testify v1.10.0 for assertions (require for fatal, assert for non-fatal). Table-driven test pattern with descriptive test names. Test database setup via testutil.NewTestDatabase + RunMigrations. Handler tests create a gin test router and use httptest.NewRecorder. Repository tests operate directly against the test database. Run with `go test -p 1 ./...` for sequential execution (shared test DB).</standards>
+    <locations>
+      <location>backend/internal/handlers/account_test.go (new)</location>
+      <location>backend/internal/repository/user_test.go (extend)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test GetLinkedProviders returns correct provider list for user with single and multiple providers</idea>
+      <idea ac="2">Test LinkProvider happy path: authenticated user adds new provider, verify response contains updated list</idea>
+      <idea ac="3">Test LinkProvider cross-user conflict: User B links provider email already owned by User A → 409</idea>
+      <idea ac="3">Test LinkProvider duplicate: user tries to link already-linked provider → appropriate error</idea>
+      <idea ac="4">Test UnlinkProvider happy path: user with 2+ methods removes one, verify response</idea>
+      <idea ac="5">Test UnlinkProvider lockout: user with only 1 method tries to unlink → 400</idea>
+      <idea ac="6">Test SetPassword happy path: OAuth-only user sets password, verify local auth row created</idea>
+      <idea ac="7">Test ChangePassword happy path: correct current password, new password updated</idea>
+      <idea ac="7">Test ChangePassword wrong current password → 401/400 error</idea>
+      <idea ac="8">Test SetPassword when password exists → 400 "Password already set"</idea>
+      <idea ac="9">Test all endpoints return 401 when unauthenticated</idea>
+      <idea ac="9">Test all endpoints with invalid/missing request body → validation errors</idea>
+      <idea ac="1-8">Repository unit tests for each new method: GetUserAuthProviders, LinkProvider, GetAuthByProviderEmail, UnlinkProvider, CountAuthMethods, HasPassword, SetPassword, UpdatePassword, GetPasswordHash</idea>
+    </ideas>
+  </tests>
+</story-context>
