@@ -41,7 +41,7 @@ docker run --rm \
   -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
   -e AWS_DEFAULT_REGION="${AWS_REGION:-us-east-1}" \
   -v "${TMP_DIR}/${BACKUP_NAME}:/backup/${BACKUP_NAME}:ro" \
-  amazon/aws-cli \
+  amazon/aws-cli:2.27.31 \
   s3 cp "/backup/${BACKUP_NAME}" \
   "s3://${S3_BUCKET}/${S3_PREFIX}/${BACKUP_NAME}" \
   "${ENDPOINT_FLAG[@]}"
@@ -62,7 +62,7 @@ docker run --rm \
   -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
   -e AWS_DEFAULT_REGION="${AWS_REGION:-us-east-1}" \
   --entrypoint sh \
-  amazon/aws-cli \
+  amazon/aws-cli:2.27.31 \
   -c "
     aws s3 ls 's3://${S3_BUCKET}/${S3_PREFIX}/' ${ENDPOINT_ARG} | while read -r line; do
       filename=\$(echo \"\$line\" | awk '{print \$NF}')

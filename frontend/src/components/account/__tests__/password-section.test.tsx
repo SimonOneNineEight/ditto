@@ -119,10 +119,11 @@ describe('PasswordSection', () => {
         });
     });
 
-    it('calls setPassword on valid submission', async () => {
+    it('calls setPassword and onSuccess on valid submission', async () => {
         mockSetPassword.mockResolvedValue({ message: 'password set successfully' });
+        const onSuccess = jest.fn();
         const user = userEvent.setup();
-        render(<PasswordSection hasPassword={false} />);
+        render(<PasswordSection hasPassword={false} onSuccess={onSuccess} />);
 
         await user.click(screen.getByText('Set Password'));
 
@@ -139,6 +140,7 @@ describe('PasswordSection', () => {
 
         await waitFor(() => {
             expect(mockSetPassword).toHaveBeenCalledWith('newpassword123');
+            expect(onSuccess).toHaveBeenCalled();
         });
     });
 

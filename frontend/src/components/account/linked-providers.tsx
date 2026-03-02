@@ -206,7 +206,7 @@ export function LinkedProviders() {
 
                     <div className="border-t border-border" />
 
-                    <PasswordSection hasPassword={hasPassword} />
+                    <PasswordSection hasPassword={hasPassword} onSuccess={fetchProviders} />
                 </CardContent>
             </Card>
 

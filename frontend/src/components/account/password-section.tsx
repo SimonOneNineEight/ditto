@@ -46,9 +46,10 @@ type ChangePasswordForm = z.infer<typeof changePasswordSchema>;
 
 interface PasswordSectionProps {
     hasPassword: boolean;
+    onSuccess?: () => void;
 }
 
-export function PasswordSection({ hasPassword }: PasswordSectionProps) {
+export function PasswordSection({ hasPassword, onSuccess }: PasswordSectionProps) {
     const [dialogOpen, setDialogOpen] = useState(false);
 
     return (
@@ -69,7 +70,7 @@ export function PasswordSection({ hasPassword }: PasswordSectionProps) {
             {hasPassword ? (
                 <ChangePasswordDialog open={dialogOpen} onOpenChange={setDialogOpen} />
             ) : (
-                <SetPasswordDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+                <SetPasswordDialog open={dialogOpen} onOpenChange={setDialogOpen} onSuccess={onSuccess} />
             )}
         </div>
     );
@@ -78,9 +79,11 @@ export function PasswordSection({ hasPassword }: PasswordSectionProps) {
 function SetPasswordDialog({
     open,
     onOpenChange,
+    onSuccess,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onSuccess?: () => void;
 }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const {
@@ -99,6 +102,7 @@ function SetPasswordDialog({
             toast.success('Password set successfully');
             reset();
             onOpenChange(false);
+            onSuccess?.();
         } catch {
             // axios interceptor handles error toast
         } finally {
