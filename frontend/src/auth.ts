@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
+import LinkedIn from 'next-auth/providers/linkedin';
 import Credentials from 'next-auth/providers/credentials';
 import { authService } from './services/auth-service';
 
@@ -38,6 +39,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
         GitHub,
         Google,
+        LinkedIn,
         Credentials({
             name: 'credentials',
             credentials: {
@@ -74,6 +76,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     callbacks: {
         async signIn({ user, account }) {
             if (account?.provider && account?.provider !== 'credentials') {
+                const { cookies } = await import('next/headers');
+                const cookieStore = cookies();
+                const linkMode = cookieStore.get('link_mode')?.value;
+
+                if (linkMode === account.provider) {
+                    cookieStore.delete('link_mode');
+                    cookieStore.set('link_profile', JSON.stringify({
+                        provider: account.provider,
+                        email: user.email,
+                        name: user.name,
+                        avatar_url: user.image,
+                    }), { maxAge: 60, path: '/', sameSite: 'lax', httpOnly: false });
+
+                    return '/settings?link_pending=1';
+                }
+
                 try {
                     const response = await fetch(
                         `${process.env.NEXT_PUBLIC_API_URL}/api/oauth`,

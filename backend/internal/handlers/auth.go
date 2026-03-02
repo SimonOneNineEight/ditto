@@ -142,7 +142,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	userAuth, err := h.userRepo.GetUserAuth(user.ID)
+	userAuth, err := h.userRepo.GetUserAuthByProvider(user.ID, "local")
 	if err != nil {
 		if errors.IsNotFoundError(err) {
 			HandleError(c, errors.New(errors.ErrorInvalidCredentials, "invalid credentials"))

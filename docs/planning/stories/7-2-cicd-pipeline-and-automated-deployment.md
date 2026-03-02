@@ -1,6 +1,6 @@
 # Story 7.2: CI/CD Pipeline & Automated Deployment
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -50,9 +50,9 @@ so that code changes are validated and deployed without manual intervention.
   - [x] Create a test branch, push, verify all CI jobs run and pass
   - [x] Verify failure output is clear when a test fails (AC: #4)
 
-- [ ] **Test deploy pipeline** (AC: #2, #3)
-  - [ ] Merge to main, verify images are built and pushed to GHCR
-  - [ ] Verify SSH deployment runs and smoke tests pass
+- [x] **Test deploy pipeline** (AC: #2, #3)
+  - [x] Merge to main, verify images are built and deployed (SCP-based approach replaced GHCR pull)
+  - [x] Verify SSH deployment runs and smoke tests pass
 
 ## Dev Notes
 
@@ -154,6 +154,12 @@ Claude Opus 4.6
 
 **CI test database:** No secrets required. PostgreSQL 15 service container configured directly in ci.yml with hardcoded test credentials matching `backend/internal/testutil/database.go` defaults (`ditto_test_user`/`test_password`/`ditto_test`).
 
+**Deploy pipeline verification (2026-02-24):**
+- Deploy approach evolved from GHCR pull to SCP-based image transfer (build → `docker save` → SCP → `docker load`) across PRs #47-#50. Final approach avoids GHCR entirely — images are built in Actions, compressed, SCP'd to Hetzner, and loaded locally.
+- `docker-compose.prod.yml` updated with `pull_policy: never` to match SCP-loaded images.
+- 2 consecutive successful deploys (runs #22374907591 and #22330146992) with all smoke tests passing: `/health` 200, frontend 200, HTTPS cert valid.
+- 3 earlier failures (#47, #48, #49) were visible in GitHub Actions with clear error output, confirming AC #4.
+
 ### File List
 
 | Action | Path |
@@ -169,3 +175,96 @@ Claude Opus 4.6
 |------|--------|
 | 2026-02-20 | Story drafted from epic-7.md and tech-spec.md |
 | 2026-02-21 | Implemented CI/CD pipelines, smoke test script, and GHCR image references |
+| 2026-02-24 | Verified deploy pipeline: 2 successful deploys with all smoke tests passing. Marked task 6 complete. |
+| 2026-02-24 | Senior Developer Review notes appended |
+
+## Senior Developer Review (AI)
+
+### Reviewer
+Simon
+
+### Date
+2026-02-24
+
+### Outcome: APPROVE
+
+All 4 acceptance criteria fully implemented with evidence. All 24 completed tasks/subtasks verified. Deploy approach evolved from GHCR to SCP-based transfer (documented across PRs #47-#50) — functionally equivalent and well-justified. No high or medium severity issues found.
+
+### Key Findings
+
+**LOW severity:**
+
+1. **Sleep-based service wait in deploy**: `deploy.yml:56` uses `sleep 30` before smoke tests. A poll-based readiness check would be more robust, but 30s is generous and hasn't caused issues.
+2. **ssh-action version pinning**: `appleboy/ssh-action@v1` uses major tag vs the specific `v0.1.7` pin used for scp-action. Minor inconsistency.
+3. **`-short` flag in CI tests**: `ci.yml:58` runs `go test -p 1 -short ./...`. Currently no tests use `testing.Short()` so this is a no-op, but could mask future tests.
+
+### Acceptance Criteria Coverage
+
+| AC# | Description | Status | Evidence |
+|-----|-------------|--------|----------|
+| 1 | CI pipeline runs on PRs | IMPLEMENTED | `.github/workflows/ci.yml:3-5` — triggers on push and pull_request. 5 parallel jobs: backend-lint (:12), backend-test (:26), frontend-lint (:60), frontend-test (:84), docker-build (:108) |
+| 2 | CD pipeline deploys on merge to main | IMPLEMENTED | `.github/workflows/deploy.yml:4-5` — triggers on push to main. Builds images (:18-25), SCP to host (:33-39), docker load + compose up (:42-53) |
+| 3 | Smoke tests verify deployment | IMPLEMENTED | `scripts/smoke-test.sh:11-37` — health (:11-18), frontend (:20-28), HTTPS (:30-37). Called from deploy.yml:58-61 |
+| 4 | Failures are visible | IMPLEMENTED | CI: standard GH Actions reporting. Deploy: `set -euo pipefail` (:48). Smoke: exit non-zero (:42-43). Confirmed by 3 visible failures in PRs #47-#49 |
+
+**Summary: 4 of 4 acceptance criteria fully implemented**
+
+### Task Completion Validation
+
+| Task | Marked As | Verified As | Evidence |
+|------|-----------|-------------|---------|
+| Create ci.yml | [x] | VERIFIED | `.github/workflows/ci.yml` — 5 parallel jobs |
+| ↳ Trigger: push + PR | [x] | VERIFIED | ci.yml:3-5 |
+| ↳ backend-lint | [x] | VERIFIED | ci.yml:12-24 |
+| ↳ backend-test (PG 15) | [x] | VERIFIED | ci.yml:26-58 |
+| ↳ frontend-lint | [x] | VERIFIED | ci.yml:60-82 |
+| ↳ frontend-test | [x] | VERIFIED | ci.yml:84-106 |
+| ↳ All jobs parallel | [x] | VERIFIED | No `needs:` between jobs |
+| ↳ Clear error output | [x] | VERIFIED | Standard GH Actions + confirmed in practice |
+| Create deploy.yml | [x] | VERIFIED | `.github/workflows/deploy.yml` — 62 lines |
+| ↳ Trigger: push to main | [x] | VERIFIED | deploy.yml:4-5 |
+| ↳ Build images | [x] | VERIFIED | deploy.yml:18-25 |
+| ↳ Deploy to host | [x] | VERIFIED | deploy.yml:42-53 (SCP + SSH) |
+| ↳ Deploy depends on build | [x] | VERIFIED | Single job, sequential steps |
+| ↳ Secrets in GH Actions | [x] | VERIFIED | deploy.yml:36-38 |
+| Create smoke-test.sh | [x] | VERIFIED | `scripts/smoke-test.sh` — 44 lines |
+| ↳ /health returns 200 | [x] | VERIFIED | smoke-test.sh:11-18 |
+| ↳ Frontend HTTP 200 | [x] | VERIFIED | smoke-test.sh:20-28 |
+| ↳ HTTPS cert valid | [x] | VERIFIED | smoke-test.sh:30-37 |
+| ↳ Exit non-zero on fail | [x] | VERIFIED | smoke-test.sh:40-43 |
+| Configure GH secrets | [x] | VERIFIED | Documented in completion notes |
+| ↳ Document secrets | [x] | VERIFIED | Story completion notes table |
+| ↳ Document CI test DB env | [x] | VERIFIED | Completion notes |
+| Test CI on PR | [x] | VERIFIED | PRs #43-#50 |
+| Test deploy pipeline | [x] | VERIFIED | Runs #22374907591, #22330146992 |
+
+**Summary: 24 of 24 completed tasks verified, 0 questionable, 0 false completions**
+
+### Test Coverage and Gaps
+
+- CI runs all existing backend tests (72% coverage) and frontend tests (122 tests/13 suites)
+- `smoke-test.sh` is the new test artifact — verified complete
+- No new unit/integration tests required per story scope — no gaps
+
+### Architectural Alignment
+
+**Documented deviations from tech-spec (justified):**
+1. **SCP vs GHCR**: Evolved across PRs #47-#50. Avoids GHCR auth complexity. `docker-compose.prod.yml` has `pull_policy: never` to match.
+2. **Single deploy job vs two**: Simpler, avoids artifact passing. Functionally equivalent.
+3. **Scrape-service excluded**: Correctly per Story 7.1 archive decision.
+4. **`-p 1 -short` in Go tests**: Prevents DB contention and pragmatic CI choice.
+
+### Security Notes
+
+- No secrets hardcoded in workflows or repo
+- SSH key stored as GitHub Actions secret
+- `cancel-in-progress: false` on deploy prevents concurrent deployments
+- `appleboy/scp-action@v0.1.7` pinned to specific version
+- CI test DB uses hardcoded test credentials (acceptable for isolated CI)
+
+### Action Items
+
+**Advisory Notes:**
+- Note: Consider replacing `sleep 30` in deploy.yml with a poll-based health check loop
+- Note: Consider pinning `appleboy/ssh-action` to a specific version (e.g., `@v1.2.0`) for consistent supply chain security
+- Note: The `-short` flag in CI Go tests is currently a no-op — remove if no intentional long-running tests exist
