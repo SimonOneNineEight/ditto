@@ -28,7 +28,7 @@ func TestRateLimitAuthIP_AllowsRequests(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "10", w.Header().Get("X-RateLimit-Limit"))
+	assert.Equal(t, "20", w.Header().Get("X-RateLimit-Limit"))
 	assert.NotEmpty(t, w.Header().Get("X-RateLimit-Remaining"))
 	assert.NotEmpty(t, w.Header().Get("X-RateLimit-Reset"))
 }
@@ -43,7 +43,7 @@ func TestRateLimitAuthIP_BlocksAfterLimit(t *testing.T) {
 
 	testIP := "10.0.0.1:12345"
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		req := httptest.NewRequest("POST", "/login", nil)
 		req.RemoteAddr = testIP
 		w := httptest.NewRecorder()
@@ -73,7 +73,7 @@ func TestRateLimitAuthIP_DifferentIPsIndependent(t *testing.T) {
 	ip1 := "172.16.0.1:12345"
 	ip2 := "172.16.0.2:12345"
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		req := httptest.NewRequest("POST", "/login", nil)
 		req.RemoteAddr = ip1
 		w := httptest.NewRecorder()
@@ -89,6 +89,86 @@ func TestRateLimitAuthIP_DifferentIPsIndependent(t *testing.T) {
 
 	req = httptest.NewRequest("POST", "/login", nil)
 	req.RemoteAddr = ip2
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestRateLimitRefreshIP_AllowsRequests(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+
+	router.POST("/refresh", RateLimitRefreshIP(), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	req := httptest.NewRequest("POST", "/refresh", nil)
+	req.RemoteAddr = "192.168.2.100:12345"
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "30", w.Header().Get("X-RateLimit-Limit"))
+}
+
+func TestRateLimitRefreshIP_BlocksAfterLimit(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+
+	router.POST("/refresh", RateLimitRefreshIP(), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	testIP := "10.0.0.50:12345"
+
+	for i := 0; i < 30; i++ {
+		req := httptest.NewRequest("POST", "/refresh", nil)
+		req.RemoteAddr = testIP
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+	}
+
+	req := httptest.NewRequest("POST", "/refresh", nil)
+	req.RemoteAddr = testIP
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusTooManyRequests, w.Code)
+}
+
+func TestRateLimitAuthAndRefresh_IndependentBuckets(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+
+	router.POST("/login", RateLimitAuthIP(), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "login"})
+	})
+	router.POST("/refresh", RateLimitRefreshIP(), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "refresh"})
+	})
+
+	testIP := "10.0.0.99:12345"
+
+	// Exhaust auth limiter
+	for i := 0; i < 20; i++ {
+		req := httptest.NewRequest("POST", "/login", nil)
+		req.RemoteAddr = testIP
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+	}
+
+	// Auth should be blocked
+	req := httptest.NewRequest("POST", "/login", nil)
+	req.RemoteAddr = testIP
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusTooManyRequests, w.Code)
+
+	// Refresh should still work
+	req = httptest.NewRequest("POST", "/refresh", nil)
+	req.RemoteAddr = testIP
 	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)

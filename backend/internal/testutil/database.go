@@ -74,6 +74,7 @@ func (td *TestDatabase) RunMigrations(t *testing.T) {
 		DROP TABLE IF EXISTS user_jobs CASCADE;
 		DROP TABLE IF EXISTS jobs CASCADE;
 		DROP TABLE IF EXISTS companies CASCADE;
+		DROP TABLE IF EXISTS user_refresh_tokens CASCADE;
 		DROP TABLE IF EXISTS users_auth CASCADE;
 		DROP TABLE IF EXISTS users CASCADE;
 	`
@@ -103,14 +104,22 @@ func (td *TestDatabase) RunMigrations(t *testing.T) {
 
 		CREATE TABLE users_auth (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-			user_id UUID UNIQUE REFERENCES users(id),
+			user_id UUID REFERENCES users(id),
 			password_hash TEXT NULL,
 			auth_provider TEXT NOT NULL,
 			avatar_url TEXT NULL,
-			refresh_token TEXT NULL,
-			refresh_token_expires_at TIMESTAMP NULL,
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			CONSTRAINT users_auth_user_provider_unique UNIQUE (user_id, auth_provider)
+		);
+
+		CREATE TABLE user_refresh_tokens (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			refresh_token TEXT NOT NULL,
+			expires_at TIMESTAMP NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			CONSTRAINT user_refresh_tokens_user_unique UNIQUE (user_id)
 		);
 
 		CREATE TABLE companies (
@@ -405,6 +414,7 @@ func (td *TestDatabase) Truncate(t *testing.T) {
 		"user_jobs",
 		"jobs",
 		"companies",
+		"user_refresh_tokens",
 		"users_auth",
 		"users",
 	}

@@ -20,13 +20,20 @@ func (u *User) IsDeleted() bool {
 }
 
 type UserAuth struct {
-	ID                    uuid.UUID  `json:"id" db:"id"`
-	UserID                uuid.UUID  `json:"user_id" db:"user_id"`
-	PasswordHash          *string    `json:"-" db:"password_hash"`
-	AuthProvider          string     `json:"auth_provider" db:"auth_provider"`
-	AvatarURL             *string    `json:"avatar_url,omitempty" db:"avatar_url"`
-	RefreshToken          *string    `json:"-" db:"refresh_token"`
-	RefreshTokenExpiresAt *time.Time `json:"-" db:"refresh_token_expires_at"`
-	CreatedAt             time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt             time.Time  `json:"updated_at" db:"updated_at"`
+	ID           uuid.UUID `json:"id" db:"id"`
+	UserID       uuid.UUID `json:"user_id" db:"user_id"`
+	PasswordHash *string   `json:"-" db:"password_hash"`
+	AuthProvider  string  `json:"auth_provider" db:"auth_provider"`
+	ProviderEmail *string `json:"provider_email,omitempty" db:"provider_email"`
+	AvatarURL     *string `json:"avatar_url,omitempty" db:"avatar_url"`
+	CreatedAt    time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+}
+
+type UserRefreshToken struct {
+	ID           uuid.UUID `json:"id" db:"id"`
+	UserID       uuid.UUID `json:"user_id" db:"user_id"`
+	RefreshToken string    `json:"-" db:"refresh_token"`
+	ExpiresAt    time.Time `json:"-" db:"expires_at"`
+	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 }

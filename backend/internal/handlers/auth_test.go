@@ -39,9 +39,6 @@ func newAuthTestEnv(t *testing.T) *authTestEnv {
 	t.Cleanup(func() { db.Close(t) })
 	db.RunMigrations(t)
 
-	_, err := db.Exec("ALTER TABLE users_auth ADD CONSTRAINT users_auth_user_id_unique UNIQUE (user_id)")
-	require.NoError(t, err)
-
 	sanitizer := services.NewSanitizerService()
 	appState := &utils.AppState{
 		DB:        db.Database,
@@ -67,9 +64,6 @@ func newAuthTestEnvProtected(t *testing.T) *authTestEnvProtected {
 	db := testutil.NewTestDatabase(t)
 	t.Cleanup(func() { db.Close(t) })
 	db.RunMigrations(t)
-
-	_, err := db.Exec("ALTER TABLE users_auth ADD CONSTRAINT users_auth_user_id_unique UNIQUE (user_id)")
-	require.NoError(t, err)
 
 	sanitizer := services.NewSanitizerService()
 	appState := &utils.AppState{
@@ -650,7 +644,7 @@ func TestAuthOAuthLogin(t *testing.T) {
 		assert.Equal(t, "OAuth User", user["name"])
 	})
 
-	t.Run("ExistingUser", func(t *testing.T) {
+	t.Run("ExistingUser_SameProvider", func(t *testing.T) {
 		payload := map[string]interface{}{
 			"provider": "github",
 			"email":    "existing-oauth@example.com",
@@ -769,5 +763,92 @@ func TestAuthOAuthLogin(t *testing.T) {
 
 		resp := parseResponse(t, w)
 		assert.True(t, resp["success"].(bool))
+	})
+
+	t.Run("MultiProvider_AutoLinkByEmail", func(t *testing.T) {
+		email := "multi@example.com"
+
+		w := postJSON(env.router, "/api/oauth", jsonBody(t, map[string]interface{}{
+			"provider": "github", "email": email, "name": "Multi User",
+		}))
+		require.Equal(t, http.StatusOK, w.Code)
+
+		resp := parseResponse(t, w)
+		data := resp["data"].(map[string]interface{})
+		userID := data["user"].(map[string]interface{})["id"].(string)
+
+		w = postJSON(env.router, "/api/oauth", jsonBody(t, map[string]interface{}{
+			"provider": "google", "email": email, "name": "Multi User",
+		}))
+		require.Equal(t, http.StatusOK, w.Code)
+
+		resp = parseResponse(t, w)
+		data = resp["data"].(map[string]interface{})
+		assert.Equal(t, userID, data["user"].(map[string]interface{})["id"].(string))
+
+		githubAuth, err := env.userRepo.GetUserAuthByProvider(uuid.MustParse(userID), "github")
+		require.NoError(t, err)
+		assert.Equal(t, "github", githubAuth.AuthProvider)
+
+		googleAuth, err := env.userRepo.GetUserAuthByProvider(uuid.MustParse(userID), "google")
+		require.NoError(t, err)
+		assert.Equal(t, "google", googleAuth.AuthProvider)
+	})
+
+	t.Run("MultiProvider_RegisterThenOAuth", func(t *testing.T) {
+		regPayload := map[string]string{
+			"email": "regthnoauth@example.com", "name": "Reg User", "password": "password123",
+		}
+		w := postJSON(env.router, "/api/users", jsonBody(t, regPayload))
+		require.Equal(t, http.StatusOK, w.Code)
+
+		resp := parseResponse(t, w)
+		userID := resp["data"].(map[string]interface{})["user"].(map[string]interface{})["id"].(string)
+
+		w = postJSON(env.router, "/api/oauth", jsonBody(t, map[string]interface{}{
+			"provider": "github", "email": "regthnoauth@example.com", "name": "Reg User",
+		}))
+		require.Equal(t, http.StatusOK, w.Code)
+
+		resp = parseResponse(t, w)
+		assert.Equal(t, userID, resp["data"].(map[string]interface{})["user"].(map[string]interface{})["id"].(string))
+
+		localAuth, err := env.userRepo.GetUserAuthByProvider(uuid.MustParse(userID), "local")
+		require.NoError(t, err)
+		assert.NotNil(t, localAuth.PasswordHash)
+
+		githubAuth, err := env.userRepo.GetUserAuthByProvider(uuid.MustParse(userID), "github")
+		require.NoError(t, err)
+		assert.Equal(t, "github", githubAuth.AuthProvider)
+
+		loginPayload := map[string]string{
+			"email": "regthnoauth@example.com", "password": "password123",
+		}
+		w = postJSON(env.router, "/api/login", jsonBody(t, loginPayload))
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("SameProvider_NoDoublication", func(t *testing.T) {
+		email := "nodedup@example.com"
+		avatar1 := "https://avatar1.png"
+		avatar2 := "https://avatar2.png"
+
+		w := postJSON(env.router, "/api/oauth", jsonBody(t, map[string]interface{}{
+			"provider": "github", "email": email, "name": "User", "avatar_url": avatar1,
+		}))
+		require.Equal(t, http.StatusOK, w.Code)
+
+		resp := parseResponse(t, w)
+		userID := resp["data"].(map[string]interface{})["user"].(map[string]interface{})["id"].(string)
+
+		w = postJSON(env.router, "/api/oauth", jsonBody(t, map[string]interface{}{
+			"provider": "github", "email": email, "name": "User", "avatar_url": avatar2,
+		}))
+		require.Equal(t, http.StatusOK, w.Code)
+
+		auth, err := env.userRepo.GetUserAuthByProvider(uuid.MustParse(userID), "github")
+		require.NoError(t, err)
+		require.NotNil(t, auth.AvatarURL)
+		assert.Equal(t, avatar2, *auth.AvatarURL)
 	})
 }
