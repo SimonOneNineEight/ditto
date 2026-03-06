@@ -1,0 +1,10 @@
+- Application status can't change now
+- Add draft status to application status
+- Document security problem, need restrict permission to access the documents
+- interview status didn't correctly count in the dashboard - need to change status to interview when interview is created
+- Color review in light scheme
+- Need feedback logic (how does it consider need feedback)
+- file page (add info in the documents card e.g. application/interview etc), need better flow to let this page explain its usage more
+- Add interview status (not only display date)
+- Add email varification for reset password
+- reduce application page file card space between title and infos

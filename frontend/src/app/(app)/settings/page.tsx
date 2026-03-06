@@ -10,6 +10,7 @@ import { ExportDialog } from '@/components/export-dialog';
 import { toast } from 'sonner';
 import { exportFullBackup } from '@/services/exportService';
 import { DeleteAccountDialog } from '@/components/settings/DeleteAccountDialog';
+import { LinkedProviders } from '@/components/account/linked-providers';
 
 export default function SettingsPage() {
     const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -36,6 +37,8 @@ export default function SettingsPage() {
             />
 
             <section className="flex w-full flex-col gap-6">
+                <LinkedProviders />
+
                 <NotificationPreferences />
 
                 <Card>

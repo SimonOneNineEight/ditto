@@ -28,7 +28,13 @@ type ipRateLimiter struct {
 
 var authIPRateLimiter = &ipRateLimiter{
 	entries: make(map[string]*ipRateLimitEntry),
-	limit:   10,
+	limit:   20,
+	window:  1 * time.Minute,
+}
+
+var refreshIPRateLimiter = &ipRateLimiter{
+	entries: make(map[string]*ipRateLimitEntry),
+	limit:   30,
 	window:  1 * time.Minute,
 }
 
@@ -37,6 +43,7 @@ func init() {
 		ticker := time.NewTicker(5 * time.Minute)
 		for range ticker.C {
 			authIPRateLimiter.cleanup()
+			refreshIPRateLimiter.cleanup()
 		}
 	}()
 }
@@ -76,14 +83,13 @@ func (rl *ipRateLimiter) isAllowed(key string) (bool, int, time.Time) {
 	return true, rl.limit - entry.count, entry.windowEnd
 }
 
-// RateLimitAuthIP applies IP-based rate limiting to unauthenticated auth endpoints.
-func RateLimitAuthIP() gin.HandlerFunc {
+func rateLimitIPMiddleware(limiter *ipRateLimiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientIP := c.ClientIP()
 
-		allowed, remaining, resetTime := authIPRateLimiter.isAllowed(clientIP)
+		allowed, remaining, resetTime := limiter.isAllowed(clientIP)
 
-		c.Header("X-RateLimit-Limit", "10")
+		c.Header("X-RateLimit-Limit", strconv.Itoa(limiter.limit))
 		c.Header("X-RateLimit-Remaining", strconv.Itoa(remaining))
 		c.Header("X-RateLimit-Reset", strconv.FormatInt(resetTime.Unix(), 10))
 
@@ -95,8 +101,11 @@ func RateLimitAuthIP() gin.HandlerFunc {
 			c.Header("Retry-After", strconv.Itoa(retryAfter))
 
 			c.JSON(http.StatusTooManyRequests, gin.H{
-				"error": "Too many requests. Please try again later.",
-				"code":  "RATE_LIMIT",
+				"success": false,
+				"error": map[string]any{
+					"error": "Too many requests. Please try again later.",
+					"code":  "RATE_LIMIT",
+				},
 			})
 			c.Abort()
 			return
@@ -104,6 +113,14 @@ func RateLimitAuthIP() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func RateLimitAuthIP() gin.HandlerFunc {
+	return rateLimitIPMiddleware(authIPRateLimiter)
+}
+
+func RateLimitRefreshIP() gin.HandlerFunc {
+	return rateLimitIPMiddleware(refreshIPRateLimiter)
 }
 
 // User-based rate limiting for authenticated endpoints

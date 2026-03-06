@@ -1,0 +1,302 @@
+<story-context id="story-auth-multiprovider-3" v="1.0">
+  <metadata>
+    <epicId>8</epicId>
+    <storyId>3</storyId>
+    <title>Frontend — LinkedIn OAuth &amp; Account Settings UI</title>
+    <status>Draft</status>
+    <generatedAt>2026-02-27</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/planning/stories/story-auth-multiprovider-3.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to see my linked providers in account settings and link/unlink them with a click</iWant>
+    <soThat>I can manage how I sign into Ditto</soThat>
+    <tasks>
+- [ ] Add LinkedIn button to `oauth-buttons.tsx` (AC: #1, #2)
+  - [ ] Import LinkedIn icon from `@icons-pack/react-simple-icons`
+  - [ ] Add LinkedIn `signIn('linkedin')` button with same styling as GitHub/Google
+  - [ ] Verify LinkedIn provider is configured in `auth.ts` (add if missing)
+- [ ] Add LinkedIn provider to NextAuth config in `auth.ts` if not present (AC: #2)
+- [ ] Create `services/account-service.ts` (AC: #3-#8)
+  - [ ] `getLinkedProviders()` — `GET /api/account/providers`
+  - [ ] `linkProvider(data)` — `POST /api/account/link-provider`
+  - [ ] `unlinkProvider(provider)` — `DELETE /api/account/providers/:provider`
+  - [ ] `setPassword(password)` — `POST /api/account/set-password`
+  - [ ] `changePassword(currentPassword, newPassword)` — `PUT /api/account/change-password`
+- [ ] Create `components/account/linked-providers.tsx` (AC: #3, #4, #5, #6)
+  - [ ] Fetch and display linked providers on mount
+  - [ ] Show provider icon + name + "Unlink" button for each linked provider
+  - [ ] Show "Link" button for unlinked providers (GitHub, Google, LinkedIn)
+  - [ ] Disable unlink button when only 1 method remains, show tooltip
+  - [ ] Link flow: trigger OAuth signIn popup → on success call linkProvider API → refresh list → success toast
+  - [ ] Unlink flow: confirmation dialog → call unlinkProvider API → refresh list → success toast
+  - [ ] Error handling: display error toasts for 409 (already linked), 400 (last method)
+- [ ] Create `components/account/password-section.tsx` (AC: #7, #8)
+  - [ ] Determine mode: "set" (no password) vs "change" (has password) based on provider list
+  - [ ] Set mode: password + confirm fields, zod validation (min length), submit calls setPassword
+  - [ ] Change mode: current password + new password + confirm fields, submit calls changePassword
+  - [ ] Success: toast notification, reset form
+  - [ ] Error: display validation errors inline, toast for server errors
+- [ ] Integrate components into account settings page (AC: #3, #7)
+  - [ ] Add "Login Methods" card section with LinkedProviders component
+  - [ ] Add "Password" card section with PasswordSection component
+- [ ] Write frontend tests (AC: #9)
+  - [ ] Test LinkedProviders: renders linked providers, shows unlink buttons, disables last method unlink
+  - [ ] Test LinkedProviders: shows link buttons for unlinked providers
+  - [ ] Test PasswordSection: renders set-password form when no password, change-password form when has password
+  - [ ] Test oauth-buttons: LinkedIn button renders on login/register pages
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+AC #1: Given the login and register pages, when rendered, then a LinkedIn OAuth button appears alongside GitHub and Google buttons with correct LinkedIn icon and styling.
+
+AC #2: Given LinkedIn OAuth credentials are configured, when a user clicks the LinkedIn button on the login page, then the OAuth flow completes and the user is logged in / account is created.
+
+AC #3: Given a user visits account settings, when the page loads, then they see a "Login Methods" section showing all linked providers with provider icon, name, and unlink button.
+
+AC #4: Given a user clicks "Link Google" in account settings, when the OAuth popup completes, then Google appears in the linked providers list with a success toast notification.
+
+AC #5: Given a user clicks "Unlink GitHub" and confirms in the confirmation dialog, when the request completes, then GitHub is removed from the list with a success toast.
+
+AC #6: Given a user has only one auth method remaining, when viewing account settings, then the unlink button for that method is disabled with a tooltip "This is your only login method."
+
+AC #7: Given an OAuth-only user (no password set), when they view account settings, then they see a "Set Password" form with password and confirm fields. Given a user with a password already set, then they see "Change Password" with current password, new password, and confirm fields.
+
+AC #8: Given a user submits the set-password or change-password form with valid data, when the request succeeds, then a success toast appears and the form resets.
+
+AC #9: Frontend tests cover LinkedProviders component rendering (linked/unlinked states, disabled unlink) and PasswordSection component rendering (set vs change mode).
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/planning/tech-spec-auth-multiprovider-ratelimit.md</path>
+        <title>Multi-Provider Auth &amp; Rate Limit Tuning Tech Spec</title>
+        <section>Implementation Details — Phase 3: Frontend LinkedIn OAuth &amp; Account Settings UI</section>
+        <snippet>Contains UX/UI considerations, NextAuth integration details for link flow, component specifications, and accessibility requirements for the frontend implementation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-frontend.md</path>
+        <title>Ditto Frontend Architecture</title>
+        <section>Next.js App Router, Component Patterns, Service Layer</section>
+        <snippet>Defines the App Router structure, shadcn/ui component conventions, react-hook-form + zod validation patterns, axios service layer, and sonner toast notification usage.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/epics-auth-multiprovider.md</path>
+        <title>Epic 8: Multi-Provider Authentication &amp; Account Security</title>
+        <section>Story 8.3: Frontend — LinkedIn OAuth &amp; Account Settings UI</section>
+        <snippet>Epic-level acceptance criteria and story map showing Story 8.3 depends on Story 8.2 (account management API). Defines LinkedIn OAuth, linked providers UI, and password management goals.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/stories/story-auth-multiprovider-3.md</path>
+        <title>Story 8.3: Frontend — LinkedIn OAuth &amp; Account Settings UI</title>
+        <section>Implementation Details, Key Code References, Context References</section>
+        <snippet>Full story with tasks/subtasks, technical summary, project structure notes, and key code reference table mapping existing code locations to reuse patterns.</snippet>
+      </doc>
+    </docs>
+
+    <design>
+      <file>
+        <path>ditto-design.pen</path>
+        <title>Ditto Design System &amp; Screen Designs</title>
+        <screens>
+          <screen id="T5Fuo" name="Login" width="1440" height="900">
+            <description>Desktop login page with left branding panel and right form panel containing OAuth buttons (GitHub, Google, LinkedIn) and credential login form.</description>
+            <relevantACs>1, 2</relevantACs>
+          </screen>
+          <screen id="68mf0" name="Login - Tablet (768)" width="768">
+            <description>Tablet-responsive login page with stacked layout.</description>
+            <relevantACs>1, 2</relevantACs>
+          </screen>
+          <screen id="00wwd" name="Login - Mobile (375)" width="375">
+            <description>Mobile-responsive login page.</description>
+            <relevantACs>1, 2</relevantACs>
+          </screen>
+          <screen id="ZEpiS" name="Settings" width="1440" height="2250">
+            <description>Desktop settings page with sidebar and main content area. Contains LoginMethodsCard with providersList showing linked providers (icon, name, unlink button) and passwordSection.</description>
+            <relevantACs>3, 4, 5, 6, 7</relevantACs>
+          </screen>
+          <screen id="X0iY9" name="Settings - User Dropdown" width="1440" height="1280">
+            <description>Desktop settings with user dropdown menu open.</description>
+            <relevantACs>3</relevantACs>
+          </screen>
+          <screen id="emU5v" name="Settings - Delete Account" width="1440" height="1280">
+            <description>Desktop settings with delete account confirmation dialog overlay.</description>
+            <relevantACs>3</relevantACs>
+          </screen>
+          <screen id="t4Nhe" name="Settings - Set Password Modal" width="1440" height="1620">
+            <description>Desktop settings with "Set Password" modal dialog open. Modal contains header, password fields (new password + confirm), and footer with cancel/save buttons. For OAuth-only users without a password.</description>
+            <relevantACs>7, 8</relevantACs>
+          </screen>
+          <screen id="2pulb" name="Settings - Change Password Modal" width="1440" height="1620">
+            <description>Desktop settings with "Change Password" modal dialog open. Modal contains header, password fields (current password + new password + confirm), and footer with cancel/save buttons. For users with an existing password.</description>
+            <relevantACs>7, 8</relevantACs>
+          </screen>
+          <screen id="Qbeyc" name="Settings - Tablet (768)" width="768">
+            <description>Tablet-responsive settings page with LoginMethodsCard containing providersList and passwordSection.</description>
+            <relevantACs>3, 4, 5, 6, 7</relevantACs>
+          </screen>
+          <screen id="l3SvA" name="Settings - Mobile (375)" width="375">
+            <description>Mobile-responsive settings page with LoginMethodsCard containing providersList and passwordSection.</description>
+            <relevantACs>3, 4, 5, 6, 7</relevantACs>
+          </screen>
+          <screen id="lOvro" name="Settings - Tablet - User Dropdown" width="768" height="1571">
+            <description>Tablet settings with user dropdown open and LoginMethodsCard visible.</description>
+            <relevantACs>3</relevantACs>
+          </screen>
+          <screen id="jOjB5" name="Settings - Mobile - User Dropdown" width="375" height="1516">
+            <description>Mobile settings with user dropdown open and LoginMethodsCard visible.</description>
+            <relevantACs>3</relevantACs>
+          </screen>
+          <screen id="HGwfL" name="Settings - Tablet - Delete Account" width="768" height="1196">
+            <description>Tablet settings with delete account dialog overlay.</description>
+            <relevantACs>3</relevantACs>
+          </screen>
+          <screen id="2vvQa" name="Settings - Mobile - Delete Account" width="375" height="1173">
+            <description>Mobile settings with delete account dialog overlay.</description>
+            <relevantACs>3</relevantACs>
+          </screen>
+        </screens>
+        <keyComponents>
+          <component name="LoginMethodsCard" instances="ZEpiS, Qbeyc (4gRGX), l3SvA (KdJso), lOvro (nssSb), jOjB5 (IfS0s)">
+            Contains providersList (linked provider rows with icon, name, unlink button), divider, and passwordSection (password status with set/change action).
+          </component>
+          <component name="setPasswordModal" id="EEQ2O" parent="t4Nhe">
+            Modal with header, body (password + confirm fields), footer (cancel + save buttons). Used for OAuth-only users setting their first password.
+          </component>
+          <component name="changePasswordModal" id="HowaO" parent="2pulb">
+            Modal with header, body (current password + new password + confirm fields), footer (cancel + save buttons). Used for users changing existing password.
+          </component>
+        </keyComponents>
+      </file>
+    </design>
+
+    <code>
+      <file>
+        <path>frontend/src/app/(auth)/components/oauth-buttons.tsx</path>
+        <kind>component</kind>
+        <symbol>OAuthButtons</symbol>
+        <lines>1-42</lines>
+        <reason>Existing OAuth button component rendering GitHub and Google buttons — extend with LinkedIn button using same pattern.</reason>
+      </file>
+      <file>
+        <path>frontend/src/auth.ts</path>
+        <kind>config</kind>
+        <symbol>handlers, signIn, signOut, auth, refreshAccessToken</symbol>
+        <lines>1-152</lines>
+        <reason>NextAuth configuration with GitHub, Google, and Credentials providers. Add LinkedIn provider. Reference signIn callback for link flow integration.</reason>
+      </file>
+      <file>
+        <path>frontend/src/services/auth-service.ts</path>
+        <kind>service</kind>
+        <symbol>authService</symbol>
+        <lines>1-59</lines>
+        <reason>Service layer pattern to follow for new account-service.ts — uses axios instance with typed API calls.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(auth)/components/market-banner.tsx</path>
+        <kind>component</kind>
+        <symbol>MarketBanner</symbol>
+        <lines>1-62</lines>
+        <reason>Left panel branding component on login page — reference for layout context.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(auth)/components/auth-styles.ts</path>
+        <kind>styles</kind>
+        <symbol>AUTH_INPUT_CLASS</symbol>
+        <lines>1-3</lines>
+        <reason>Shared auth input styling constant — reuse for consistency.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <npm>
+        <package name="next-auth" version="5.x">Authentication framework</package>
+        <package name="next-auth/providers/linkedin">LinkedIn OAuth provider</package>
+        <package name="@icons-pack/react-simple-icons">Provider icons (SiLinkedin)</package>
+        <package name="react-hook-form">Form state management</package>
+        <package name="zod">Schema validation</package>
+        <package name="@hookform/resolvers/zod">Zod resolver for react-hook-form</package>
+        <package name="sonner">Toast notifications</package>
+        <package name="axios">HTTP client for API calls</package>
+      </npm>
+      <note>LinkedIn provider may need to be installed if not bundled with next-auth. @icons-pack/react-simple-icons should already be installed for existing OAuth icons.</note>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/account/providers</name>
+      <kind>REST endpoint (from Story 8.2)</kind>
+      <signature>GET /api/account/providers → { success: true, data: [{ auth_provider, avatar_url, created_at }] }</signature>
+      <path>backend/internal/handlers/account.go</path>
+    </interface>
+    <interface>
+      <name>POST /api/account/link-provider</name>
+      <kind>REST endpoint (from Story 8.2)</kind>
+      <signature>POST /api/account/link-provider { provider, email, name, avatar_url } → { success: true, data: [providers] } | 409 conflict</signature>
+      <path>backend/internal/handlers/account.go</path>
+    </interface>
+    <interface>
+      <name>DELETE /api/account/providers/:provider</name>
+      <kind>REST endpoint (from Story 8.2)</kind>
+      <signature>DELETE /api/account/providers/:provider → { success: true, data: [providers] } | 400 last method</signature>
+      <path>backend/internal/handlers/account.go</path>
+    </interface>
+    <interface>
+      <name>POST /api/account/set-password</name>
+      <kind>REST endpoint (from Story 8.2)</kind>
+      <signature>POST /api/account/set-password { password } → { success: true, data: { message } } | 400 already set</signature>
+      <path>backend/internal/handlers/account.go</path>
+    </interface>
+    <interface>
+      <name>PUT /api/account/change-password</name>
+      <kind>REST endpoint (from Story 8.2)</kind>
+      <signature>PUT /api/account/change-password { current_password, new_password } → { success: true, data: { message } } | 401 wrong password</signature>
+      <path>backend/internal/handlers/account.go</path>
+    </interface>
+    <interface>
+      <name>NextAuth signIn()</name>
+      <kind>Client-side auth function</kind>
+      <signature>signIn(provider: string, options?: { redirect?: boolean, callbackUrl?: string }) → Promise</signature>
+      <path>next-auth/react</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>Follow existing shadcn/ui Card component pattern for Settings page sections</constraint>
+    <constraint>Use react-hook-form + zod for all form validation (password fields)</constraint>
+    <constraint>Use sonner toast() for success/error notifications</constraint>
+    <constraint>Use axios-based service layer pattern from auth-service.ts for API calls</constraint>
+    <constraint>OAuth link flow reuses NextAuth signIn() in popup mode, then calls backend link-provider endpoint</constraint>
+    <constraint>LinkedIn button must match existing GitHub/Google button styling in oauth-buttons.tsx</constraint>
+    <constraint>Responsive design must match Pencil designs: desktop (1440), tablet (768), mobile (375)</constraint>
+    <constraint>Password modals follow existing modal pattern (setPasswordModal, changePasswordModal from design)</constraint>
+    <constraint>Disable unlink when only 1 auth method remains — show tooltip explanation</constraint>
+    <constraint>Only add comments that explain WHY, not WHAT — code should be self-documenting</constraint>
+    <constraint>Prerequisite: Story 8.2 API endpoints must be available</constraint>
+  </constraints>
+
+  <tests>
+    <standards>Frontend tests use Vitest with React Testing Library. Mock API calls with vi.mock(). Test component rendering states and user interactions. Run with `pnpm test` from frontend directory.</standards>
+    <locations>
+      <location>frontend/src/components/account/__tests__/linked-providers.test.tsx (new)</location>
+      <location>frontend/src/components/account/__tests__/password-section.test.tsx (new)</location>
+      <location>frontend/src/app/(auth)/components/__tests__/oauth-buttons.test.tsx (new or extend)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test OAuthButtons renders LinkedIn button alongside GitHub and Google</idea>
+      <idea ac="3">Test LinkedProviders renders list of linked providers with icons and unlink buttons</idea>
+      <idea ac="3">Test LinkedProviders shows link buttons for unlinked providers</idea>
+      <idea ac="6">Test LinkedProviders disables unlink button when only one method linked, shows tooltip</idea>
+      <idea ac="4,5">Test LinkedProviders calls correct API on link/unlink actions</idea>
+      <idea ac="7">Test PasswordSection renders "Set Password" form when user has no password</idea>
+      <idea ac="7">Test PasswordSection renders "Change Password" form when user has password</idea>
+      <idea ac="8">Test PasswordSection shows success toast and resets form on successful submission</idea>
+      <idea ac="8">Test PasswordSection shows validation errors for invalid input</idea>
+    </ideas>
+  </tests>
+</story-context>

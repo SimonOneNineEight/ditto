@@ -1,0 +1,319 @@
+<story-context id="story-auth-multiprovider-1" v="1.0">
+  <metadata>
+    <epicId>8</epicId>
+    <storyId>1</storyId>
+    <title>Multi-Provider Auth Backend &amp; Rate Limit Tuning</title>
+    <status>drafted</status>
+    <generatedAt>2026-02-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/planning/stories/story-auth-multiprovider-1.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to log in with any of my OAuth providers and reach the same account</iWant>
+    <soThat>I don't end up with duplicate accounts or lose access to my data</soThat>
+    <tasks>
+      <task id="t1" ac="1,2,4">Create migration 000015_multi_provider_auth (drop UNIQUE(user_id), add UNIQUE(user_id, auth_provider), create user_refresh_tokens table, migrate data, drop old columns)</task>
+      <task id="t2" ac="4">Create down migration 000015_multi_provider_auth.down.sql</task>
+      <task id="t3" ac="4">Update UserAuth model — remove RefreshToken and RefreshTokenExpiresAt fields</task>
+      <task id="t4" ac="4">Create UserRefreshToken model</task>
+      <task id="t5" ac="1,2,3">Refactor CreateOrUpdateOAuthUser() — insert new auth rows per provider instead of ON CONFLICT overwrite</task>
+      <task id="t6" ac="4">Add UpsertRefreshToken() and GetRefreshToken() to user repository using user_refresh_tokens table</task>
+      <task id="t7" ac="4">Update RefreshToken handler to use new table</task>
+      <task id="t8" ac="1">Update Login handler — query users_auth WHERE auth_provider = 'local' for password check</task>
+      <task id="t9" ac="1,2,3">Update OAuthLogin handler to work with refactored repository</task>
+      <task id="t10" ac="5">Increase authIPRateLimiter limit from 10 to 20, create refreshIPRateLimiter with limit 30</task>
+      <task id="t11" ac="5">Create RateLimitRefreshIP() middleware, move refresh_token route to separate rate limit group</task>
+      <task id="t12" ac="6">Update existing auth tests, add new multi-provider and rate limit tests</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Given a user registered with email/password, when they log in with GitHub OAuth (same email), then a new users_auth row is created for GitHub AND the existing password auth row is preserved.</ac>
+    <ac id="2">Given a user who previously logged in with GitHub, when they log in with Google (same email), then both GitHub and Google auth rows exist for the same user.</ac>
+    <ac id="3">Given a user re-logs in with the same OAuth provider, when the callback hits the backend, then the existing auth row is updated (avatar, name) — no duplicate row is created.</ac>
+    <ac id="4">Given the refresh token endpoint is called, when the user has a valid refresh token, then it reads from the user_refresh_tokens table (not users_auth).</ac>
+    <ac id="5">Given the rate limit on auth endpoints, when a user makes 20 requests within 1 minute, then the 21st is rejected with 429 — and refresh token has its own separate 30/min bucket.</ac>
+    <ac id="6">All existing auth tests pass with updated multi-provider behavior. New tests cover multi-provider scenarios.</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/planning/tech-spec-auth-multiprovider-ratelimit.md</path>
+        <title>Tech Spec: Multi-Provider Auth &amp; Rate Limit Tuning</title>
+        <section>Implementation Details — Database Migration, Technical Approach, Rate Limit Implementation</section>
+        <snippet>Complete migration SQL (DDL), refactored OAuth login flow pseudocode, rate limit configuration changes, data model before/after diagrams. Primary context document for this epic.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/epics-auth-multiprovider.md</path>
+        <title>Epic 8: Multi-Provider Authentication &amp; Account Security</title>
+        <section>Story Map, Success Criteria</section>
+        <snippet>Epic breakdown with 3 stories (8.1 backend core, 8.2 account management, 8.3 frontend). Story 8.1 is foundational — no forward dependencies.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-backend.md</path>
+        <title>Backend Architecture</title>
+        <section>Layered Architecture, Middleware, Error Handling, Testing Patterns</section>
+        <snippet>Go/Gin backend follows handler → repository → model pattern with dependency injection via AppState. Rate limiting uses IP-based in-memory limiter for public endpoints.</snippet>
+      </doc>
+      <doc>
+        <path>docs/database-schema.md</path>
+        <title>Database Schema</title>
+        <section>users, users_auth tables</section>
+        <snippet>Current schema: users (id, email UNIQUE, name, timestamps, soft delete) and users_auth (id, user_id UNIQUE, password_hash nullable, auth_provider, avatar_url, refresh_token, timestamps).</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Migration being replaced -->
+      <file>
+        <path>backend/migrations/000002_add_users_auth_user_id_unique.up.sql</path>
+        <kind>migration</kind>
+        <symbol>users_auth_user_id_unique constraint</symbol>
+        <lines>1-1</lines>
+        <reason>The UNIQUE(user_id) constraint being dropped — this enforces one-to-one that must become one-to-many</reason>
+      </file>
+
+      <!-- Initial schema for reference -->
+      <file>
+        <path>backend/migrations/000001_initial_schema.up.sql</path>
+        <kind>migration</kind>
+        <symbol>users, users_auth table DDL</symbol>
+        <lines>15-34</lines>
+        <reason>Original table definitions — users_auth has refresh_token and refresh_token_expires_at columns that will be extracted to new table</reason>
+      </file>
+
+      <!-- User model -->
+      <file>
+        <path>backend/internal/models/user.go</path>
+        <kind>model</kind>
+        <symbol>User, UserAuth structs</symbol>
+        <lines>all</lines>
+        <reason>UserAuth struct must be updated: remove RefreshToken and RefreshTokenExpiresAt fields. Add new UserRefreshToken struct.</reason>
+      </file>
+
+      <!-- User repository — primary refactor target -->
+      <file>
+        <path>backend/internal/repository/user.go</path>
+        <kind>repository</kind>
+        <symbol>CreateOrUpdateOAuthUser</symbol>
+        <lines>269-344</lines>
+        <reason>Primary refactor target — ON CONFLICT (user_id) DO UPDATE must become check-and-insert per provider</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/user.go</path>
+        <kind>repository</kind>
+        <symbol>GetUserAuth</symbol>
+        <lines>106-122</lines>
+        <reason>Currently returns single auth row — Login handler needs to query by (user_id, auth_provider='local') instead</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/user.go</path>
+        <kind>repository</kind>
+        <symbol>UpdateRefreshToken, ValidateRefreshToken, ClearRefreshToken</symbol>
+        <lines>124-166</lines>
+        <reason>All refresh token methods must be rewritten to use user_refresh_tokens table instead of users_auth</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/user.go</path>
+        <kind>repository</kind>
+        <symbol>GetUserByEmail</symbol>
+        <lines>74-88</lines>
+        <reason>Used by CreateOrUpdateOAuthUser — no changes needed, just reference for flow understanding</reason>
+      </file>
+
+      <!-- Auth handler -->
+      <file>
+        <path>backend/internal/handlers/auth.go</path>
+        <kind>handler</kind>
+        <symbol>OAuthLogin</symbol>
+        <lines>280-335</lines>
+        <reason>Calls CreateOrUpdateOAuthUser and UpdateRefreshToken — must work with refactored repository</reason>
+      </file>
+      <file>
+        <path>backend/internal/handlers/auth.go</path>
+        <kind>handler</kind>
+        <symbol>Login</symbol>
+        <lines>123-191</lines>
+        <reason>Calls GetUserAuth(user.ID) — must change to query by (user_id, auth_provider='local') for password verification</reason>
+      </file>
+      <file>
+        <path>backend/internal/handlers/auth.go</path>
+        <kind>handler</kind>
+        <symbol>RefreshToken</symbol>
+        <lines>209-262</lines>
+        <reason>Calls ValidateRefreshToken and UpdateRefreshToken — must use new user_refresh_tokens table methods</reason>
+      </file>
+      <file>
+        <path>backend/internal/handlers/auth.go</path>
+        <kind>handler</kind>
+        <symbol>Register</symbol>
+        <lines>67-121</lines>
+        <reason>Creates initial users_auth row with auth_provider='local' — verify it still works with new composite unique constraint</reason>
+      </file>
+      <file>
+        <path>backend/internal/handlers/auth.go</path>
+        <kind>handler</kind>
+        <symbol>AuthResponse, OAuthRequest, LoginRequest structs</symbol>
+        <lines>37-63</lines>
+        <reason>Request/response types — no changes expected but referenced by handlers</reason>
+      </file>
+
+      <!-- Rate limiter -->
+      <file>
+        <path>backend/internal/middleware/rate_limit.go</path>
+        <kind>middleware</kind>
+        <symbol>ipRateLimiter, authIPRateLimiter, RateLimitAuthIP</symbol>
+        <lines>15-107</lines>
+        <reason>authIPRateLimiter.limit must change from 10 to 20. New refreshIPRateLimiter with limit 30 and RateLimitRefreshIP() function needed.</reason>
+      </file>
+
+      <!-- Auth routes -->
+      <file>
+        <path>backend/internal/routes/auth.go</path>
+        <kind>routes</kind>
+        <symbol>RegisterAuthRoutes</symbol>
+        <lines>all</lines>
+        <reason>refresh_token route must move from rateLimited group to new refreshLimited group with RateLimitRefreshIP()</reason>
+      </file>
+
+      <!-- Auth constants -->
+      <file>
+        <path>backend/internal/constants/auth.go</path>
+        <kind>constants</kind>
+        <symbol>AuthProviderLocal, ValidOAuthProviders, IsValidOAuthProvider</symbol>
+        <lines>all</lines>
+        <reason>Provider constants — no changes needed, reference for provider name strings</reason>
+      </file>
+
+      <!-- Auth tests -->
+      <file>
+        <path>backend/internal/handlers/auth_test.go</path>
+        <kind>test</kind>
+        <symbol>TestOAuthLogin, TestRefreshToken</symbol>
+        <lines>407-529, 625-773</lines>
+        <reason>Existing tests must be updated for multi-provider behavior. Test setup manually adds UNIQUE(user_id) at line 42 — must be updated to match new constraint.</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/user_test.go</path>
+        <kind>test</kind>
+        <symbol>TestCreateOrUpdateOAuthUser, TestRefreshToken</symbol>
+        <lines>158-237, 305-338</lines>
+        <reason>Repository tests verify OAuth user creation and refresh token operations — must be updated for multi-provider and new table.</reason>
+      </file>
+
+      <!-- Frontend auth (reference only — no changes in this story) -->
+      <file>
+        <path>frontend/src/auth.ts</path>
+        <kind>config</kind>
+        <symbol>signIn callback, refreshAccessToken</symbol>
+        <lines>10-35, 75-112</lines>
+        <reason>Reference only — frontend calls POST /api/oauth and POST /api/refresh_token. No frontend changes in Story 8.1, but backend must remain compatible with these calls.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <go>
+        <module>github.com/gin-gonic/gin v1.10.1</module>
+        <module>github.com/jmoiron/sqlx v1.4.0</module>
+        <module>github.com/golang-jwt/jwt/v5 v5.2.2</module>
+        <module>github.com/go-playground/validator/v10 v10.26.0</module>
+        <module>github.com/google/uuid v1.6.0</module>
+        <module>github.com/stretchr/testify v1.10.0</module>
+        <module>golang.org/x/crypto (bcrypt)</module>
+        <module>github.com/golang-migrate/migrate/v4 v4.18.3</module>
+      </go>
+      <database>
+        <engine>PostgreSQL 15</engine>
+        <driver>lib/pq v1.10.9</driver>
+        <migrations>golang-migrate (sequential numbered files)</migrations>
+      </database>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Follow existing handler pattern: struct with NewXHandler(appState) constructor, ShouldBindJSON + validator.Struct for request parsing</constraint>
+    <constraint>Follow existing repository pattern: raw SQL with sqlx.Get/Select/Exec, db:"column" tags on models</constraint>
+    <constraint>Error handling: use pkg/errors package (ConvertError, NewDatabaseError, IsNotFoundError)</constraint>
+    <constraint>Response format: {"success": true/false, "data": {...}} or {"success": false, "error": {"error": "msg", "code": "CODE"}}</constraint>
+    <constraint>Migration files: sequential numbered (000015), separate up/down SQL files</constraint>
+    <constraint>Test pattern: table-driven tests with testify (require.NoError, assert.Equal), test DB with testutil helpers</constraint>
+    <constraint>Migration must be backward-compatible: existing data must survive (refresh tokens migrated, auth rows preserved)</constraint>
+    <constraint>Frontend compatibility: POST /api/oauth and POST /api/refresh_token request/response format must not change</constraint>
+    <constraint>No new Go dependencies required</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>POST /api/oauth</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/oauth {provider: string, email: string, name: string, avatar_url?: string} → {success: true, data: {user: User, access_token: string, refresh_token: string, expires_in: int}}</signature>
+      <path>backend/internal/handlers/auth.go:280</path>
+    </interface>
+    <interface>
+      <name>POST /api/refresh_token</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/refresh_token {refresh_token: string} → {success: true, data: {access_token: string, refresh_token: string, expires_in: int}}</signature>
+      <path>backend/internal/handlers/auth.go:209</path>
+    </interface>
+    <interface>
+      <name>POST /api/login</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/login {email: string, password: string} → {success: true, data: AuthResponse}</signature>
+      <path>backend/internal/handlers/auth.go:123</path>
+    </interface>
+    <interface>
+      <name>POST /api/users (Register)</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/users {email: string, name: string, password: string} → {success: true, data: AuthResponse}</signature>
+      <path>backend/internal/handlers/auth.go:67</path>
+    </interface>
+    <interface>
+      <name>CreateOrUpdateOAuthUser</name>
+      <kind>repository method</kind>
+      <signature>func (r *UserRepository) CreateOrUpdateOAuthUser(email, name, provider, avatarURL string) (*models.User, error)</signature>
+      <path>backend/internal/repository/user.go:269</path>
+    </interface>
+    <interface>
+      <name>GetUserAuth</name>
+      <kind>repository method</kind>
+      <signature>func (r *UserRepository) GetUserAuth(userID uuid.UUID) (*models.UserAuth, error)</signature>
+      <path>backend/internal/repository/user.go:106</path>
+    </interface>
+    <interface>
+      <name>UpdateRefreshToken</name>
+      <kind>repository method</kind>
+      <signature>func (r *UserRepository) UpdateRefreshToken(userID uuid.UUID, refreshToken string, expiresAt time.Time) error</signature>
+      <path>backend/internal/repository/user.go:124</path>
+    </interface>
+    <interface>
+      <name>ValidateRefreshToken</name>
+      <kind>repository method</kind>
+      <signature>func (r *UserRepository) ValidateRefreshToken(userID uuid.UUID, refreshToken string) (bool, error)</signature>
+      <path>backend/internal/repository/user.go:139</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Backend uses Go testing package with testify v1.10.0 (require for fatal, assert for non-fatal). Table-driven tests are the standard pattern. Test database is set up via testutil helpers with fresh migrations. Test file naming: *_test.go in the same package. Test functions: TestXxx with subtests via t.Run("SubtestName", ...). Auth tests manually add UNIQUE constraint at setup (line 42 of auth_test.go) — this must be updated to reflect the new composite unique constraint.</standards>
+    <locations>
+      <location>backend/internal/handlers/*_test.go</location>
+      <location>backend/internal/repository/*_test.go</location>
+      <location>backend/internal/middleware/*_test.go</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test: register with email/password, then OAuth login with same email (GitHub) → verify 2 auth rows exist, password hash preserved</idea>
+      <idea ac="2">Test: OAuth login with GitHub, then OAuth login with Google (same email) → verify both auth rows, same user ID</idea>
+      <idea ac="3">Test: OAuth login with GitHub twice → verify only 1 GitHub auth row, avatar_url updated</idea>
+      <idea ac="4">Test: generate refresh token → verify stored in user_refresh_tokens table → call refresh endpoint → verify new token returned from new table</idea>
+      <idea ac="4">Test: refresh token rotation — old token invalidated after refresh</idea>
+      <idea ac="5">Test: 20 auth requests in 1 min → 21st returns 429 with correct headers</idea>
+      <idea ac="5">Test: auth rate limit and refresh rate limit are independent — hitting auth limit doesn't block refresh</idea>
+      <idea ac="6">Test: all existing OAuth tests pass (new user, existing user, all providers, invalid provider, missing fields)</idea>
+      <idea ac="6">Test: all existing refresh token tests pass with new table backend</idea>
+      <idea ac="1,2">Test: register with password, OAuth with GitHub, OAuth with Google — verify 3 auth rows (local, github, google) for same user</idea>
+    </ideas>
+  </tests>
+</story-context>

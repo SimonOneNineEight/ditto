@@ -11,14 +11,18 @@ import (
 func RegisterAuthRoutes(apiGroup *gin.RouterGroup, appState *utils.AppState) {
 	authHandler := handlers.NewAuthHandler(appState)
 
-	// Public auth endpoints with IP-based rate limiting
 	rateLimited := apiGroup.Group("")
 	rateLimited.Use(middleware.RateLimitAuthIP())
 	{
-		rateLimited.POST("/users", authHandler.Register)             // POST /api/users
-		rateLimited.POST("/login", authHandler.Login)                // POST /api/login
-		rateLimited.POST("/refresh_token", authHandler.RefreshToken) // POST /api/refresh_token
+		rateLimited.POST("/users", authHandler.Register)
+		rateLimited.POST("/login", authHandler.Login)
 		rateLimited.POST("/oauth", authHandler.OAuthLogin)
+	}
+
+	refreshLimited := apiGroup.Group("")
+	refreshLimited.Use(middleware.RateLimitRefreshIP())
+	{
+		refreshLimited.POST("/refresh_token", authHandler.RefreshToken)
 	}
 
 	protected := apiGroup.Group("")

@@ -12,7 +12,6 @@ import (
 )
 
 func TestUserRepository(t *testing.T) {
-	// Setup test database
 	db := testutil.NewTestDatabase(t)
 	defer db.Close(t)
 	db.RunMigrations(t)
@@ -167,10 +166,9 @@ func TestUserRepository(t *testing.T) {
 		err = repo.UpdateRefreshToken(user.ID, token, expiresAt)
 		require.NoError(t, err)
 
-		auth, err := repo.GetUserAuth(user.ID)
+		valid, err := repo.ValidateRefreshToken(user.ID, token)
 		require.NoError(t, err)
-		require.NotNil(t, auth.RefreshToken)
-		assert.Equal(t, token, *auth.RefreshToken)
+		assert.True(t, valid)
 	})
 
 	t.Run("ValidateRefreshToken", func(t *testing.T) {
@@ -230,10 +228,6 @@ func TestUserRepository(t *testing.T) {
 		valid, err := repo.ValidateRefreshToken(user.ID, token)
 		require.NoError(t, err)
 		assert.False(t, valid)
-
-		auth, err := repo.GetUserAuth(user.ID)
-		require.NoError(t, err)
-		assert.Nil(t, auth.RefreshToken)
 	})
 
 	t.Run("SoftDeleteUser", func(t *testing.T) {
@@ -302,6 +296,176 @@ func TestUserRepository(t *testing.T) {
 		})
 	})
 
+	t.Run("GetUserAuthProviders", func(t *testing.T) {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+		require.NoError(t, err)
+		user, err := repo.CreateUser("providers@example.com", "Providers User", string(hashedPassword))
+		require.NoError(t, err)
+
+		providers, err := repo.GetUserAuthProviders(user.ID)
+		require.NoError(t, err)
+		require.Len(t, providers, 1)
+		assert.Equal(t, "local", providers[0].AuthProvider)
+
+		err = repo.LinkProvider(user.ID, "github", "github@example.com", "https://avatar.png")
+		require.NoError(t, err)
+
+		providers, err = repo.GetUserAuthProviders(user.ID)
+		require.NoError(t, err)
+		assert.Len(t, providers, 2)
+	})
+
+	t.Run("LinkProvider", func(t *testing.T) {
+		user, err := repo.CreateOrUpdateOAuthUser("linkprov@example.com", "Link User", "google", "")
+		require.NoError(t, err)
+
+		err = repo.LinkProvider(user.ID, "github", "gh@example.com", "https://gh-avatar.png")
+		require.NoError(t, err)
+
+		auth, err := repo.GetUserAuthByProvider(user.ID, "github")
+		require.NoError(t, err)
+		assert.Equal(t, "github", auth.AuthProvider)
+		require.NotNil(t, auth.ProviderEmail)
+		assert.Equal(t, "gh@example.com", *auth.ProviderEmail)
+		require.NotNil(t, auth.AvatarURL)
+		assert.Equal(t, "https://gh-avatar.png", *auth.AvatarURL)
+
+		// Duplicate should fail with unique constraint
+		err = repo.LinkProvider(user.ID, "github", "gh@example.com", "")
+		require.Error(t, err)
+	})
+
+	t.Run("GetAuthByProviderEmail", func(t *testing.T) {
+		user, err := repo.CreateOrUpdateOAuthUser("authbyemail@example.com", "Auth Email User", "github", "")
+		require.NoError(t, err)
+
+		found, err := repo.GetAuthByProviderEmail("github", "authbyemail@example.com")
+		require.NoError(t, err)
+		assert.Equal(t, user.ID, found.UserID)
+		assert.Equal(t, "github", found.AuthProvider)
+
+		// Non-existent combination
+		_, err = repo.GetAuthByProviderEmail("google", "authbyemail@example.com")
+		require.Error(t, err)
+
+		_, err = repo.GetAuthByProviderEmail("github", "nonexistent@example.com")
+		require.Error(t, err)
+	})
+
+	t.Run("UnlinkProvider", func(t *testing.T) {
+		user, err := repo.CreateOrUpdateOAuthUser("unlink@example.com", "Unlink User", "github", "")
+		require.NoError(t, err)
+
+		err = repo.LinkProvider(user.ID, "google", "google@example.com", "")
+		require.NoError(t, err)
+
+		err = repo.UnlinkProvider(user.ID, "google")
+		require.NoError(t, err)
+
+		_, err = repo.GetUserAuthByProvider(user.ID, "google")
+		require.Error(t, err)
+
+		// Unlinking non-existent provider returns not found
+		err = repo.UnlinkProvider(user.ID, "linkedin")
+		require.Error(t, err)
+	})
+
+	t.Run("CountAuthMethods", func(t *testing.T) {
+		user, err := repo.CreateOrUpdateOAuthUser("countauth@example.com", "Count User", "github", "")
+		require.NoError(t, err)
+
+		count, err := repo.CountAuthMethods(user.ID)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+
+		err = repo.LinkProvider(user.ID, "google", "google@example.com", "")
+		require.NoError(t, err)
+
+		count, err = repo.CountAuthMethods(user.ID)
+		require.NoError(t, err)
+		assert.Equal(t, 2, count)
+	})
+
+	t.Run("HasPassword", func(t *testing.T) {
+		// OAuth user has no password
+		oauthUser, err := repo.CreateOrUpdateOAuthUser("haspass-oauth@example.com", "OAuth User", "github", "")
+		require.NoError(t, err)
+
+		has, err := repo.HasPassword(oauthUser.ID)
+		require.NoError(t, err)
+		assert.False(t, has)
+
+		// Local user has password
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+		require.NoError(t, err)
+		localUser, err := repo.CreateUser("haspass-local@example.com", "Local User", string(hashedPassword))
+		require.NoError(t, err)
+
+		has, err = repo.HasPassword(localUser.ID)
+		require.NoError(t, err)
+		assert.True(t, has)
+	})
+
+	t.Run("SetPassword", func(t *testing.T) {
+		user, err := repo.CreateOrUpdateOAuthUser("setpass@example.com", "Set Pass User", "github", "")
+		require.NoError(t, err)
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("newpass123"), bcrypt.DefaultCost)
+		require.NoError(t, err)
+
+		err = repo.SetPassword(user.ID, string(hashedPassword))
+		require.NoError(t, err)
+
+		has, err := repo.HasPassword(user.ID)
+		require.NoError(t, err)
+		assert.True(t, has)
+
+		hash, err := repo.GetPasswordHash(user.ID)
+		require.NoError(t, err)
+		err = bcrypt.CompareHashAndPassword([]byte(hash), []byte("newpass123"))
+		require.NoError(t, err)
+	})
+
+	t.Run("UpdatePassword", func(t *testing.T) {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("oldpass"), bcrypt.DefaultCost)
+		require.NoError(t, err)
+		user, err := repo.CreateUser("updatepass@example.com", "Update Pass", string(hashedPassword))
+		require.NoError(t, err)
+
+		newHash, err := bcrypt.GenerateFromPassword([]byte("newpass"), bcrypt.DefaultCost)
+		require.NoError(t, err)
+
+		err = repo.UpdatePassword(user.ID, string(newHash))
+		require.NoError(t, err)
+
+		hash, err := repo.GetPasswordHash(user.ID)
+		require.NoError(t, err)
+		err = bcrypt.CompareHashAndPassword([]byte(hash), []byte("newpass"))
+		require.NoError(t, err)
+
+		// Update for non-existent user returns error
+		err = repo.UpdatePassword(uuid.New(), string(newHash))
+		require.Error(t, err)
+	})
+
+	t.Run("GetPasswordHash", func(t *testing.T) {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("hashtest"), bcrypt.DefaultCost)
+		require.NoError(t, err)
+		user, err := repo.CreateUser("gethash@example.com", "Hash User", string(hashedPassword))
+		require.NoError(t, err)
+
+		hash, err := repo.GetPasswordHash(user.ID)
+		require.NoError(t, err)
+		err = bcrypt.CompareHashAndPassword([]byte(hash), []byte("hashtest"))
+		require.NoError(t, err)
+
+		// OAuth user has no password hash
+		oauthUser, err := repo.CreateOrUpdateOAuthUser("gethash-oauth@example.com", "OAuth User", "github", "")
+		require.NoError(t, err)
+		_, err = repo.GetPasswordHash(oauthUser.ID)
+		require.Error(t, err)
+	})
+
 	t.Run("CreateOrUpdateOAuthUser", func(t *testing.T) {
 		t.Run("CreateNewOAuthUser", func(t *testing.T) {
 			user, err := repo.CreateOrUpdateOAuthUser(
@@ -313,14 +477,14 @@ func TestUserRepository(t *testing.T) {
 			assert.Equal(t, "oauth-new@example.com", user.Email)
 			assert.Equal(t, "OAuth New", user.Name)
 
-			auth, err := repo.GetUserAuth(user.ID)
+			auth, err := repo.GetUserAuthByProvider(user.ID, "github")
 			require.NoError(t, err)
 			assert.Equal(t, "github", auth.AuthProvider)
 			require.NotNil(t, auth.AvatarURL)
 			assert.Equal(t, "https://avatar.url/pic.png", *auth.AvatarURL)
 		})
 
-		t.Run("UpdateExistingUser", func(t *testing.T) {
+		t.Run("AddSecondProvider", func(t *testing.T) {
 			user, err := repo.CreateOrUpdateOAuthUser(
 				"oauth-new@example.com", "Updated Name", "google", "https://new-avatar.url/pic.png",
 			)
@@ -329,11 +493,29 @@ func TestUserRepository(t *testing.T) {
 			require.NotNil(t, user)
 			assert.Equal(t, "oauth-new@example.com", user.Email)
 
-			auth, err := repo.GetUserAuth(user.ID)
+			githubAuth, err := repo.GetUserAuthByProvider(user.ID, "github")
 			require.NoError(t, err)
-			assert.Equal(t, "google", auth.AuthProvider)
+			assert.Equal(t, "github", githubAuth.AuthProvider)
+
+			googleAuth, err := repo.GetUserAuthByProvider(user.ID, "google")
+			require.NoError(t, err)
+			assert.Equal(t, "google", googleAuth.AuthProvider)
+			require.NotNil(t, googleAuth.AvatarURL)
+			assert.Equal(t, "https://new-avatar.url/pic.png", *googleAuth.AvatarURL)
+		})
+
+		t.Run("SameProviderUpdatesNotDuplicates", func(t *testing.T) {
+			user, err := repo.CreateOrUpdateOAuthUser(
+				"oauth-new@example.com", "Name Again", "github", "https://updated-avatar.url/pic.png",
+			)
+
+			require.NoError(t, err)
+			require.NotNil(t, user)
+
+			auth, err := repo.GetUserAuthByProvider(user.ID, "github")
+			require.NoError(t, err)
 			require.NotNil(t, auth.AvatarURL)
-			assert.Equal(t, "https://new-avatar.url/pic.png", *auth.AvatarURL)
+			assert.Equal(t, "https://updated-avatar.url/pic.png", *auth.AvatarURL)
 		})
 	})
 }
