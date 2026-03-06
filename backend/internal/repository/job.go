@@ -52,11 +52,11 @@ func (r *JobRepository) CreateJob(userID uuid.UUID, job *models.Job) (*models.Jo
 	job.IsExpired = false
 
 	query := `
-        INSERT INTO jobs (id, company_id, title, job_description, location, job_type, min_salary, max_salary, currency, is_expired, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        INSERT INTO jobs (id, company_id, title, job_description, location, job_type, min_salary, max_salary, currency, is_expired, source_url, platform, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
     `
 
-	_, err = tx.Exec(query, job.ID, job.CompanyID, job.Title, job.JobDescription, job.Location, job.JobType, job.MinSalary, job.MaxSalary, job.Currency, job.IsExpired, job.CreatedAt, job.UpdatedAt)
+	_, err = tx.Exec(query, job.ID, job.CompanyID, job.Title, job.JobDescription, job.Location, job.JobType, job.MinSalary, job.MaxSalary, job.Currency, job.IsExpired, job.SourceURL, job.Platform, job.CreatedAt, job.UpdatedAt)
 	if err != nil {
 		return nil, errors.ConvertError(err)
 	}
@@ -91,7 +91,7 @@ func (r *JobRepository) GetJobsByUser(userID uuid.UUID, filters *JobFilters) ([]
 
 	query := `
         SELECT j.id, j.company_id, j.title, j.job_description, j.location, j.job_type,
-            j.min_salary, j.max_salary, j.currency, j.is_expired, j.created_at, j.updated_at
+            j.min_salary, j.max_salary, j.currency, j.is_expired, j.source_url, j.platform, j.created_at, j.updated_at
         FROM jobs j
         INNER JOIN user_jobs uj ON j.id = uj.id
         WHERE uj.user_id = $1 AND j.deleted_at IS NULL
@@ -158,7 +158,7 @@ func (r *JobRepository) GetJobByID(jobID, userID uuid.UUID) (*models.Job, error)
 	job := &models.Job{}
 	query := `
         SELECT j.id, j.company_id, j.title, j.job_description, j.location,
-            j.job_type, j.min_salary, j.max_salary, j.currency, j.is_expired, j.created_at, j.updated_at
+            j.job_type, j.min_salary, j.max_salary, j.currency, j.is_expired, j.source_url, j.platform, j.created_at, j.updated_at
         FROM jobs j
         INNER JOIN user_jobs uj ON j.id = uj.id
         WHERE j.id = $1 AND uj.user_id = $2 AND j.deleted_at IS NULL
@@ -186,7 +186,7 @@ func (r *JobRepository) GetJobsWithCompany(userID uuid.UUID, filters *JobFilters
 
 	query := `
         SELECT j.id, j.company_id, j.title, j.job_description, j.location,
-            j.job_type, j.min_salary, j.max_salary, j.currency, j.is_expired, j.created_at, j.updated_at,
+            j.job_type, j.min_salary, j.max_salary, j.currency, j.is_expired, j.source_url, j.platform, j.created_at, j.updated_at,
             c.id as "company.id", c.name as "company.name", c.description as "company.description", c.website as "company.website",
             c.logo_url as "company.logo_url", c.created_at as "company.created_at", c.updated_at as "company.updated_at",
         FROM jobs j
@@ -212,7 +212,7 @@ func (r *JobRepository) GetJobsWithCompany(userID uuid.UUID, filters *JobFilters
 		err := rows.Scan(
 			&job.ID, &job.CompanyID, &job.Title, &job.JobDescription,
 			&job.Location, &job.JobType, &job.MinSalary, &job.MaxSalary, &job.Currency,
-			&job.IsExpired, &job.CreatedAt, &job.UpdatedAt,
+			&job.IsExpired, &job.SourceURL, &job.Platform, &job.CreatedAt, &job.UpdatedAt,
 			&company.ID, &company.Name, &company.Description, &company.Website,
 			&company.LogoURL, &company.CreatedAt, &company.UpdatedAt,
 		)
