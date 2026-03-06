@@ -35,6 +35,8 @@ func TestJobRepositoryBasics(t *testing.T) {
 		minSalary := 80000.0
 		maxSalary := 120000.0
 		currency := "USD"
+		sourceURL := "https://example.com/jobs/123"
+		platform := "linkedin"
 
 		job := &models.Job{
 			CompanyID:      testCompany.ID,
@@ -45,6 +47,8 @@ func TestJobRepositoryBasics(t *testing.T) {
 			MinSalary:      &minSalary,
 			MaxSalary:      &maxSalary,
 			Currency:       &currency,
+			SourceURL:      &sourceURL,
+			Platform:       &platform,
 		}
 
 		createdJob, err := jobRepo.CreateJob(testUser.ID, job)
@@ -58,6 +62,8 @@ func TestJobRepositoryBasics(t *testing.T) {
 		require.Equal(t, minSalary, *createdJob.MinSalary)
 		require.Equal(t, maxSalary, *createdJob.MaxSalary)
 		require.Equal(t, currency, *createdJob.Currency)
+		require.Equal(t, sourceURL, *createdJob.SourceURL)
+		require.Equal(t, platform, *createdJob.Platform)
 		require.False(t, createdJob.IsExpired)
 		require.NotZero(t, createdJob.ID)
 		require.False(t, createdJob.CreatedAt.IsZero())
@@ -65,24 +71,29 @@ func TestJobRepositoryBasics(t *testing.T) {
 	})
 
 	t.Run("GetJobByID", func(t *testing.T) {
-		// Create a job first
+		sourceURL := "https://example.com/jobs/456"
+		platform := "indeed"
+
 		job := &models.Job{
 			CompanyID:      testCompany.ID,
 			Title:          "Test Job",
 			JobDescription: "Test description",
 			Location:       "New York",
 			JobType:        "Part-time",
+			SourceURL:      &sourceURL,
+			Platform:       &platform,
 		}
 		createdJob, err := jobRepo.CreateJob(testUser.ID, job)
 		require.NoError(t, err)
 
-		// Find the job by ID
 		foundJob, err := jobRepo.GetJobByID(createdJob.ID, testUser.ID)
 		require.NoError(t, err)
 		require.NotNil(t, foundJob)
 		require.Equal(t, createdJob.ID, foundJob.ID)
 		require.Equal(t, createdJob.Title, foundJob.Title)
 		require.Equal(t, createdJob.CompanyID, foundJob.CompanyID)
+		require.Equal(t, sourceURL, *foundJob.SourceURL)
+		require.Equal(t, platform, *foundJob.Platform)
 	})
 
 	t.Run("GetJobByID_NotFound", func(t *testing.T) {
@@ -93,20 +104,24 @@ func TestJobRepositoryBasics(t *testing.T) {
 	})
 
 	t.Run("GetJobsByUser", func(t *testing.T) {
-		// Create multiple jobs for the user
+		sourceURL := "https://example.com/jobs/list1"
+		platform := "glassdoor"
+
 		job1 := &models.Job{
 			CompanyID:      testCompany.ID,
 			Title:          "Job 1",
 			JobDescription: "Description 1",
 			Location:       "Location 1",
 			JobType:        "Full-time",
+			SourceURL:      &sourceURL,
+			Platform:       &platform,
 		}
 		_, err := jobRepo.CreateJob(testUser.ID, job1)
 		require.NoError(t, err)
 
 		job2 := &models.Job{
 			CompanyID:      testCompany.ID,
-			Title:          "Job 2", 
+			Title:          "Job 2",
 			JobDescription: "Description 2",
 			Location:       "Location 2",
 			JobType:        "Part-time",
@@ -114,16 +129,24 @@ func TestJobRepositoryBasics(t *testing.T) {
 		_, err = jobRepo.CreateJob(testUser.ID, job2)
 		require.NoError(t, err)
 
-		// Get jobs by user
 		filters := &JobFilters{}
 		jobs, err := jobRepo.GetJobsByUser(testUser.ID, filters)
 		require.NoError(t, err)
 		require.GreaterOrEqual(t, len(jobs), 2)
 
-		// Verify all jobs belong to the user (they should since we're filtering by user)
 		for _, job := range jobs {
 			require.NotZero(t, job.ID)
 		}
+
+		// Verify source_url and platform are returned for jobs that have them
+		var foundWithSourceURL bool
+		for _, job := range jobs {
+			if job.SourceURL != nil && *job.SourceURL == sourceURL {
+				foundWithSourceURL = true
+				require.Equal(t, platform, *job.Platform)
+			}
+		}
+		require.True(t, foundWithSourceURL, "expected to find a job with source_url in GetJobsByUser results")
 	})
 
 	t.Run("UpdateJob", func(t *testing.T) {

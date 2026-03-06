@@ -105,6 +105,7 @@ func TestApplicationHandler_QuickCreateApplication(t *testing.T) {
 			"description":  "Building great products",
 			"location":     "Remote",
 			"job_type":     "full-time",
+			"source_url":   "https://linkedin.com/jobs/123",
 		}
 		jsonPayload, _ := json.Marshal(payload)
 
@@ -130,6 +131,7 @@ func TestApplicationHandler_QuickCreateApplication(t *testing.T) {
 
 		job := data["job"].(map[string]interface{})
 		assert.Equal(t, "Software Engineer", job["title"])
+		assert.Equal(t, "https://linkedin.com/jobs/123", job["source_url"])
 	})
 
 	t.Run("MissingCompanyName", func(t *testing.T) {
