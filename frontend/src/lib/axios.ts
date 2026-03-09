@@ -2,6 +2,7 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { getSession, signOut } from 'next-auth/react';
 import { toast } from 'sonner';
 import { getErrorMessage, isValidationError } from './errors';
+import { navigateTo } from './navigation';
 
 declare module 'axios' {
     interface AxiosRequestConfig {
@@ -18,6 +19,7 @@ let csrfToken: string | null = null;
 const retryCountMap = new WeakMap<object, number>();
 
 let isRefreshing = false;
+let isSigningOut = false;
 let failedQueue: Array<{
     resolve: (value: unknown) => void;
     reject: (error: unknown) => void;
@@ -56,7 +58,15 @@ api.interceptors.request.use(async (config) => {
         const session = await getSession();
 
         if (session?.error === 'RefreshTokenError') {
-            await signOut({ callbackUrl: '/login' });
+            if (!isSigningOut) {
+                isSigningOut = true;
+                try {
+                    await signOut({ redirect: false });
+                    navigateTo('/login?error=SessionExpired');
+                } catch {
+                    isSigningOut = false;
+                }
+            }
             return Promise.reject(new Error('Session expired'));
         }
 
@@ -102,8 +112,16 @@ api.interceptors.response.use(
                 const isRefreshRequest = config?.url?.includes('/refresh_token');
 
                 if (isRefreshRequest || config?._retryAfterRefresh) {
-                    toast.error('Session expired. Please log in again.');
-                    await signOut({ callbackUrl: '/login' });
+                    if (!isSigningOut) {
+                        isSigningOut = true;
+                        try {
+                            toast.error('Session expired. Please log in again.');
+                            await signOut({ redirect: false });
+                            navigateTo('/login?error=SessionExpired');
+                        } catch {
+                            isSigningOut = false;
+                        }
+                    }
                     return Promise.reject(error);
                 }
 
@@ -133,8 +151,16 @@ api.interceptors.response.use(
                 processQueue(null, error);
                 isRefreshing = false;
 
-                toast.error('Session expired. Please log in again.');
-                await signOut({ callbackUrl: '/login' });
+                if (!isSigningOut) {
+                    isSigningOut = true;
+                    try {
+                        toast.error('Session expired. Please log in again.');
+                        await signOut({ redirect: false });
+                        navigateTo('/login?error=SessionExpired');
+                    } catch {
+                        isSigningOut = false;
+                    }
+                }
                 return Promise.reject(error);
             }
 

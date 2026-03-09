@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
+import { navigateTo } from '@/lib/navigation';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
     const { data: session, status } = useSession();
@@ -12,8 +13,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         if (status === 'loading') return;
 
         if (session?.error === 'RefreshTokenError') {
-            signOut({
-                callbackUrl: `/login?error=SessionExpired&callbackUrl=${encodeURIComponent(pathname)}`
+            signOut({ redirect: false }).then(() => {
+                const loginUrl = `/login?error=SessionExpired&callbackUrl=${encodeURIComponent(pathname)}`;
+                navigateTo(loginUrl);
             });
         }
     }, [session, status, pathname]);

@@ -14,8 +14,8 @@ export default function AuthLayout({
     return (
         <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="dark"
+            forcedTheme="dark"
             disableTransitionOnChange
         >
             <div className="h-dvh flex">{children}</div>
