@@ -1,0 +1,204 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>9</epicId>
+    <storyId>4</storyId>
+    <title>Add Missing Error Display on Application Form</title>
+    <status>drafted</status>
+    <generatedAt>2026-03-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/planning/stories/9-4-application-form-error-display.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user creating or editing an application</asA>
+    <iWant>to see clear error messages when something goes wrong</iWant>
+    <soThat>I know what to fix instead of the form silently failing</soThat>
+    <tasks>
+      <task id="1" acs="1,4">Wire up error display on all form fields
+        <subtask id="1.1">Add error={errors.location?.message} to the location FormField component (line 279-284 in add-application-form.tsx)</subtask>
+        <subtask id="1.2">Add error display below the jobType Select — render error text when errors.jobType?.message is present (line 286-312)</subtask>
+        <subtask id="1.3">Add error display to minSalary and maxSalary Input wrappers — render error text below each input (line 341-362)</subtask>
+        <subtask id="1.4">Add error display below the description RichTextEditor wrapper — render error text when errors.description?.message is present (line 364-379)</subtask>
+        <subtask id="1.5">Add error display below the notes RichTextEditor wrapper — render error text when errors.notes?.message is present (line 381-396)</subtask>
+        <subtask id="1.6">Add error display below the platform Select — render error text when errors.platform?.message is present (line 408-434)</subtask>
+      </task>
+      <task id="2" acs="2,3,4">Add general form error banner
+        <subtask id="2.1">Add a formError state (useState&lt;string | null&gt;(null)) to the form component</subtask>
+        <subtask id="2.2">In the catch block (line 237-246), add an else branch after the isValidationError check that calls setFormError(getErrorMessage(error)) using the existing getErrorMessage utility from @/lib/errors</subtask>
+        <subtask id="2.3">Handle validation errors without field_errors (when isValidationError returns false but status is 422) — set formError with the error message</subtask>
+        <subtask id="2.4">Render a destructive-styled banner (role="alert") above the submit buttons showing formError text</subtask>
+        <subtask id="2.5">Clear formError at the start of onSubmit (before the try block) so errors reset on resubmit</subtask>
+      </task>
+      <task id="3" acs="1,2,3,4">Write tests
+        <subtask id="3.1">Test that field-level validation errors from backend render inline on the affected fields (mock isValidationError to return true with field_errors including location, minSalary, etc.)</subtask>
+        <subtask id="3.2">Test that a 500/network error shows the form error banner (mock api.post to reject with a non-validation error)</subtask>
+        <subtask id="3.3">Test that errors clear on resubmit (submit with error, then resubmit successfully, verify banner gone)</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Given the application form, when a backend validation error is returned with field-level errors, then every affected field displays its error message inline — including location, jobType, minSalary, maxSalary, description, notes, and platform (currently only company, position, and sourceUrl show errors)</ac>
+    <ac id="2">Given the application form, when a non-validation error occurs (500, network failure, etc.), then a visible error banner or alert is displayed at the top or bottom of the form summarizing the failure</ac>
+    <ac id="3">Given a validation error without field-level mappings (e.g., a general 422), then a form-level error message is displayed (not silently swallowed)</ac>
+    <ac id="4">Given an error is displayed, when the user corrects the input and resubmits, then the error clears</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/planning/epic-9.md</path>
+        <title>Epic 9: Bug Fixes &amp; Core Workflow Stability</title>
+        <section>Story 9.4: Add Missing Error Display on Application Form</section>
+        <snippet>Currently only 3 of 9 fields wire up the error prop. The catch block only handles isValidationError — no else branch for other errors. An inline form banner is more reliable than toast alone.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/stories/9-4-application-form-error-display.md</path>
+        <title>Story 9.4: Add Missing Error Display on Application Form</title>
+        <section>Full Story</section>
+        <snippet>Detailed tasks, subtasks with line references, dev notes with error patterns, and learnings from Story 9.3.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>frontend/src/app/(app)/applications/new/add-application-form.tsx</path>
+        <kind>component</kind>
+        <symbol>ApplicationForm</symbol>
+        <lines>1-463</lines>
+        <reason>Main form component — contains the onSubmit catch block (lines 237-246) missing the else branch, and 6 fields missing error display (location line 279, jobType line 286, minSalary/maxSalary line 341, description line 364, notes line 381, platform line 408)</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(app)/applications/new/form-field.tsx</path>
+        <kind>component</kind>
+        <symbol>FormField</symbol>
+        <lines>1-52</lines>
+        <reason>Reusable input component with error prop support — line 44 shows the error display pattern: &lt;p role="alert" className="text-xs text-destructive mt-1"&gt;. Location field just needs error prop passed through.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(app)/applications/new/form-label.tsx</path>
+        <kind>component</kind>
+        <symbol>FormLabel, FormFieldWrapper</symbol>
+        <lines>1-29</lines>
+        <reason>Layout wrappers used by Select and RichTextEditor fields — error text must be added as children inside FormFieldWrapper for fields that don't use FormField.</reason>
+      </file>
+      <file>
+        <path>frontend/src/lib/errors.ts</path>
+        <kind>utility</kind>
+        <symbol>isValidationError, getFieldErrors, getErrorMessage</symbol>
+        <lines>1-89</lines>
+        <reason>Error handling utilities. isValidationError checks for VALIDATION_FAILED code with field_errors. getErrorMessage maps error codes to user-friendly messages. getFieldErrors extracts field-level errors. Task 2 needs getErrorMessage for the form error banner.</reason>
+      </file>
+      <file>
+        <path>frontend/src/lib/schemas/application.ts</path>
+        <kind>schema</kind>
+        <symbol>applicationSchema, ApplicationFormData</symbol>
+        <lines>1-32</lines>
+        <reason>Zod validation schema defining all form fields — used by react-hook-form with zodResolver. Defines field names that must match backend field_errors keys.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(app)/applications/new/__tests__/add-application-form.test.tsx</path>
+        <kind>test</kind>
+        <symbol>ApplicationForm tests</symbol>
+        <lines>1-257</lines>
+        <reason>Existing test suite with 8 tests covering render, submit, navigation. Task 3 adds new tests for error display. Note: @/lib/errors is mocked with isValidationError returning false — tests need to override this mock per-test to test error scenarios.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(app)/applications/new/url-import.tsx</path>
+        <kind>component</kind>
+        <symbol>UrlImport</symbol>
+        <reason>URL import component — mocked in tests, no changes needed but must remain mocked.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(app)/applications/new/company-autocomplete.tsx</path>
+        <kind>component</kind>
+        <symbol>CompanyAutocomplete</symbol>
+        <reason>Company autocomplete — already has error prop wired up. Mocked in tests with error display.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <frontend>
+        <package name="react" version="^18" />
+        <package name="react-hook-form" version="^7.54.2" />
+        <package name="@hookform/resolvers" version="^4.1.2" />
+        <package name="zod" version="^3.24.2" />
+        <package name="axios" version="^1.7.9" />
+        <package name="next" version="14.2.15" />
+        <package name="sonner" version="^2.0.7" />
+        <package name="tailwindcss" version="^4.1.10" />
+        <package name="jest" version="^30.2.0" />
+        <package name="@testing-library/react" version="^16.3.2" />
+        <package name="@testing-library/user-event" version="^14.6.1" />
+        <package name="@testing-library/jest-dom" version="^6.9.1" />
+      </frontend>
+      <backend>
+        <package name="gin-gonic/gin" version="v1.10.1" />
+        <package name="go-playground/validator/v10" version="v10.26.0" />
+      </backend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>No shadcn Alert component installed — use a simple styled div with role="alert" and destructive styling for the error banner</constraint>
+    <constraint>Follow existing error display pattern from FormField (line 44): &lt;p id={errorId} role="alert" className="text-xs text-destructive mt-1"&gt;</constraint>
+    <constraint>Form uses mode: 'onChange' with zodResolver — client-side validation errors display in real-time for wired fields</constraint>
+    <constraint>The axios interceptor already shows toast for errors — the form banner supplements (not replaces) this</constraint>
+    <constraint>Import getErrorMessage from @/lib/errors (must be added to existing import)</constraint>
+    <constraint>Maintain 18 test suites / 153 tests baseline from Story 9.3</constraint>
+    <constraint>Comments explain WHY, not WHAT — code should be self-documenting</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>isValidationError</name>
+      <kind>function</kind>
+      <signature>isValidationError(error: unknown): boolean — returns true only when error is AxiosError with code VALIDATION_FAILED AND field_errors present</signature>
+      <path>frontend/src/lib/errors.ts</path>
+    </interface>
+    <interface>
+      <name>getFieldErrors</name>
+      <kind>function</kind>
+      <signature>getFieldErrors(error: unknown): Record&lt;string, string&gt; | undefined — extracts field_errors from AxiosError response</signature>
+      <path>frontend/src/lib/errors.ts</path>
+    </interface>
+    <interface>
+      <name>getErrorMessage</name>
+      <kind>function</kind>
+      <signature>getErrorMessage(error: unknown): string — maps error codes/types to user-friendly messages (handles AxiosError, network errors, generic errors)</signature>
+      <path>frontend/src/lib/errors.ts</path>
+    </interface>
+    <interface>
+      <name>FormField error prop</name>
+      <kind>component prop</kind>
+      <signature>error?: string — when provided, renders accessible error text with aria-invalid, aria-describedby, and role="alert"</signature>
+      <path>frontend/src/app/(app)/applications/new/form-field.tsx</path>
+    </interface>
+    <interface>
+      <name>Backend Validation Error Response</name>
+      <kind>REST API response</kind>
+      <signature>{ success: false, error: { error: string, code: "VALIDATION_FAILED", field_errors: Record&lt;string, string&gt; } }</signature>
+      <path>frontend/src/lib/errors.ts</path>
+    </interface>
+    <interface>
+      <name>react-hook-form setError</name>
+      <kind>function</kind>
+      <signature>setError(name: keyof FormData, { message: string }): void — sets field-level errors programmatically (already used in catch block)</signature>
+      <path>frontend/src/app/(app)/applications/new/add-application-form.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Tests use Jest 30 with @testing-library/react and @testing-library/user-event. Tests live in __tests__/ subdirectories adjacent to components. External dependencies (axios, next/navigation, sonner, next/dynamic, file-service, application-service) are mocked at module level. The Select component is mocked as simple divs. react-hook-form and zod run natively (not mocked) for realistic validation behavior.</standards>
+    <locations>
+      <location>frontend/src/app/(app)/applications/new/__tests__/</location>
+      <location>frontend/src/**/__tests__/</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test that field-level validation errors from backend render inline on affected fields: mock isValidationError to return true and getFieldErrors to return { location: "Location is invalid", minSalary: "Salary must be positive" }, then verify error text appears via role="alert" elements</idea>
+      <idea ac="2">Test that a 500 error shows the form error banner: mock api.post to reject with a non-AxiosError or AxiosError with status 500, verify a banner with role="alert" appears containing the error message</idea>
+      <idea ac="3">Test that a 422 without field_errors shows form-level error: mock api.post to reject with AxiosError status 422 but isValidationError returns false (no field_errors), verify form banner appears</idea>
+      <idea ac="4">Test that errors clear on resubmit: trigger an error, then mock successful submission, resubmit, verify error banner is no longer visible</idea>
+    </ideas>
+  </tests>
+</story-context>
