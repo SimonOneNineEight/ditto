@@ -210,6 +210,7 @@ func (td *TestDatabase) RunMigrations(t *testing.T) {
 			scheduled_date DATE NOT NULL,
 			scheduled_time VARCHAR(10),
 			duration_minutes INT,
+			status VARCHAR(30) NOT NULL DEFAULT 'scheduled',
 			outcome VARCHAR(50),
 			overall_feeling VARCHAR(50),
 			went_well TEXT,

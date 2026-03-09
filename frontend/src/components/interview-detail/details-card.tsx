@@ -46,7 +46,6 @@ function getStatusVariant(interview: Interview): 'scheduled' | 'completed' | 'ca
     if (interview.status === 'completed' || interview.outcome) return 'completed';
 
     const interviewDate = startOfDay(parseISO(interview.scheduled_date));
-    const today = startOfDay(new Date());
     if (isPast(interviewDate) && !isToday(interviewDate)) return 'awaiting_outcome';
 
     return 'scheduled';
@@ -58,7 +57,6 @@ function getStatusLabel(interview: Interview): string {
     if (interview.status === 'completed') return 'Completed';
 
     const interviewDate = startOfDay(parseISO(interview.scheduled_date));
-    const today = startOfDay(new Date());
     if (isPast(interviewDate) && !isToday(interviewDate)) return 'Awaiting Outcome';
 
     return 'Scheduled';
