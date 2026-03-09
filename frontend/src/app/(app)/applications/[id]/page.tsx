@@ -296,7 +296,7 @@ const ApplicationPage = () => {
 
     const positionTitle = app.job?.title || 'Untitled Position';
     const statusName = app.status?.name;
-    const statusVariant = statusName ? (statusVariantMap[statusName] || 'default') : 'default';
+    const statusVariant = statusName ? (statusVariantMap[statusName as keyof typeof statusVariantMap] || 'default') : 'default';
     const timeline = buildTimeline(app, interviews, assessments);
 
     return (
