@@ -7,6 +7,7 @@ import { Building2, Pencil, Trash2, ChevronDown, ChevronUp, MoreVertical } from 
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
+import { cn } from '@/lib/utils';
 import { sanitizeHtml } from '@/lib/sanitizer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,8 +28,11 @@ import {
 } from '@/components/ui/breadcrumb';
 import {
     getApplication,
+    getApplicationStatuses,
+    updateApplicationStatus,
     deleteApplication,
     type ApplicationWithDetails,
+    type ApplicationStatus,
 } from '@/services/application-service';
 import {
     listInterviews,
@@ -44,13 +48,20 @@ import { AssessmentList } from '@/components/assessment-list';
 import { AssessmentFormModal } from '@/components/assessment-form';
 import { DocumentsSection } from '@/components/file-upload';
 
-const statusVariantMap: Record<string, 'applied' | 'screening' | 'interviewing' | 'offered' | 'rejected' | 'withdrawn' | 'default'> = {
+const statusVariantMap: Record<string, string> = {
+    'Saved': 'draft',
     'Applied': 'applied',
-    'Screening': 'screening',
-    'Interviewing': 'interviewing',
-    'Offered': 'offered',
+    'Interview': 'interviewing',
+    'Offer': 'offered',
     'Rejected': 'rejected',
-    'Withdrawn': 'withdrawn',
+};
+
+const statusDotColor: Record<string, string> = {
+    'Saved': 'bg-[#475569]',
+    'Applied': 'bg-[#1e4a7a]',
+    'Interview': 'bg-[#4c1d95]',
+    'Offer': 'bg-[#166534]',
+    'Rejected': 'bg-[#7f1d1d]',
 };
 
 interface TimelineEvent {
@@ -88,9 +99,27 @@ function buildTimeline(
 
     for (const interview of interviews) {
         const typeLabel = getInterviewTypeLabel(interview.interview_type);
+        let subtitle: string | undefined;
+        if (interview.outcome) {
+            subtitle = `Outcome: ${interview.outcome}`;
+        } else if (interview.status === 'cancelled') {
+            subtitle = 'Cancelled';
+        } else if (interview.status === 'completed') {
+            subtitle = 'Completed';
+        } else {
+            const interviewDate = new Date(interview.scheduled_date);
+            interviewDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (interviewDate < today) {
+                subtitle = 'Awaiting Outcome';
+            } else {
+                subtitle = 'Scheduled';
+            }
+        }
         events.push({
             title: `${typeLabel} Interview - Round ${interview.round_number}`,
-            subtitle: interview.outcome ? `Outcome: ${interview.outcome}` : undefined,
+            subtitle,
             date: interview.scheduled_date,
             isPrimary: false,
             outcome: interview.outcome || undefined,
@@ -184,15 +213,18 @@ const ApplicationPage = () => {
     const [isJdExpanded, setIsJdExpanded] = useState(false);
     const [isNotesExpanded, setIsNotesExpanded] = useState(false);
     const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+    const [statuses, setStatuses] = useState<ApplicationStatus[]>([]);
+    const [isStatusUpdating, setIsStatusUpdating] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
             try {
                 setLoading(true);
-                const [applicationData, interviewData, assessmentData] = await Promise.all([
+                const [applicationData, interviewData, assessmentData, statusData] = await Promise.all([
                     getApplication(applicationId),
                     listInterviews({ limit: 1000 }),
                     listAssessments(applicationId),
+                    getApplicationStatuses(),
                 ]);
 
                 if (!applicationData) {
@@ -207,6 +239,7 @@ const ApplicationPage = () => {
                     )
                 );
                 setAssessments(assessmentData);
+                setStatuses(statusData);
             } catch {
                 setError('Failed to load application');
             } finally {
@@ -216,6 +249,23 @@ const ApplicationPage = () => {
 
         fetchData();
     }, [applicationId]);
+
+    const handleStatusChange = async (newStatusId: string) => {
+        if (!app || isStatusUpdating) return;
+        setIsStatusUpdating(true);
+        try {
+            await updateApplicationStatus(applicationId, newStatusId);
+            const newStatus = statuses.find(s => s.id === newStatusId);
+            if (newStatus) {
+                setApp(prev => prev ? { ...prev, application_status_id: newStatusId, status: newStatus } : prev);
+            }
+            toast.success('Status updated');
+        } catch {
+            // Handled by axios interceptor
+        } finally {
+            setIsStatusUpdating(false);
+        }
+    };
 
     const handleDelete = async () => {
         setIsDeleting(true);
@@ -271,9 +321,31 @@ const ApplicationPage = () => {
                             {positionTitle}
                         </h1>
                         {statusName && (
-                            <Badge variant={statusVariant} className="hidden sm:inline-flex">
-                                {statusName}
-                            </Badge>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild disabled={isStatusUpdating}>
+                                    <button className="hidden sm:inline-flex cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full">
+                                        <Badge variant={statusVariant}>
+                                            {statusName}
+                                            <ChevronDown className="h-3 w-3 ml-1 opacity-60" />
+                                        </Badge>
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" className="min-w-[160px]">
+                                    {statuses.map((status) => {
+                                        const isCurrent = status.id === app.application_status_id;
+                                        return (
+                                            <DropdownMenuItem
+                                                key={status.id}
+                                                onClick={() => !isCurrent && handleStatusChange(status.id)}
+                                                className={cn('flex items-center gap-2', isCurrent && 'bg-primary/15 font-medium pointer-events-none')}
+                                            >
+                                                <span className={cn('h-2 w-2 rounded-full shrink-0', statusDotColor[status.name] || 'bg-muted')} />
+                                                <span className="text-sm">{status.name}</span>
+                                            </DropdownMenuItem>
+                                        );
+                                    })}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         )}
                     </div>
 
@@ -287,9 +359,35 @@ const ApplicationPage = () => {
 
                     {/* Status badge - mobile only (shown inline with title on desktop) */}
                     {statusName && (
-                        <Badge variant={statusVariant} className="sm:hidden w-fit">
-                            {statusName}
-                        </Badge>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild disabled={isStatusUpdating}>
+                                <button className="sm:hidden w-fit cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full">
+                                    <Badge variant={statusVariant}>
+                                        {statusName}
+                                        <ChevronDown className="h-3 w-3 ml-1 opacity-60" />
+                                    </Badge>
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="min-w-[160px]">
+                                {statuses.map((status) => {
+                                    const isCurrent = status.id === app.application_status_id;
+                                    return (
+                                        <DropdownMenuItem
+                                            key={status.id}
+                                            onClick={() => handleStatusChange(status.id)}
+                                            disabled={isCurrent}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <span className={cn('h-2 w-2 rounded-full shrink-0', statusDotColor[status.name] || 'bg-muted')} />
+                                            <span className="text-sm">{status.name}</span>
+                                            {isCurrent && (
+                                                <span className="text-xs text-muted-foreground ml-auto">Current</span>
+                                            )}
+                                        </DropdownMenuItem>
+                                    );
+                                })}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     )}
                 </div>
 

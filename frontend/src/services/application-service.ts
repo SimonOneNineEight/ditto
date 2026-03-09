@@ -95,14 +95,25 @@ export async function getApplications(filters: ApplicationFilters = {}): Promise
     return response.data?.data;
 }
 
+let cachedStatuses: ApplicationStatus[] | null = null;
+
 export async function getApplicationStatuses(): Promise<ApplicationStatus[]> {
+    if (cachedStatuses !== null) return cachedStatuses;
     const response = await api.get('/api/application-statuses');
-    return response.data?.data?.statuses || [];
+    cachedStatuses = response.data?.data?.statuses ?? [];
+    return cachedStatuses!;
 }
 
 export async function getApplication(id: string): Promise<ApplicationWithDetails | null> {
     const response = await api.get(`/api/applications/${id}/with-details`);
     return response.data?.data || null;
+}
+
+export async function updateApplicationStatus(id: string, applicationStatusId: string): Promise<ApplicationWithDetails> {
+    const response = await api.patch(`/api/applications/${id}/status`, {
+        application_status_id: applicationStatusId,
+    });
+    return response.data?.data;
 }
 
 export async function deleteApplication(id: string): Promise<void> {

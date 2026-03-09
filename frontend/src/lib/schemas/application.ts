@@ -15,6 +15,7 @@ export const applicationSchema = z.object({
     jobType: z
         .enum(['full-time', 'part-time', 'contract', 'internship'])
         .optional(),
+    statusId: z.string().optional(),
     minSalary: z.string().optional(),
     maxSalary: z.string().optional(),
     description: z.string().max(10000, 'Description must be 10,000 characters or less').optional(),

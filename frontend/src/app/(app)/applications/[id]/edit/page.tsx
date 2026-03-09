@@ -71,6 +71,7 @@ const EditApplicationPage = () => {
         sourceUrl: application.job?.source_url || '',
         platform: application.job?.platform || '',
         notes: application.notes || '',
+        statusId: application.application_status_id || '',
     };
 
     return (
