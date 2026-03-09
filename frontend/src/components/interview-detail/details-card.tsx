@@ -1,7 +1,8 @@
 'use client';
 
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isPast, isToday, startOfDay } from 'date-fns';
 import { InterviewDetailCard } from './interview-detail-card';
+import { Badge } from '@/components/ui/badge';
 import { Interview } from '@/services/interview-service';
 
 interface DetailsCardProps {
@@ -40,6 +41,27 @@ const getInterviewTypeLabel = (type: string): string => {
     return labels[type] || type;
 };
 
+function getStatusVariant(interview: Interview): 'scheduled' | 'completed' | 'cancelled' | 'awaiting_outcome' {
+    if (interview.status === 'cancelled') return 'cancelled';
+    if (interview.status === 'completed' || interview.outcome) return 'completed';
+
+    const interviewDate = startOfDay(parseISO(interview.scheduled_date));
+    if (isPast(interviewDate) && !isToday(interviewDate)) return 'awaiting_outcome';
+
+    return 'scheduled';
+}
+
+function getStatusLabel(interview: Interview): string {
+    if (interview.status === 'cancelled') return 'Cancelled';
+    if (interview.outcome) return interview.outcome.charAt(0).toUpperCase() + interview.outcome.slice(1);
+    if (interview.status === 'completed') return 'Completed';
+
+    const interviewDate = startOfDay(parseISO(interview.scheduled_date));
+    if (isPast(interviewDate) && !isToday(interviewDate)) return 'Awaiting Outcome';
+
+    return 'Scheduled';
+}
+
 export const DetailsCard = ({ interview }: DetailsCardProps) => {
     return (
         <InterviewDetailCard title="Interview Details">
@@ -76,6 +98,16 @@ export const DetailsCard = ({ interview }: DetailsCardProps) => {
                     </div>
                     <div className="text-sm">
                         {getInterviewTypeLabel(interview.interview_type)}
+                    </div>
+                </div>
+                <div className="space-y-1">
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Status
+                    </div>
+                    <div className="text-sm">
+                        <Badge variant={getStatusVariant(interview)}>
+                            {getStatusLabel(interview)}
+                        </Badge>
                     </div>
                 </div>
             </div>

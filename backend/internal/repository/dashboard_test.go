@@ -185,7 +185,15 @@ func TestDashboardRepository(t *testing.T) {
 				AppliedAt:           time.Now(),
 				AttemptNumber:       1,
 			}
-			_, err := applicationRepo.CreateApplication(testUser.ID, interviewApp)
+			createdInterviewApp, err := applicationRepo.CreateApplication(testUser.ID, interviewApp)
+			require.NoError(t, err)
+
+			// Create an actual interview record so InterviewCount query finds it
+			_, err = db.Database.Exec(
+				`INSERT INTO interviews (user_id, application_id, round_number, scheduled_date, interview_type, status)
+				 VALUES ($1, $2, 1, $3, 'technical', 'scheduled')`,
+				testUser.ID, createdInterviewApp.ID, time.Now(),
+			)
 			require.NoError(t, err)
 
 			offerApp := &models.Application{

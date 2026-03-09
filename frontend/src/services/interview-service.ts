@@ -57,7 +57,10 @@ export interface UpdateInterviewRequest {
     went_well?: string;
     could_improve?: string;
     confidence_level?: number;
+    status?: InterviewStatus;
 }
+
+export type InterviewStatus = 'scheduled' | 'completed' | 'cancelled';
 
 export interface Interview {
     id: string;
@@ -72,6 +75,7 @@ export interface Interview {
     went_well?: string;
     could_improve?: string;
     confidence_level?: number;
+    status: InterviewStatus;
     created_at: string;
     updated_at: string;
 }

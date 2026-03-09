@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { applicationSchema, type ApplicationFormData } from '@/lib/schemas/application';
-import { isValidationError, getFieldErrors } from '@/lib/errors';
+import { isValidationError, getFieldErrors, getErrorMessage } from '@/lib/errors';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,7 @@ import {
     confirmUpload,
 } from '@/lib/file-service';
 import { JOB_TYPES } from '@/lib/constants';
+import { getApplicationStatuses, updateApplicationStatus, type ApplicationStatus } from '@/services/application-service';
 
 const PLATFORMS = [
     { value: 'linkedin', label: 'LinkedIn' },
@@ -48,6 +49,16 @@ const PLATFORMS = [
 type FormData = ApplicationFormData;
 
 const STAGGER_DELAY = 150; // ms between each field
+
+// API returns snake_case field names but form uses camelCase
+const BACKEND_TO_FORM_FIELD: Record<string, string> = {
+    min_salary: 'minSalary',
+    max_salary: 'maxSalary',
+    source_url: 'sourceUrl',
+    job_type: 'jobType',
+    title: 'position',
+    company_name: 'company.name',
+};
 
 interface ApplicationFormProps {
     mode?: 'create' | 'edit';
@@ -63,6 +74,7 @@ interface ApplicationFormProps {
         sourceUrl?: string;
         platform?: string;
         notes?: string;
+        statusId?: string;
     };
 }
 
@@ -76,6 +88,12 @@ const ApplicationForm = ({
         new Set()
     );
     const [pendingFile, setPendingFile] = useState<File | null>(null);
+    const [formError, setFormError] = useState<string | null>(null);
+    const [statuses, setStatuses] = useState<ApplicationStatus[]>([]);
+
+    useEffect(() => {
+        getApplicationStatuses().then(setStatuses);
+    }, []);
 
     const {
         register,
@@ -92,6 +110,7 @@ const ApplicationForm = ({
             position: initialData?.position || '',
             location: initialData?.location || '',
             jobType: initialData?.jobType || undefined,
+            statusId: initialData?.statusId || undefined,
             minSalary: initialData?.minSalary || '',
             maxSalary: initialData?.maxSalary || '',
             description: initialData?.description || '',
@@ -150,6 +169,7 @@ const ApplicationForm = ({
     };
 
     const onSubmit = async (data: FormData) => {
+        setFormError(null);
         try {
             let resultApplicationId = applicationId;
 
@@ -166,6 +186,10 @@ const ApplicationForm = ({
                     min_salary: data.minSalary ? parseFloat(data.minSalary) : undefined,
                     max_salary: data.maxSalary ? parseFloat(data.maxSalary) : undefined,
                 });
+
+                if (data.statusId && data.statusId !== initialData?.statusId) {
+                    await updateApplicationStatus(applicationId, data.statusId);
+                }
             } else {
                 const response = await api.post(
                     '/api/applications/quick-create',
@@ -180,6 +204,7 @@ const ApplicationForm = ({
                         notes: data.notes || undefined,
                         min_salary: data.minSalary ? parseFloat(data.minSalary) : undefined,
                         max_salary: data.maxSalary ? parseFloat(data.maxSalary) : undefined,
+                        application_status_id: data.statusId || undefined,
                     }
                 );
                 resultApplicationId = response.data?.data?.application?.id;
@@ -226,9 +251,12 @@ const ApplicationForm = ({
                 const fieldErrors = getFieldErrors(error);
                 if (fieldErrors) {
                     Object.entries(fieldErrors).forEach(([field, message]) => {
-                        setError(field as keyof FormData, { message });
+                        const formField = BACKEND_TO_FORM_FIELD[field] || field;
+                        setError(formField as keyof FormData, { message });
                     });
                 }
+            } else {
+                setFormError(getErrorMessage(error));
             }
         }
     };
@@ -267,6 +295,7 @@ const ApplicationForm = ({
                 label="Location"
                 placeholder="e.g. San Francisco, CA or Remote"
                 highlight={highlightedFields.has('location')}
+                error={errors.location?.message}
                 {...register('location')}
             />
 
@@ -296,7 +325,37 @@ const ApplicationForm = ({
                         </Select>
                     )}
                 />
+                {errors.jobType?.message && (
+                    <p role="alert" className="text-xs text-destructive mt-1">{errors.jobType.message}</p>
+                )}
             </FormFieldWrapper>
+
+            {statuses.length > 0 && (
+                <FormFieldWrapper>
+                    <FormLabel className="mb-1">Status</FormLabel>
+                    <Controller
+                        name="statusId"
+                        control={control}
+                        render={({ field }) => (
+                            <Select
+                                onValueChange={field.onChange}
+                                value={field.value || statuses.find(s => s.name === 'Applied')?.id}
+                            >
+                                <SelectTrigger className="border-0 px-0 h-auto py-1 shadow-none focus:ring-0">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {statuses.map((status) => (
+                                        <SelectItem key={status.id} value={status.id}>
+                                            {status.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </FormFieldWrapper>
+            )}
 
             <div className="flex gap-4">
                 <FormFieldWrapper className="flex-1">
@@ -308,6 +367,9 @@ const ApplicationForm = ({
                         className="border-0 px-0 h-auto py-1 shadow-none focus-visible:ring-0"
                         {...register('minSalary')}
                     />
+                    {errors.minSalary?.message && (
+                        <p role="alert" className="text-xs text-destructive mt-1">{errors.minSalary.message}</p>
+                    )}
                 </FormFieldWrapper>
                 <FormFieldWrapper className="flex-1">
                     <FormLabel>Max Salary</FormLabel>
@@ -318,6 +380,9 @@ const ApplicationForm = ({
                         className="border-0 px-0 h-auto py-1 shadow-none focus-visible:ring-0"
                         {...register('maxSalary')}
                     />
+                    {errors.maxSalary?.message && (
+                        <p role="alert" className="text-xs text-destructive mt-1">{errors.maxSalary.message}</p>
+                    )}
                 </FormFieldWrapper>
             </div>
 
@@ -336,6 +401,9 @@ const ApplicationForm = ({
                         )}
                     />
                 </div>
+                {errors.description?.message && (
+                    <p role="alert" className="text-xs text-destructive mt-1">{errors.description.message}</p>
+                )}
             </FormFieldWrapper>
 
             <FormFieldWrapper>
@@ -353,6 +421,9 @@ const ApplicationForm = ({
                         )}
                     />
                 </div>
+                {errors.notes?.message && (
+                    <p role="alert" className="text-xs text-destructive mt-1">{errors.notes.message}</p>
+                )}
             </FormFieldWrapper>
 
             <FormField
@@ -391,6 +462,9 @@ const ApplicationForm = ({
                         </Select>
                     )}
                 />
+                {errors.platform?.message && (
+                    <p role="alert" className="text-xs text-destructive mt-1">{errors.platform.message}</p>
+                )}
             </FormFieldWrapper>
 
             <FormFieldWrapper>
@@ -401,6 +475,12 @@ const ApplicationForm = ({
                     <FileUpload onFileSelect={setPendingFile} />
                 )}
             </FormFieldWrapper>
+
+            {formError && (
+                <div role="alert" className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    {formError}
+                </div>
+            )}
 
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end items-stretch sm:items-center gap-3 mt-12 pt-6">
                 <Button type="button" variant="ghost" onClick={handleCancel} className="w-full sm:w-auto">

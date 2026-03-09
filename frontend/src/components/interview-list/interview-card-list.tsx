@@ -14,36 +14,48 @@ interface InterviewCardListProps {
     interviews: InterviewListItem[];
 }
 
-function getCountdownText(scheduledDate: string, outcome?: string): string {
+function getInterviewDisplayStatus(
+    status: string,
+    scheduledDate: string,
+    outcome?: string
+): { label: string; variant: 'scheduled' | 'completed' | 'cancelled' | 'awaiting_outcome' | 'today' | 'soon' } {
+    if (status === 'cancelled') {
+        return { label: 'Cancelled', variant: 'cancelled' };
+    }
+
+    if (status === 'completed' || outcome) {
+        return { label: outcome ? outcome.charAt(0).toUpperCase() + outcome.slice(1) : 'Completed', variant: 'completed' };
+    }
+
     const interviewDate = startOfDay(parseISO(scheduledDate));
     const today = startOfDay(new Date());
 
-    if (outcome) {
-        return outcome.charAt(0).toUpperCase() + outcome.slice(1);
+    if (isPast(interviewDate) && !isToday(interviewDate)) {
+        return { label: 'Awaiting Outcome', variant: 'awaiting_outcome' };
     }
 
     if (isToday(interviewDate)) {
-        return 'Today';
+        return { label: 'Today', variant: 'today' };
     }
 
     const days = differenceInDays(interviewDate, today);
     if (days === 1) {
-        return 'Tomorrow';
+        return { label: 'Tomorrow', variant: 'soon' };
     }
     if (days > 0 && days <= 7) {
-        return `in ${days}d`;
+        return { label: `in ${days}d`, variant: 'soon' };
     }
 
-    return '';
+    return { label: 'Scheduled', variant: 'scheduled' };
 }
 
-function getCardBorderClass(scheduledDate: string, outcome?: string): string {
-    const interviewDate = startOfDay(parseISO(scheduledDate));
-    const today = startOfDay(new Date());
-
-    if (outcome && isPast(interviewDate)) {
+function getCardBorderClass(status: string, scheduledDate: string, outcome?: string): string {
+    if (status === 'cancelled' || status === 'completed' || outcome) {
         return 'border-l-transparent opacity-60';
     }
+
+    const interviewDate = startOfDay(parseISO(scheduledDate));
+    const today = startOfDay(new Date());
 
     if (isToday(interviewDate)) {
         return 'border-l-[#f97316]';
@@ -58,8 +70,8 @@ function getCardBorderClass(scheduledDate: string, outcome?: string): string {
 }
 
 function InterviewCard({ interview }: { interview: InterviewListItem }) {
-    const countdown = getCountdownText(interview.scheduled_date, interview.outcome);
-    const borderClass = getCardBorderClass(interview.scheduled_date, interview.outcome);
+    const displayStatus = getInterviewDisplayStatus(interview.status, interview.scheduled_date, interview.outcome);
+    const borderClass = getCardBorderClass(interview.status, interview.scheduled_date, interview.outcome);
     const formattedDate = format(parseISO(interview.scheduled_date), 'MMM d');
 
     return (
@@ -77,20 +89,9 @@ function InterviewCard({ interview }: { interview: InterviewListItem }) {
                     <span className="text-sm font-semibold truncate">
                         {interview.company_name}
                     </span>
-                    {countdown && (
-                        <Badge
-                            variant={
-                                countdown === 'Today'
-                                    ? 'today'
-                                    : countdown === 'Tomorrow' || countdown.includes('d')
-                                    ? 'soon'
-                                    : 'outline'
-                            }
-                            className="flex-shrink-0"
-                        >
-                            {countdown}
-                        </Badge>
-                    )}
+                    <Badge variant={displayStatus.variant} className="flex-shrink-0">
+                        {displayStatus.label}
+                    </Badge>
                 </div>
 
                 {/* Position */}

@@ -1,0 +1,223 @@
+<story-context id="9-3-fix-session-expiry-redirect" v="1.0">
+  <metadata>
+    <epicId>9</epicId>
+    <storyId>3</storyId>
+    <title>Fix Session Expiry Redirect &amp; Re-authentication</title>
+    <status>drafted</status>
+    <generatedAt>2026-03-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/planning/stories/9-3-fix-session-expiry-redirect.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user whose session has expired</asA>
+    <iWant>to be redirected to a clean login page</iWant>
+    <soThat>I can log back in without encountering errors or stale URL parameters</soThat>
+    <tasks>
+      <task id="1" ac="1,2,3">Fix signOut redirect flow
+        <subtask id="1.1">In auth-guard.tsx (line 15), replace signOut({ callbackUrl }) with signOut({ redirect: false }) + window.location.href = '/login?error=SessionExpired'</subtask>
+        <subtask id="1.2">In axios.ts request interceptor (line 59), update signOut to use signOut({ redirect: false }) + manual redirect</subtask>
+        <subtask id="1.3">In axios.ts response interceptor (lines 106, 137), update remaining signOut() calls to clean redirect pattern</subtask>
+        <subtask id="1.4">Optionally preserve original page path as callbackUrl param for post-login redirect</subtask>
+      </task>
+      <task id="2" ac="2,4">Verify login page handles session-expired state cleanly
+        <subtask id="2.1">In login/page.tsx (lines 37-40), verify error=SessionExpired param displays correct message</subtask>
+        <subtask id="2.2">Clear error message when user interacts with form</subtask>
+        <subtask id="2.3">After successful login, ensure URL params cleaned and user redirected to callbackUrl or /</subtask>
+      </task>
+      <task id="3" ac="1,2,3,4">Test re-authentication flows
+        <subtask id="3.1">Manual test — expire session, verify redirect URL is clean</subtask>
+        <subtask id="3.2">Manual test — credentials login after session expiry</subtask>
+        <subtask id="3.3">Manual test — OAuth login after session expiry</subtask>
+        <subtask id="3.4">Manual test — error message appears and clears on form interaction</subtask>
+        <subtask id="3.5">Verify no stale tokens/cookies interfere with re-authentication</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Given a user's session expires (RefreshTokenError), when they are redirected to the login page, then the URL is clean (/login or /login?error=SessionExpired) with no CSRF tokens or other NextAuth params in the URL</ac>
+    <ac id="2">Given a user lands on the login page after session expiry, when they enter valid credentials and submit, then they are logged in successfully and redirected to the app</ac>
+    <ac id="3">Given a user lands on the login page after session expiry, when they use an OAuth provider (GitHub/Google/LinkedIn), then the OAuth flow completes successfully</ac>
+    <ac id="4">Given the session expiry message, when displayed on the login page, then it shows "Your session has expired. Please sign in again." and clears after the user interacts with the form</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/planning/epic-9.md</path>
+        <title>Epic 9: Bug Fixes &amp; Core Workflow Stability</title>
+        <section>Story 9.3: Fix Session Expiry Redirect &amp; Re-authentication</section>
+        <snippet>Defines ACs, tasks, edge cases, and technical notes. Three signOut call sites identified. Recommends signOut({ redirect: false }) + manual navigation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Ditto Architecture Document</title>
+        <section>Technology Stack - Frontend</section>
+        <snippet>Next.js 14.2.15 with App Router, next-auth 5.0.0-beta.29 for authentication (OAuth + credentials), Axios for HTTP client.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Ditto Architecture Document</title>
+        <section>Project Structure</section>
+        <snippet>Auth guard in components/auth-guard.tsx, axios interceptor in lib/axios.ts, login page in app/(auth)/login/page.tsx, NextAuth config in src/auth.ts.</snippet>
+      </doc>
+      <doc>
+        <path>docs/planning/stories/9-2-fix-interview-status-tracking-and-dashboard.md</path>
+        <title>Story 9.2 (Previous Story)</title>
+        <section>Dev Agent Record</section>
+        <snippet>Completed and approved. Advisory note about duplicated utility function. No pending action items affecting this story. Layout file changes noted as unrelated.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>frontend/src/components/auth-guard.tsx</path>
+        <kind>component</kind>
+        <symbol>AuthGuard</symbol>
+        <lines>1-30</lines>
+        <reason>PRIMARY FIX TARGET. Checks session?.error === 'RefreshTokenError' (line 14) and calls signOut with callbackUrl (line 15-17). Must change to signOut({ redirect: false }) + manual redirect.</reason>
+      </file>
+      <file>
+        <path>frontend/src/lib/axios.ts</path>
+        <kind>interceptor</kind>
+        <symbol>api interceptors</symbol>
+        <lines>54-155</lines>
+        <reason>PRIMARY FIX TARGET. Three signOut calls: request interceptor (line 59), response interceptor after refresh failure (lines 106, 137). All need clean redirect pattern.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(auth)/login/page.tsx</path>
+        <kind>page</kind>
+        <symbol>LoginPage / LoginForm</symbol>
+        <lines>1-164</lines>
+        <reason>VERIFY/ENHANCE. Already reads error=SessionExpired (line 33-40) and displays message. Need to verify error clears on form interaction (AC #4). callbackUrl redirect at line 52.</reason>
+      </file>
+      <file>
+        <path>frontend/src/auth.ts</path>
+        <kind>config</kind>
+        <symbol>NextAuth config</symbol>
+        <lines>38-170</lines>
+        <reason>CONTEXT. NextAuth v5 config with JWT callback that sets error='RefreshTokenError' (line 155), session callback that exposes error (line 163), custom signIn page '/login' (line 168). Token refresh logic at lines 11-36.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/api/auth/[...nextauth]/route.ts</path>
+        <kind>route</kind>
+        <symbol>NextAuth route handlers</symbol>
+        <lines>1-3</lines>
+        <reason>CONTEXT. Exports NextAuth GET/POST handlers. The signOut flow goes through POST /api/auth/signout which may append csrfToken to redirect URL.</reason>
+      </file>
+      <file>
+        <path>frontend/src/middleware.ts</path>
+        <kind>middleware</kind>
+        <symbol>auth middleware</symbol>
+        <lines>1-10</lines>
+        <reason>CONTEXT. Uses NextAuth auth middleware for route protection. Matcher excludes /api, /auth routes. Login page is under (auth) route group, not protected.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(app)/layout.tsx</path>
+        <kind>layout</kind>
+        <symbol>RootLayout</symbol>
+        <lines>65-69</lines>
+        <reason>CONTEXT. AuthGuard wraps all (app) routes at line 65. This is where RefreshTokenError triggers signOut for authenticated pages.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(auth)/layout.tsx</path>
+        <kind>layout</kind>
+        <symbol>AuthLayout</symbol>
+        <lines>1-25</lines>
+        <reason>CONTEXT. Auth layout for login/register pages. No AuthGuard — login page is accessible without session.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(auth)/components/oauth-buttons.tsx</path>
+        <kind>component</kind>
+        <symbol>OAuthButtons</symbol>
+        <lines>1-58</lines>
+        <reason>CONTEXT. OAuth sign-in buttons (LinkedIn, GitHub, Google) using signIn() with { redirectTo: '/' }. These must work after session expiry (AC #3).</reason>
+      </file>
+      <file>
+        <path>frontend/src/lib/errors.ts</path>
+        <kind>utility</kind>
+        <symbol>getErrorMessage, isValidationError</symbol>
+        <lines>1-89</lines>
+        <reason>CONTEXT. Error handling utilities used by axios interceptor. UNAUTHORIZED message defined at line 16.</reason>
+      </file>
+      <file>
+        <path>frontend/src/app/(auth)/components/__tests__/oauth-buttons.test.tsx</path>
+        <kind>test</kind>
+        <symbol>OAuthButtons tests</symbol>
+        <reason>REFERENCE. Existing auth component test — follow same patterns for any new tests.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <frontend>
+        <package name="next" version="14.2.15" />
+        <package name="next-auth" version="5.0.0-beta.29" />
+        <package name="react" version="^18" />
+        <package name="axios" version="^1.7.9" />
+        <package name="react-hook-form" version="^7.54.2" />
+        <package name="zod" version="^3.24.2" />
+        <package name="sonner" note="toast notifications used in axios interceptor" />
+        <package name="jest" version="^30.2.0" />
+      </frontend>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>signOut (next-auth/react)</name>
+      <kind>function</kind>
+      <signature>signOut(options?: { callbackUrl?: string; redirect?: boolean }): Promise&lt;void&gt;</signature>
+      <path>node_modules/next-auth (next-auth/react)</path>
+      <notes>When redirect: false, session is destroyed server-side but no navigation occurs. Returns promise that resolves after session cleared. When redirect: true (default), navigates through /api/auth/signout which may append csrfToken param.</notes>
+    </interface>
+    <interface>
+      <name>signIn (next-auth/react)</name>
+      <kind>function</kind>
+      <signature>signIn(provider?: string, options?: { redirect?: boolean; callbackUrl?: string; redirectTo?: string }): Promise&lt;SignInResponse | undefined&gt;</signature>
+      <path>node_modules/next-auth (next-auth/react)</path>
+      <notes>Used in login page (credentials) and oauth-buttons (OAuth providers). Must work correctly after session expiry.</notes>
+    </interface>
+    <interface>
+      <name>getSession (next-auth/react)</name>
+      <kind>function</kind>
+      <signature>getSession(): Promise&lt;Session | null&gt;</signature>
+      <path>node_modules/next-auth (next-auth/react)</path>
+      <notes>Used in axios interceptor to check session state before requests. Session.error === 'RefreshTokenError' indicates expired session.</notes>
+    </interface>
+    <interface>
+      <name>useSession (next-auth/react)</name>
+      <kind>hook</kind>
+      <signature>useSession(): { data: Session | null; status: 'loading' | 'authenticated' | 'unauthenticated' }</signature>
+      <path>node_modules/next-auth (next-auth/react)</path>
+      <notes>Used in AuthGuard to monitor session state. Session.error field exposed via auth.ts session callback.</notes>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint source="docs/architecture.md">Follow handler-repository pattern for backend, component-based architecture for frontend</constraint>
+    <constraint source="docs/planning/epic-9.md">This is a frontend-only bug fix — no backend changes required</constraint>
+    <constraint source="frontend/src/auth.ts">NextAuth v5 beta (5.0.0-beta.29) — signOut behavior may differ from v4 documentation</constraint>
+    <constraint source="frontend/src/lib/axios.ts">Axios interceptor has token refresh queue pattern with isRefreshing flag — signOut changes must not break queue processing</constraint>
+    <constraint source="docs/planning/epic-9.md#Edge-Cases">Multiple tabs: each tab redirects independently. Browser back button after signout should not restore authenticated state.</constraint>
+    <constraint source="frontend/src/middleware.ts">NextAuth middleware protects (app) routes — after signOut, middleware will redirect unauthenticated users to /login</constraint>
+  </constraints>
+
+  <tests>
+    <standards>Frontend tests use Jest 30.2.0 with React Testing Library. Tests are co-located with components in __tests__ directories. Mock next-auth/react (signIn, signOut, useSession, getSession) for auth-related tests. Use data-testid attributes for element selection. Follow patterns from existing test files like oauth-buttons.test.tsx.</standards>
+    <locations>
+      <location>frontend/src/app/(auth)/components/__tests__/</location>
+      <location>frontend/src/components/__tests__/ (if exists)</location>
+      <location>frontend/src/lib/__tests__/ (if exists)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test AuthGuard calls signOut({ redirect: false }) when session has RefreshTokenError, and does NOT pass callbackUrl to signOut</idea>
+      <idea ac="1">Test that window.location.href is set to '/login?error=SessionExpired' after signOut resolves</idea>
+      <idea ac="2">Test LoginForm reads error=SessionExpired from URL params and displays expiry message</idea>
+      <idea ac="2">Test LoginForm successfully submits credentials and redirects to callbackUrl after session expiry</idea>
+      <idea ac="3">Test OAuthButtons render and are clickable after session expiry redirect (no stale state)</idea>
+      <idea ac="4">Test error message clears when user interacts with form fields</idea>
+      <idea ac="4">Test error message clears on form submission</idea>
+    </ideas>
+  </tests>
+</story-context>

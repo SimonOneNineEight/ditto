@@ -31,7 +31,8 @@ const LoginForm = () => {
     const [error, setError] = useState('');
 
     const urlError = searchParams.get('error');
-    const callbackUrl = searchParams.get('callbackUrl') || '/';
+    const rawCallbackUrl = searchParams.get('callbackUrl');
+    const callbackUrl = rawCallbackUrl?.startsWith('/') ? rawCallbackUrl : '/';
 
     useEffect(() => {
         if (urlError === 'SessionExpired') {
@@ -68,6 +69,7 @@ const LoginForm = () => {
                         onSubmit={handleSubmit(onSubmit)}
                         className="flex flex-col gap-5"
                         data-testid="login-form"
+                        onFocus={() => { if (urlError) setError(''); }}
                     >
                         <div>
                             <label htmlFor="email" className="block text-[11px] uppercase text-muted-foreground tracking-wider mb-1">

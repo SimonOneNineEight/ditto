@@ -37,6 +37,7 @@ type Interview struct {
 	CouldImprove    *string    `json:"could_improve,omitempty" db:"could_improve"`
 	ConfidenceLevel *int       `json:"confidence_level,omitempty" db:"confidence_level"`
 	InterviewType   string     `json:"interview_type" db:"interview_type" validate:"required,max=50"`
+	Status          string     `json:"status" db:"status"`
 	CreatedAt       time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at" db:"updated_at"`
 	DeletedAt       *time.Time `json:"-" db:"deleted_at"`

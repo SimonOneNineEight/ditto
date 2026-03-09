@@ -128,3 +128,26 @@ development_status:
   story-auth-multiprovider-2: done
   story-auth-multiprovider-3: done
   epic-8-retrospective: done
+
+  # Epic 9: Bug Fixes & Core Workflow Stability
+  epic-9: backlog
+  9-1-fix-application-status-transitions-and-draft: done
+  9-2-fix-interview-status-tracking-and-dashboard: done
+  9-3-fix-session-expiry-redirect: done
+  9-4-application-form-error-display: done
+
+  # Epic 10: Security & Access Hardening
+  epic-10: backlog
+  10-1-document-access-permissions: backlog
+  10-2-password-reset-with-email-verification: backlog
+
+  # Epic 11: UX Polish & File Management
+  epic-11: backlog
+  11-1-file-page-ux-and-document-card-context: backlog
+  11-2-light-theme-color-audit: backlog
+  11-3-needs-feedback-logic: backlog
+
+  # Epic 12: Data Extraction & Developer Experience
+  epic-12: backlog
+  12-1-extract-job-description-as-html: backlog
+  12-2-swagger-openapi-documentation: backlog

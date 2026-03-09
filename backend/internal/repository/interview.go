@@ -34,20 +34,24 @@ func (r *InterviewRepository) CreateInterview(interview *models.Interview) (*mod
 
 	interview.RoundNumber = nextRoundNumber
 
+	if interview.Status == "" {
+		interview.Status = "scheduled"
+	}
+
 	query := `
 		INSERT INTO interviews (
 			id, user_id, application_id, round_number, scheduled_date, scheduled_time,
 			duration_minutes, outcome, overall_feeling, went_well, could_improve,
-			confidence_level, interview_type, created_at, updated_at
+			confidence_level, interview_type, status, created_at, updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 	`
 
 	_, err = r.db.Exec(query, interview.ID, interview.UserID,
 		interview.ApplicationID, interview.RoundNumber, interview.ScheduledDate, interview.ScheduledTime,
 		interview.DurationMinutes, interview.Outcome, interview.OverallFeeling, interview.WentWell,
-		interview.CouldImprove, interview.ConfidenceLevel, interview.InterviewType, interview.CreatedAt,
-		interview.UpdatedAt)
+		interview.CouldImprove, interview.ConfidenceLevel, interview.InterviewType, interview.Status,
+		interview.CreatedAt, interview.UpdatedAt)
 	if err != nil {
 		return nil, errors.ConvertError(err)
 	}
@@ -76,7 +80,7 @@ func (r *InterviewRepository) GetInterviewByID(id, userID uuid.UUID) (*models.In
 		SELECT 
 			id, user_id, application_id, round_number, scheduled_date, scheduled_time,
 			duration_minutes, outcome, overall_feeling, went_well, could_improve,
-			confidence_level, interview_type, created_at, updated_at
+			confidence_level, interview_type, status, created_at, updated_at
 		FROM interviews
 		WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
 	`
@@ -163,7 +167,7 @@ func (r *InterviewRepository) GetInterviewsByApplicationID(applicationID, userID
 		SELECT 
 			id, user_id, application_id, round_number, scheduled_date, scheduled_time,
 			duration_minutes, outcome, overall_feeling, went_well, could_improve,
-			confidence_level, interview_type, created_at, updated_at
+			confidence_level, interview_type, status, created_at, updated_at
 		FROM interviews
 		WHERE application_id = $1 AND user_id = $2 AND deleted_at IS NULL
 	`
@@ -182,7 +186,7 @@ func (r *InterviewRepository) GetInterviewsByUser(userID uuid.UUID) ([]*models.I
 		SELECT
 			id, user_id, application_id, round_number, scheduled_date, scheduled_time,
 			duration_minutes, outcome, overall_feeling, went_well, could_improve,
-			confidence_level, interview_type, created_at, updated_at
+			confidence_level, interview_type, status, created_at, updated_at
 		FROM interviews
 		WHERE user_id = $1 AND deleted_at IS NULL
 	`
@@ -208,7 +212,7 @@ func (r *InterviewRepository) GetInterviewWithApplicationInfo(interviewID, userI
 		SELECT
 			i.id, i.user_id, i.application_id, i.round_number, i.scheduled_date, i.scheduled_time,
 			i.duration_minutes, i.outcome, i.overall_feeling, i.went_well, i.could_improve,
-			i.confidence_level, i.interview_type, i.created_at, i.updated_at,
+			i.confidence_level, i.interview_type, i.status, i.created_at, i.updated_at,
 			c.name as company_name, j.title as job_title
 		FROM interviews i
 		JOIN applications a ON i.application_id = a.id
@@ -309,7 +313,7 @@ func (r *InterviewRepository) GetInterviewsWithApplicationInfo(userID uuid.UUID,
 		SELECT
 			i.id, i.user_id, i.application_id, i.round_number, i.scheduled_date, i.scheduled_time,
 			i.duration_minutes, i.outcome, i.overall_feeling, i.went_well, i.could_improve,
-			i.confidence_level, i.interview_type, i.created_at, i.updated_at,
+			i.confidence_level, i.interview_type, i.status, i.created_at, i.updated_at,
 			c.name as company_name, j.title as job_title
 	` + baseQuery + `
 		ORDER BY i.scheduled_date ASC, COALESCE(i.scheduled_time, '00:00:00') ASC

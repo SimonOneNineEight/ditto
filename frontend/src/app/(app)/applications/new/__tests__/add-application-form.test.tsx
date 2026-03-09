@@ -23,9 +23,14 @@ jest.mock("sonner", () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
 
+const mockIsValidationError = jest.fn().mockReturnValue(false);
+const mockGetFieldErrors = jest.fn().mockReturnValue(null);
+const mockGetErrorMessage = jest.fn().mockReturnValue("Something went wrong. Please try again.");
+
 jest.mock("@/lib/errors", () => ({
-  isValidationError: () => false,
-  getFieldErrors: () => null,
+  isValidationError: (...args: unknown[]) => mockIsValidationError(...args),
+  getFieldErrors: (...args: unknown[]) => mockGetFieldErrors(...args),
+  getErrorMessage: (...args: unknown[]) => mockGetErrorMessage(...args),
 }));
 
 jest.mock("@/lib/file-service", () => ({
@@ -68,6 +73,14 @@ jest.mock("../company-autocomplete", () => ({
       {error && <p role="alert">{error}</p>}
     </div>
   ),
+}));
+
+jest.mock("@/services/application-service", () => ({
+  getApplicationStatuses: jest.fn().mockResolvedValue([
+    { id: "status-1", name: "Applied" },
+    { id: "status-2", name: "Saved" },
+  ]),
+  updateApplicationStatus: jest.fn().mockResolvedValue({}),
 }));
 
 jest.mock("@/components/file-upload", () => ({
@@ -244,6 +257,110 @@ describe("ApplicationForm", () => {
           title: "Engineer",
         }),
       );
+    });
+  });
+
+  it("displays field-level validation errors from backend inline on affected fields", async () => {
+    mockPost.mockRejectedValue(new Error("validation"));
+    mockIsValidationError.mockReturnValue(true);
+    mockGetFieldErrors.mockReturnValue({
+      location: "Location is required",
+      min_salary: "Salary must be positive",
+    });
+
+    const user = userEvent.setup();
+    render(<ApplicationForm />);
+
+    await user.type(screen.getByLabelText(/company/i), "Test Company");
+    await user.type(screen.getByLabelText(/position/i), "Software Engineer");
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /save application/i }),
+      ).not.toBeDisabled();
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: /save application/i }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Location is required")).toBeInTheDocument();
+      expect(screen.getByText("Salary must be positive")).toBeInTheDocument();
+    });
+  });
+
+  it("shows form error banner on non-validation error (500/network)", async () => {
+    mockPost.mockRejectedValue(new Error("Server error"));
+    mockIsValidationError.mockReturnValue(false);
+    mockGetErrorMessage.mockReturnValue("Something went wrong. Please try again.");
+
+    const user = userEvent.setup();
+    render(<ApplicationForm />);
+
+    await user.type(screen.getByLabelText(/company/i), "Test Company");
+    await user.type(screen.getByLabelText(/position/i), "Software Engineer");
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /save application/i }),
+      ).not.toBeDisabled();
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: /save application/i }),
+    );
+
+    await waitFor(() => {
+      const alerts = screen.getAllByRole("alert");
+      const banner = alerts.find((el) =>
+        el.textContent?.includes("Something went wrong"),
+      );
+      expect(banner).toBeInTheDocument();
+    });
+  });
+
+  it("clears error banner on resubmit", async () => {
+    mockPost
+      .mockRejectedValueOnce(new Error("Server error"))
+      .mockResolvedValueOnce({ data: { data: { id: "123" } } });
+    mockIsValidationError.mockReturnValue(false);
+    mockGetErrorMessage.mockReturnValue("Something went wrong. Please try again.");
+
+    const user = userEvent.setup();
+    render(<ApplicationForm />);
+
+    await user.type(screen.getByLabelText(/company/i), "Test Company");
+    await user.type(screen.getByLabelText(/position/i), "Software Engineer");
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /save application/i }),
+      ).not.toBeDisabled();
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: /save application/i }),
+    );
+
+    await waitFor(() => {
+      const alerts = screen.getAllByRole("alert");
+      const banner = alerts.find((el) =>
+        el.textContent?.includes("Something went wrong"),
+      );
+      expect(banner).toBeInTheDocument();
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: /save application/i }),
+    );
+
+    await waitFor(() => {
+      const alerts = screen.queryAllByRole("alert");
+      const banner = alerts.find((el) =>
+        el.textContent?.includes("Something went wrong"),
+      );
+      expect(banner).toBeUndefined();
     });
   });
 });

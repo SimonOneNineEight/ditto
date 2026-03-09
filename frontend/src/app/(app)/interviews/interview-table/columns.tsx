@@ -29,72 +29,58 @@ const formatDate = (dateStr: string) => {
     }
 };
 
-function getCountdownText(
+function getInterviewDisplayStatus(
+    status: string,
     scheduledDate: string,
-    scheduledTime?: string,
     outcome?: string
-): string {
+): { label: string; variant: 'scheduled' | 'completed' | 'cancelled' | 'awaiting_outcome' | 'today' | 'soon' } {
+    if (status === 'cancelled') {
+        return { label: 'Cancelled', variant: 'cancelled' };
+    }
+
+    if (status === 'completed' || outcome) {
+        return { label: outcome ? outcome.charAt(0).toUpperCase() + outcome.slice(1) : 'Completed', variant: 'completed' };
+    }
+
     const interviewDate = startOfDay(parseISO(scheduledDate));
     const today = startOfDay(new Date());
 
-    if (outcome) {
-        return outcome.charAt(0).toUpperCase() + outcome.slice(1);
+    if (isPast(interviewDate) && !isToday(interviewDate)) {
+        return { label: 'Awaiting Outcome', variant: 'awaiting_outcome' };
     }
 
-    // Check isToday and isTomorrow BEFORE isPast (since today is technically "past" midnight)
     if (isToday(interviewDate)) {
-        return 'Today';
+        return { label: 'Today', variant: 'today' };
     }
 
     if (isTomorrow(interviewDate)) {
-        return 'Tomorrow';
-    }
-
-    // Past interviews without outcome go to Needs Feedback section
-    if (isPast(interviewDate) && !outcome) {
-        return '';
+        return { label: 'Tomorrow', variant: 'soon' };
     }
 
     const days = differenceInDays(interviewDate, today);
     if (days > 0 && days <= 7) {
-        return `in ${days}d`;
+        return { label: `in ${days}d`, variant: 'soon' };
     }
 
-    return '—';
+    return { label: 'Scheduled', variant: 'scheduled' };
 }
 
-type BadgeType = 'today' | 'tomorrow' | 'soon' | 'none';
-
-function getBadgeType(countdown: string): BadgeType {
-    if (countdown === 'Today') return 'today';
-    if (countdown === 'Tomorrow') return 'tomorrow';
-    if (countdown.includes('d')) return 'soon';
-    return 'none';
-}
-
-function StatusBadge({ countdown }: { countdown: string }) {
-    const badgeType = getBadgeType(countdown);
-
-    if (badgeType === 'none' || countdown === '—') {
-        return <span className="text-muted-foreground text-sm">{countdown}</span>;
-    }
-
-    const variant = badgeType === 'today' ? 'today' : 'soon';
-
+function StatusBadge({ status, scheduledDate, outcome }: { status: string; scheduledDate: string; outcome?: string }) {
+    const displayStatus = getInterviewDisplayStatus(status, scheduledDate, outcome);
     return (
-        <Badge variant={variant}>
-            {countdown}
+        <Badge variant={displayStatus.variant}>
+            {displayStatus.label}
         </Badge>
     );
 }
 
-export function getRowBorderClass(scheduledDate: string, outcome?: string): string {
-    const interviewDate = startOfDay(parseISO(scheduledDate));
-    const today = startOfDay(new Date());
-
-    if (outcome && isPast(interviewDate)) {
+export function getRowBorderClass(scheduledDate: string, outcome?: string, status?: string): string {
+    if (status === 'cancelled' || status === 'completed' || outcome) {
         return 'opacity-60';
     }
+
+    const interviewDate = startOfDay(parseISO(scheduledDate));
+    const today = startOfDay(new Date());
 
     if (isToday(interviewDate)) {
         return 'border-l-4 border-l-[#f97316]';
@@ -182,16 +168,16 @@ export const columns: (ColumnDef<InterviewListItem, unknown> & {
         },
     },
     {
-        id: 'countdown',
+        id: 'status',
         header: 'Status',
         cell: ({ row }) => {
-            const countdown = getCountdownText(
-                row.original.scheduled_date,
-                row.original.scheduled_time,
-                row.original.outcome
+            return (
+                <StatusBadge
+                    status={row.original.status}
+                    scheduledDate={row.original.scheduled_date}
+                    outcome={row.original.outcome}
+                />
             );
-            if (!countdown) return null;
-            return <StatusBadge countdown={countdown} />;
         },
         meta: {
             className: 'w-[10%]',

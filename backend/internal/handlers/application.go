@@ -26,16 +26,17 @@ type UpdateApplicationStatusReq struct {
 }
 
 type QuickCreateApplicationReq struct {
-	CompanyName string `json:"company_name" binding:"required"`
-	Title       string `json:"title" binding:"required"`
-	Description string `json:"description" binding:"max=10000"`
-	Location    string `json:"location"`
-	JobType     string `json:"job_type" binding:"omitempty,oneof=full-time part-time contract internship"`
-	SourceURL   string `json:"source_url" binding:"omitempty,url,max=2048"`
-	Platform    string `json:"platform" binding:"omitempty,max=50"`
-	Notes       string   `json:"notes" binding:"max=10000"`
-	MinSalary   *float64 `json:"min_salary,omitempty"`
-	MaxSalary   *float64 `json:"max_salary,omitempty"`
+	CompanyName         string     `json:"company_name" binding:"required"`
+	Title               string     `json:"title" binding:"required"`
+	Description         string     `json:"description" binding:"max=10000"`
+	Location            string     `json:"location"`
+	JobType             string     `json:"job_type" binding:"omitempty,oneof=full-time part-time contract internship"`
+	SourceURL           string     `json:"source_url" binding:"omitempty,url,max=2048"`
+	Platform            string     `json:"platform" binding:"omitempty,max=50"`
+	Notes               string     `json:"notes" binding:"max=10000"`
+	MinSalary           *float64   `json:"min_salary,omitempty"`
+	MaxSalary           *float64   `json:"max_salary,omitempty"`
+	ApplicationStatusID *uuid.UUID `json:"application_status_id,omitempty"`
 }
 
 func NewApplicationHandler(appState *utils.AppState) *ApplicationHandler {
@@ -220,15 +221,21 @@ func (h *ApplicationHandler) QuickCreateApplication(c *gin.Context) {
 		return
 	}
 
-	appliedStatusID, err := h.applicationRepo.GetApplicationStatusIDByName("Applied")
-	if err != nil {
-		HandleErrorWithMessage(c, err, "failed to resolve application status")
-		return
+	var statusID uuid.UUID
+	if req.ApplicationStatusID != nil {
+		statusID = *req.ApplicationStatusID
+	} else {
+		var err error
+		statusID, err = h.applicationRepo.GetApplicationStatusIDByName("Applied")
+		if err != nil {
+			HandleErrorWithMessage(c, err, "failed to resolve application status")
+			return
+		}
 	}
 
 	application := &models.Application{
 		JobID:               createdJob.ID,
-		ApplicationStatusID: appliedStatusID,
+		ApplicationStatusID: statusID,
 		AppliedAt:           time.Now(),
 		AttemptNumber:       1,
 	}

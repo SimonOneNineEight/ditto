@@ -1,0 +1,375 @@
+<story-context id="9-1-fix-application-status-transitions-and-draft" v="1.0">
+  <metadata>
+    <epicId>9</epicId>
+    <storyId>1</storyId>
+    <title>Fix Application Status Transitions &amp; Add Draft Status</title>
+    <status>drafted</status>
+    <generatedAt>2026-03-06</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/planning/stories/9-1-fix-application-status-transitions-and-draft.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>to change my application status and start applications as "Draft"</iWant>
+    <soThat>I can accurately track where each application stands in my workflow</soThat>
+    <tasks>
+      <task id="1" ac="1,5">Investigate and fix application status transition bug
+        <subtask id="1.1">Reproduce the status change failure — trace from frontend status dropdown through PATCH /api/applications/:id/status to UpdateApplicationStatus handler and repository</subtask>
+        <subtask id="1.2">Check if the issue is: frontend sending wrong payload format, handler validation rejecting valid requests, repository query failing, or CSRF/auth middleware blocking the request</subtask>
+        <subtask id="1.3">Fix the root cause and document findings</subtask>
+        <subtask id="1.4">Add/update backend tests covering status transitions in application_test.go</subtask>
+        <subtask id="1.5">Add/update frontend tests verifying status dropdown triggers API call correctly</subtask>
+      </task>
+      <task id="2" ac="2">Add Draft status to database
+        <subtask id="2.1">Create migration 000017_add_draft_status.up.sql to INSERT "Draft" into application_status table</subtask>
+        <subtask id="2.2">Create corresponding 000017_add_draft_status.down.sql to remove "Draft" status</subtask>
+        <subtask id="2.3">Verify migration handles case where "Draft" already exists (use WHERE NOT EXISTS pattern)</subtask>
+      </task>
+      <task id="3" ac="3">Set Draft as default status for new applications
+        <subtask id="3.1">Update QuickCreateApplication handler — currently hardcodes "Applied" via GetApplicationStatusIDByName("Applied") at line 223, change to "Draft"</subtask>
+        <subtask id="3.2">Update or add tests verifying new applications default to "Draft"</subtask>
+      </task>
+      <task id="4" ac="4">Update frontend for Draft status display
+        <subtask id="4.1">Add "Draft" option to badge variant map in columns.tsx and application detail page</subtask>
+        <subtask id="4.2">Add Draft badge color/styling — use a distinct variant (e.g., gray or slate)</subtask>
+        <subtask id="4.3">Update application list filter options to include Draft</subtask>
+        <subtask id="4.4">Update frontend status type definitions if statuses are hardcoded</subtask>
+      </task>
+      <task id="5" ac="2,4">Update dashboard to include Draft in status counts
+        <subtask id="5.1">Add "draft": 0 to statusCounts map in dashboard_repository.go:88-94</subtask>
+        <subtask id="5.2">Add "draft" to active calculation at line 113</subtask>
+        <subtask id="5.3">Update frontend dashboard to display Draft count</subtask>
+        <subtask id="5.4">Update dashboard tests in dashboard_test.go</subtask>
+      </task>
+      <task id="6" ac="1,2,3,4,5">Testing
+        <subtask id="6.1">Backend integration tests: status transitions for all valid states</subtask>
+        <subtask id="6.2">Backend test: new application defaults to Draft</subtask>
+        <subtask id="6.3">Frontend test: Draft badge renders with correct styling</subtask>
+        <subtask id="6.4">Frontend test: status dropdown includes Draft option</subtask>
+        <subtask id="6.5">Verify all existing tests pass with new status logic</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Given an application exists, when the user selects a new status from the status dropdown, then the status updates successfully and persists across page refreshes</ac>
+    <ac id="2">Given the application_status table, when the system starts, then a "Draft" status exists alongside Saved, Applied, Interview, Offer, and Rejected</ac>
+    <ac id="3">Given a user creates a new application, when they don't explicitly set a status, then it defaults to "Draft"</ac>
+    <ac id="4">Given an application with status "Draft," when the user views the application list, then "Draft" is displayed with appropriate styling (distinct color/badge)</ac>
+    <ac id="5">Given the status transition bug, when investigated, then the root cause is identified and documented in the PR description</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/planning/epic-9.md</path>
+        <title>Epic 9: Bug Fixes &amp; Core Workflow Stability</title>
+        <section>Story 9.1: Fix Application Status Transitions &amp; Add Draft Status</section>
+        <snippet>Fix broken application status transitions, add "Draft" status. Application statuses live in the application_status DB table with UNIQUE constraint on name (migration 000006). Dashboard fetchStats hardcodes status keys in statusCounts map.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Ditto Architecture Document</title>
+        <section>API Architecture, Route Groups, API Response Format</section>
+        <snippet>All responses use standardized ApiResponse envelope with Success/Error/FieldErrors. Application routes at /api/applications with Auth + CSRF middleware. PATCH /:id/status for status updates.</snippet>
+      </doc>
+      <doc>
+        <path>docs/database-schema.md</path>
+        <title>Ditto Database Schema</title>
+        <section>application_status, applications</section>
+        <snippet>application_status table: id (UUID PK), name (TEXT NOT NULL UNIQUE). applications table: application_status_id (UUID FK to application_status). Current statuses seeded in migration 000014: Saved, Applied, Interview, Offer, Rejected.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Backend: Application Handler -->
+      <file>
+        <path>backend/internal/handlers/application.go</path>
+        <kind>handler</kind>
+        <symbol>UpdateApplicationStatus</symbol>
+        <lines>332-365</lines>
+        <reason>PATCH /api/applications/:id/status handler — accepts UpdateApplicationStatusReq with application_status_id UUID. This is the endpoint where the status transition bug manifests. Returns updated application.</reason>
+      </file>
+      <file>
+        <path>backend/internal/handlers/application.go</path>
+        <kind>handler</kind>
+        <symbol>QuickCreateApplication</symbol>
+        <lines>180-252</lines>
+        <reason>POST /api/applications/quick-create — hardcodes "Applied" as default status at line 223 via GetApplicationStatusIDByName("Applied"). Must change to "Draft".</reason>
+      </file>
+      <file>
+        <path>backend/internal/handlers/application.go</path>
+        <kind>handler</kind>
+        <symbol>CreateApplication</symbol>
+        <lines>143-178</lines>
+        <reason>POST /api/applications — requires application_status_id in request body (line 157-159). Frontend must send Draft status ID for new applications.</reason>
+      </file>
+      <file>
+        <path>backend/internal/handlers/application.go</path>
+        <kind>handler</kind>
+        <symbol>GetApplicationStatuses</symbol>
+        <lines>428-438</lines>
+        <reason>GET /api/application-statuses — returns all statuses from DB via cached query. Frontend uses this to populate status dropdowns.</reason>
+      </file>
+
+      <!-- Backend: Application Repository -->
+      <file>
+        <path>backend/internal/repository/application.go</path>
+        <kind>repository</kind>
+        <symbol>UpdateApplicationStatus</symbol>
+        <lines>410-434</lines>
+        <reason>SQL UPDATE for application_status_id. Uses parameterized query with user_id ownership check. Returns error if 0 rows affected (not found or deleted).</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/application.go</path>
+        <kind>repository</kind>
+        <symbol>GetApplicationStatusIDByName</symbol>
+        <lines>484-510</lines>
+        <reason>Resolves status name to UUID. Uses double-checked cache pattern (5-min TTL). Called by QuickCreateApplication to get "Applied" ID — must work with "Draft" after migration.</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/application.go</path>
+        <kind>repository</kind>
+        <symbol>GetApplicationStatusCached</symbol>
+        <lines>452-482</lines>
+        <reason>Cached status list query. Populates both list cache and name→ID map cache. New "Draft" status will auto-populate after cache expiry (5 min) or restart.</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/application.go</path>
+        <kind>repository</kind>
+        <symbol>GetApplicationsByStatus</symbol>
+        <lines>319-350</lines>
+        <reason>Status counts for application stats endpoint. Groups by status name. Will automatically include Draft once it exists in DB — no code change needed here.</reason>
+      </file>
+
+      <!-- Backend: Dashboard Repository -->
+      <file>
+        <path>backend/internal/repository/dashboard_repository.go</path>
+        <kind>repository</kind>
+        <symbol>fetchStats</symbol>
+        <lines>71-123</lines>
+        <reason>Dashboard statistics query. CRITICAL: statusCounts map at lines 88-94 hardcodes only 5 statuses (no "draft"). InterviewCount at line 118 uses statusCounts["interview"] (application count, not interview count — this is Story 9.2's concern). Line 113: active calculation needs "draft" added.</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/dashboard_repository.go</path>
+        <kind>repository</kind>
+        <symbol>InvalidateCache</symbol>
+        <lines>125-129</lines>
+        <reason>Cache invalidation — called after status updates. Already wired into handler.</reason>
+      </file>
+
+      <!-- Backend: Models -->
+      <file>
+        <path>backend/internal/models/application.go</path>
+        <kind>model</kind>
+        <symbol>ApplicationStatus, Application</symbol>
+        <lines>1-37</lines>
+        <reason>ApplicationStatus struct (id, name) and Application struct with ApplicationStatusID FK. No code changes needed — model is generic.</reason>
+      </file>
+
+      <!-- Backend: Routes -->
+      <file>
+        <path>backend/internal/routes/application.go</path>
+        <kind>routes</kind>
+        <symbol>RegisterApplicationRoutes</symbol>
+        <lines>1-35</lines>
+        <reason>Route registration: PATCH /:id/status mapped to UpdateApplicationStatus. Auth + CSRF middleware applied at group level. GET /application-statuses for status list (no auth required on this specific endpoint — it's outside the group).</reason>
+      </file>
+
+      <!-- Backend: Migration -->
+      <file>
+        <path>backend/migrations/000014_seed_application_statuses.up.sql</path>
+        <kind>migration</kind>
+        <symbol>seed_application_statuses</symbol>
+        <lines>1-4</lines>
+        <reason>Current seed migration pattern: INSERT with WHERE NOT EXISTS. Use same pattern for 000017 to add "Draft".</reason>
+      </file>
+
+      <!-- Backend: Tests -->
+      <file>
+        <path>backend/internal/handlers/application_test.go</path>
+        <kind>test</kind>
+        <symbol>ApplicationHandler tests</symbol>
+        <reason>Existing handler tests — add status transition tests here.</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/application_test.go</path>
+        <kind>test</kind>
+        <symbol>ApplicationRepository tests</symbol>
+        <reason>Existing repository tests including GetApplicationsByStatus. Add UpdateApplicationStatus tests and Draft default tests.</reason>
+      </file>
+      <file>
+        <path>backend/internal/repository/dashboard_test.go</path>
+        <kind>test</kind>
+        <symbol>DashboardRepository tests</symbol>
+        <reason>Existing dashboard tests assert statusCounts for saved/applied/interview/offer/rejected. Must add "draft" assertions.</reason>
+      </file>
+
+      <!-- Frontend: Application Table Columns -->
+      <file>
+        <path>frontend/src/app/(app)/applications/application-table/columns.tsx</path>
+        <kind>component</kind>
+        <symbol>createColumns (status cell)</symbol>
+        <lines>133-147</lines>
+        <reason>Status badge rendering in application list table. variantMap at lines 137-144 maps status names to badge variants. Must add "Draft" mapping.</reason>
+      </file>
+
+      <!-- Frontend: Application Detail Page -->
+      <file>
+        <path>frontend/src/app/(app)/applications/[id]/page.tsx</path>
+        <kind>page</kind>
+        <symbol>statusVariantMap</symbol>
+        <lines>47-54</lines>
+        <reason>Status-to-badge variant mapping on application detail page. Must add "Draft" entry.</reason>
+      </file>
+
+      <!-- Frontend: Application Form -->
+      <file>
+        <path>frontend/src/app/(app)/applications/new/add-application-form.tsx</path>
+        <kind>component</kind>
+        <symbol>AddApplicationForm</symbol>
+        <reason>Application creation form. Calls POST /api/applications/quick-create which currently defaults to "Applied". No frontend change needed if backend handles default — but verify the form doesn't hardcode a status.</reason>
+      </file>
+
+      <!-- Frontend: Application Service -->
+      <file>
+        <path>frontend/src/services/application-service.ts</path>
+        <kind>service</kind>
+        <symbol>getApplicationStatuses, ApplicationStatus type</symbol>
+        <lines>5-8, 98-101</lines>
+        <reason>Frontend service for fetching status list from GET /api/application-statuses. Status list is dynamic from DB, so new "Draft" status will appear automatically.</reason>
+      </file>
+
+      <!-- Frontend: Application Filters -->
+      <file>
+        <path>frontend/src/app/(app)/applications/application-filters.tsx</path>
+        <kind>component</kind>
+        <symbol>ApplicationFilters</symbol>
+        <reason>Filter bar for application list. Uses status_ids filter. Check if status options are hardcoded or fetched from API.</reason>
+      </file>
+
+      <!-- Frontend: Dashboard Page -->
+      <file>
+        <path>frontend/src/app/(app)/page.tsx</path>
+        <kind>page</kind>
+        <symbol>Dashboard</symbol>
+        <lines>1-50</lines>
+        <reason>Dashboard page displaying stats from getStats(). Uses stats.interview_count and status breakdown. Must handle Draft count in display.</reason>
+      </file>
+
+      <!-- Frontend: Dashboard Service -->
+      <file>
+        <path>frontend/src/services/dashboard-service.ts</path>
+        <kind>service</kind>
+        <symbol>DashboardStats</symbol>
+        <reason>Dashboard stats type definition with interview_count, status_counts. May need draft field or dynamic handling.</reason>
+      </file>
+
+      <!-- Frontend: Badge Component -->
+      <file>
+        <path>frontend/src/components/ui/badge.tsx</path>
+        <kind>component</kind>
+        <symbol>Badge variants</symbol>
+        <reason>Badge component with status-specific variants (applied, screening, interviewing, offered, rejected, withdrawn). Need to add a "draft" variant with appropriate styling.</reason>
+      </file>
+
+      <!-- Frontend: Application Form Test -->
+      <file>
+        <path>frontend/src/app/(app)/applications/new/__tests__/add-application-form.test.tsx</path>
+        <kind>test</kind>
+        <symbol>AddApplicationForm tests</symbol>
+        <reason>Existing form tests. Add test verifying Draft is the default status for new applications.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <go>
+        <package name="github.com/gin-gonic/gin" version="v1.10.1">HTTP framework — handlers, middleware</package>
+        <package name="github.com/jmoiron/sqlx" version="v1.4.0">Database queries — repository layer</package>
+        <package name="github.com/google/uuid" version="v1.6.0">UUID generation and parsing</package>
+        <package name="github.com/golang-migrate/migrate/v4" version="v4.18.3">Database migrations</package>
+        <package name="github.com/lib/pq" version="v1.10.9">PostgreSQL driver</package>
+        <package name="github.com/stretchr/testify" version="v1.10.0">Test assertions</package>
+      </go>
+      <node>
+        <package name="next" version="14.2.15">Framework (App Router)</package>
+        <package name="react" version="^18">UI library</package>
+        <package name="@tanstack/react-table">Table component used in application list</package>
+        <package name="axios" version="^1.7.9">HTTP client with interceptors</package>
+        <package name="react-hook-form" version="^7.54.2">Form handling</package>
+        <package name="zod" version="^3.24.2">Schema validation</package>
+        <package name="sonner">Toast notifications</package>
+        <package name="date-fns" version="^4.1.0">Date formatting</package>
+        <package name="jest" version="^30.2.0">Testing framework</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Handler → Repository pattern: handlers validate input, repositories execute SQL. No direct DB access from handlers.</constraint>
+    <constraint type="pattern">API responses use standardized envelope: { success: bool, data: any, error: { error: string, code: string, field_errors: map } }</constraint>
+    <constraint type="security">Auth + CSRF middleware on all state-changing application endpoints. PATCH /api/applications/:id/status requires both.</constraint>
+    <constraint type="database">Application statuses stored in lookup table with UNIQUE constraint on name. Use INSERT WHERE NOT EXISTS for migration safety.</constraint>
+    <constraint type="cache">Dashboard stats cached 5 minutes per user. Application status list cached 5 minutes globally. InvalidateCache called after status changes.</constraint>
+    <constraint type="testing">Backend: go test with testify assertions. Frontend: jest + @testing-library/react. Follow existing test file patterns.</constraint>
+    <constraint type="style">Badge component uses variant prop for status colors. Add new variant for Draft to maintain consistency.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>UpdateApplicationStatus</name>
+      <kind>REST endpoint</kind>
+      <signature>PATCH /api/applications/:id/status { "application_status_id": "uuid" } → { success: true, data: Application }</signature>
+      <path>backend/internal/handlers/application.go:332</path>
+    </interface>
+    <interface>
+      <name>GetApplicationStatuses</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/application-statuses → { success: true, data: { statuses: ApplicationStatus[] } }</signature>
+      <path>backend/internal/handlers/application.go:428</path>
+    </interface>
+    <interface>
+      <name>QuickCreateApplication</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/applications/quick-create { company_name, title, description, ... } → { success: true, data: { application, job, company } }</signature>
+      <path>backend/internal/handlers/application.go:180</path>
+    </interface>
+    <interface>
+      <name>GetDashboardStats</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/dashboard/stats → { success: true, data: DashboardStats }</signature>
+      <path>backend/internal/repository/dashboard_repository.go:43</path>
+    </interface>
+    <interface>
+      <name>GetApplicationStatusIDByName</name>
+      <kind>function</kind>
+      <signature>func (r *ApplicationRepository) GetApplicationStatusIDByName(name string) (uuid.UUID, error)</signature>
+      <path>backend/internal/repository/application.go:484</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Backend uses Go testing with testify assertions, sqlx test database setup via testutil package. Frontend uses Jest 30 with @testing-library/react for component testing. Tests colocated in __tests__ directories for frontend, and *_test.go files alongside source for backend. API/handler tests use httptest for HTTP-level testing. Repository tests use real PostgreSQL test database.</standards>
+    <locations>
+      <location>backend/internal/handlers/application_test.go</location>
+      <location>backend/internal/repository/application_test.go</location>
+      <location>backend/internal/repository/dashboard_test.go</location>
+      <location>frontend/src/app/(app)/applications/new/__tests__/add-application-form.test.tsx</location>
+      <location>frontend/src/app/(app)/applications/application-table/ (new test file for columns)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test PATCH /api/applications/:id/status with valid status UUID returns 200 and updated application</idea>
+      <idea ac="1">Test PATCH /api/applications/:id/status with invalid UUID returns 400</idea>
+      <idea ac="1">Test PATCH /api/applications/:id/status on non-existent application returns 404</idea>
+      <idea ac="2">Test that GetApplicationStatuses includes "Draft" after migration</idea>
+      <idea ac="2">Test that GetApplicationStatusIDByName("Draft") resolves to valid UUID</idea>
+      <idea ac="3">Test QuickCreateApplication creates application with "Draft" status (not "Applied")</idea>
+      <idea ac="3">Test that creating application via form defaults to Draft in UI</idea>
+      <idea ac="4">Test Badge renders with draft variant styling</idea>
+      <idea ac="4">Test application table columns render Draft badge correctly</idea>
+      <idea ac="5">Test dashboard statusCounts includes "draft" key with correct count</idea>
+      <idea ac="5">Test dashboard active calculation includes draft applications</idea>
+    </ideas>
+  </tests>
+</story-context>

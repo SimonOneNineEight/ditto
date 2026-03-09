@@ -1,0 +1,170 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>9</epicId>
+    <storyId>9.2</storyId>
+    <title>Fix Interview Status Tracking &amp; Dashboard Display</title>
+    <status>drafted</status>
+    <generatedAt>2026-03-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/planning/stories/9-2-fix-interview-status-tracking-and-dashboard.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>job seeker</asA>
+    <iWant>the dashboard to accurately count my interviews and see each interview's status</iWant>
+    <soThat>I have a reliable overview of my job search activity</soThat>
+    <tasks>
+      <task id="1" title="Add status column to interviews table" acs="3,4,5">
+        <subtask id="1.1">Create migration 000018_add_interview_status.up.sql — ALTER TABLE interviews ADD COLUMN status VARCHAR(30) NOT NULL DEFAULT 'scheduled' with CHECK constraint for values: scheduled, completed, cancelled</subtask>
+        <subtask id="1.2">Create corresponding 000018_add_interview_status.down.sql to drop the column</subtask>
+        <subtask id="1.3">Backfill existing rows — set status = 'completed' WHERE outcome IS NOT NULL, leave others as scheduled</subtask>
+      </task>
+      <task id="2" title="Update backend Interview model and repository" acs="3,4,5">
+        <subtask id="2.1">Add Status string field to Interview struct in backend/internal/models/interview.go</subtask>
+        <subtask id="2.2">Add status to all SELECT column lists in backend/internal/repository/interview.go — affects CreateInterview (line 37), GetInterviewByID (line 76), GetInterviewsByApplicationID (line 162), GetInterviewsByUser (line 181), GetInterviewWithApplicationInfo (line 207), GetInterviewsWithApplicationInfo (line 313)</subtask>
+        <subtask id="2.3">Add status to INSERT columns in CreateInterview, defaulting to 'scheduled'</subtask>
+        <subtask id="2.4">Add optional Status *string to UpdateInterviewRequest in backend/internal/handlers/interview.go (line 27) with validation against allowed values</subtask>
+        <subtask id="2.5">Update UpdateInterview handler to persist status changes</subtask>
+      </task>
+      <task id="3" title="Fix dashboard interview count" acs="1">
+        <subtask id="3.1">In backend/internal/repository/dashboard_repository.go, add a separate COUNT query against interviews table: SELECT COUNT(*) FROM interviews WHERE user_id = $1 AND deleted_at IS NULL</subtask>
+        <subtask id="3.2">Replace InterviewCount: statusCounts["interview"] (line 118) with the actual interview record count</subtask>
+        <subtask id="3.3">Consider also initializing "draft" in statusCounts map (line 88-94) per advisory note from Story 9.1 review</subtask>
+      </task>
+      <task id="4" title="Auto-set application status on interview creation" acs="2">
+        <subtask id="4.1">In CreateInterview handler (backend/internal/handlers/interview.go line 61), after creating the interview, look up the parent application's current status</subtask>
+        <subtask id="4.2">If current status is Draft, Saved, or Applied, call applicationRepo.GetApplicationStatusIDByName("Interview") then applicationRepo.UpdateApplicationStatus() to set it to "Interview"</subtask>
+        <subtask id="4.3">If current status is Interview, Offer, or Rejected, do NOT downgrade/change — skip the auto-update</subtask>
+        <subtask id="4.4">InterviewHandler already has applicationRepo field (line 41), so no new dependency injection is needed</subtask>
+      </task>
+      <task id="5" title="Update frontend Interview type and display" acs="3,4,5">
+        <subtask id="5.1">Add status: string to Interview interface in frontend/src/services/interview-service.ts (line 62)</subtask>
+        <subtask id="5.2">Update interview list table status column (frontend/src/app/(app)/interviews/interview-table/columns.tsx lines 185-198) to show actual status field with badge colors: scheduled=blue, completed=green, cancelled=gray</subtask>
+        <subtask id="5.3">Add "Awaiting Outcome" display logic — if status === 'scheduled' and scheduled_date is in the past and no outcome, show amber "Awaiting Outcome" badge</subtask>
+        <subtask id="5.4">Update interview card list (frontend/src/components/interview-list/interview-card-list.tsx) to show status badge</subtask>
+        <subtask id="5.5">Update interview detail view (frontend/src/components/interview-detail/details-card.tsx) to show status in the details grid</subtask>
+        <subtask id="5.6">Update application detail timeline (frontend/src/app/(app)/applications/[id]/page.tsx lines 93-102) to show interview status in subtitle</subtask>
+        <subtask id="5.7">Update needs-feedback-section.tsx to use status field alongside existing date-based logic</subtask>
+      </task>
+      <task id="6" title="Testing" acs="1,2,3,4,5">
+        <subtask id="6.1">Backend integration tests require PostgreSQL — verify code compiles and logic is correct by review</subtask>
+        <subtask id="6.2">Frontend tests — update interview service mocks to include status field</subtask>
+        <subtask id="6.3">Verify dashboard stat card shows correct interview count (manual test)</subtask>
+        <subtask id="6.4">Verify all existing tests pass with new interview status field — run pnpm test in frontend</subtask>
+        <subtask id="6.5">Test auto-status transition: create interview for Draft/Saved/Applied app → verify app status becomes "Interview"</subtask>
+        <subtask id="6.6">Test no-downgrade: create interview for Offer app → verify app status stays "Offer"</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Given the dashboard stats endpoint, when interview count is returned, then it reflects the actual number of interview records from the interviews table (not just applications with "Interview" status)</ac>
+    <ac id="2">Given a user creates a new interview for an application, when the interview is saved, then the parent application's status is automatically set to "Interview" (if currently Draft, Saved, or Applied)</ac>
+    <ac id="3">Given an interview exists, when displayed in the application detail view, then it shows a status indicator (scheduled, completed, cancelled) alongside the date</ac>
+    <ac id="4">Given the interview model, when an interview's scheduled date is in the past and no outcome is recorded, then it displays as "Awaiting Outcome"</ac>
+    <ac id="5">Given the interview model, when an outcome is recorded, then the interview displays as "Completed" with the outcome value</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/planning/epic-9.md" title="Epic 9: Bug Fixes &amp; Core Workflow Stability" section="Story 9.2" snippet="Defines ACs, tasks, edge cases, and technical notes for interview status tracking and dashboard count fix. Dashboard InterviewCount is statusCounts['interview'] — count of applications, not interviews." />
+      <doc path="docs/database-schema.md" title="Database Schema" section="interviews" snippet="Interviews table with columns: id, user_id, application_id, round_number, interview_type, scheduled_date, scheduled_time, duration_minutes, outcome, overall_feeling, confidence_level. No status column currently exists." />
+      <doc path="docs/database-schema.md" title="Database Schema" section="application_status" snippet="Lookup table for application workflow statuses with UNIQUE constraint on name. Contains: Applied, Interviewing, Rejected, Accepted, Saved, Draft." />
+      <doc path="docs/database-schema.md" title="Database Schema" section="Migration History" snippet="17 migrations exist (000001-000017). Migration 000017 added Draft status. Next available migration number is 000018." />
+      <doc path="docs/architecture.md" title="Architecture Document" section="API Architecture" snippet="Gin HTTP framework with handler-repository pattern. Standardized ApiResponse envelope with Success/Error/FieldErrors. Interview routes under /api/interviews." />
+      <doc path="docs/architecture.md" title="Architecture Document" section="Technology Stack" snippet="Backend: Go 1.24, Gin, sqlx, JWT auth. Frontend: Next.js 14, React 18, TypeScript, shadcn/ui, React Hook Form, Zod, Jest." />
+      <doc path="docs/architecture.md" title="Architecture Document" section="Authentication" snippet="JWT-based auth with 24h access tokens. Middleware extracts user_id from Bearer token. All endpoints require auth." />
+      <doc path="docs/planning/stories/9-1-fix-application-status-transitions-and-draft.md" title="Story 9.1 (Done)" section="Dev Agent Record" snippet="Learnings: updateApplicationStatus() added to application-service.ts:112-117. getApplicationStatuses() cached in application-service.ts:98-105. Draft badge variant added to badge.tsx:43-44. Migration 000017 used INSERT WHERE NOT EXISTS pattern." />
+    </docs>
+    <code>
+      <file path="backend/internal/models/interview.go" kind="model" symbol="Interview struct" lines="26-43" reason="Interview model struct needs new Status field added. Currently has no status field — only Outcome (nullable free-text)." />
+      <file path="backend/internal/repository/interview.go" kind="repository" symbol="InterviewRepository" lines="1-386" reason="All CRUD operations for interviews. 6 SELECT queries need status column added to column lists. INSERT at line 37 needs status. UpdateInterview at line 93 uses dynamic map-based updates." />
+      <file path="backend/internal/handlers/interview.go" kind="handler" symbol="InterviewHandler" lines="1-497" reason="Interview CRUD handlers. CreateInterview at line 61 needs auto-status transition logic. UpdateInterview at line 187 needs status field support. UpdateInterviewRequest at line 27 needs Status field." />
+      <file path="backend/internal/repository/dashboard_repository.go" kind="repository" symbol="DashboardRepository.fetchStats" lines="71-123" reason="Bug location: line 118 sets InterviewCount from statusCounts['interview'] (application count, not interview count). Needs separate COUNT query against interviews table." />
+      <file path="backend/internal/repository/application.go" kind="repository" symbol="UpdateApplicationStatus" lines="410-434" reason="Existing method to update application status by ID. Proven working from Story 9.1." />
+      <file path="backend/internal/repository/application.go" kind="repository" symbol="GetApplicationStatusIDByName" lines="484-509" reason="Lookup status UUID by name string. Cached with 5-min TTL. Use to resolve 'Interview' status ID." />
+      <file path="frontend/src/services/interview-service.ts" kind="service" symbol="Interview interface" lines="62-77" reason="Frontend Interview type definition. Missing status field — needs status: string added." />
+      <file path="frontend/src/app/(app)/interviews/interview-table/columns.tsx" kind="component" symbol="columns, StatusBadge" lines="184-198" reason="Interview list table status column. Currently derives status from countdown/outcome. Needs to use new status field with appropriate badge colors." />
+      <file path="frontend/src/components/interview-list/interview-card-list.tsx" kind="component" symbol="InterviewCard" lines="60-125" reason="Mobile/card view of interviews. Shows countdown badge. Needs interview status badge added." />
+      <file path="frontend/src/components/interview-detail/details-card.tsx" kind="component" symbol="DetailsCard" lines="43-84" reason="Interview detail view with date/time/duration/type grid. Needs status field added to the details grid." />
+      <file path="frontend/src/components/interview-list/needs-feedback-section.tsx" kind="component" symbol="NeedsFeedbackSection, getFeedbackStatus" lines="1-191" reason="Filters interviews needing feedback (past date, no outcome). Should incorporate status field — if status=cancelled, exclude from needs-feedback." />
+      <file path="frontend/src/app/(app)/applications/[id]/page.tsx" kind="page" symbol="buildTimeline" lines="93-102" reason="Application detail timeline shows interview events. Subtitle currently shows only outcome. Should show interview status." />
+      <file path="frontend/src/app/(app)/page.tsx" kind="page" symbol="Dashboard StatCards" lines="163-167" reason="Dashboard displays interview_count from stats API. Will automatically reflect fix once backend returns correct count." />
+      <file path="frontend/src/components/ui/badge.tsx" kind="component" symbol="badgeVariants" lines="1-113" reason="Badge component with variant system. Has existing variants for interview types, status indicators (today, soon, awaiting, overdue). New interview status variants (scheduled, completed, cancelled) needed." />
+      <file path="frontend/src/services/application-service.ts" kind="service" symbol="updateApplicationStatus, getApplicationStatuses" lines="98-117" reason="From Story 9.1: cached status lookup and status update functions. Can be reused if frontend needs to programmatically update application status." />
+    </code>
+    <dependencies>
+      <go>
+        <module>ditto-backend</module>
+        <goVersion>1.24.0</goVersion>
+        <packages>
+          <package name="github.com/gin-gonic/gin" version="v1.10.1" />
+          <package name="github.com/jmoiron/sqlx" version="v1.4.0" />
+          <package name="github.com/google/uuid" version="v1.6.0" />
+          <package name="github.com/golang-jwt/jwt/v5" version="v5.2.2" />
+          <package name="github.com/golang-migrate/migrate/v4" version="v4.18.3" />
+        </packages>
+      </go>
+      <node>
+        <packageManager>pnpm</packageManager>
+        <packages>
+          <package name="next" version="14.2.15" />
+          <package name="react" version="^18" />
+          <package name="typescript" version="^5" />
+          <package name="@tanstack/react-table" version="^8.20.5" />
+          <package name="date-fns" version="^4.1.0" />
+          <package name="react-hook-form" version="^7.54.2" />
+          <package name="zod" version="^3.24.2" />
+          <package name="axios" version="^1.7.9" />
+          <package name="class-variance-authority" version="^0.7.0" />
+          <package name="jest" version="^30.2.0" />
+        </packages>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">Handler-Repository pattern: handlers call repository methods, no direct DB access in handlers</constraint>
+    <constraint type="pattern">Standardized API response envelope via pkg/response (Success, Error, Created, NoContent)</constraint>
+    <constraint type="pattern">Soft deletes: all queries filter WHERE deleted_at IS NULL</constraint>
+    <constraint type="pattern">Dynamic updates via map[string]any in UpdateInterview — add status to the map when provided</constraint>
+    <constraint type="pattern">Dashboard stats are cached 5 minutes per user (statsCache). InvalidateCache already called by interview CRUD handlers.</constraint>
+    <constraint type="pattern">Badge variants defined in badge.tsx using class-variance-authority (cva). Follow existing pill-style pattern for new variants.</constraint>
+    <constraint type="pattern">"Awaiting Outcome" is a derived/computed display state (status=scheduled AND scheduled_date past AND outcome IS NULL). Computed in frontend, not stored in DB.</constraint>
+    <constraint type="edge-case">Application already at Offer/Rejected when new interview created — do NOT downgrade to Interview status</constraint>
+    <constraint type="edge-case">Multiple interviews per application — each has independent status; auto-transition only triggers on interview creation</constraint>
+    <constraint type="migration">Migration numbering: 000017 exists (Draft status). Next available is 000018.</constraint>
+    <constraint type="testing">Backend integration tests require PostgreSQL — verify correctness by code review. Frontend tests use Jest with pnpm test.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="UpdateApplicationStatus" kind="repository method" signature="func (r *ApplicationRepository) UpdateApplicationStatus(applicationID, userID, application_status_id uuid.UUID) error" path="backend/internal/repository/application.go:410" />
+    <interface name="GetApplicationStatusIDByName" kind="repository method" signature="func (r *ApplicationRepository) GetApplicationStatusIDByName(name string) (uuid.UUID, error)" path="backend/internal/repository/application.go:484" />
+    <interface name="GetApplicationByID" kind="repository method" signature="func (r *ApplicationRepository) GetApplicationByID(id, userID uuid.UUID) (*ApplicationWithDetails, error)" path="backend/internal/repository/application.go" />
+    <interface name="InvalidateCache" kind="repository method" signature="func (r *DashboardRepository) InvalidateCache(userID uuid.UUID)" path="backend/internal/repository/dashboard_repository.go:125" />
+    <interface name="CreateInterview" kind="REST endpoint" signature="POST /api/interviews — body: {application_id, interview_type, scheduled_date, scheduled_time?, duration_minutes?}" path="backend/internal/handlers/interview.go:61" />
+    <interface name="UpdateInterview" kind="REST endpoint" signature="PUT /api/interviews/:id — body: {scheduled_date?, scheduled_time?, duration_minutes?, interview_type?, outcome?, overall_feeling?, went_well?, could_improve?, confidence_level?, status?}" path="backend/internal/handlers/interview.go:187" />
+    <interface name="GetStats" kind="REST endpoint" signature="GET /api/dashboard/stats — returns DashboardStats with total_applications, active_applications, interview_count, offer_count, status_counts" path="backend/internal/handlers/dashboard_handler.go" />
+  </interfaces>
+
+  <tests>
+    <standards>Backend tests use Go testing with testify assertions and PostgreSQL test database (testutil/database.go for setup/teardown, testutil/fixtures.go for test data factories). Frontend tests use Jest with React Testing Library. Mocks are co-located in __tests__ directories. Run backend: go test ./... (requires PostgreSQL). Run frontend: pnpm test.</standards>
+    <locations>
+      <location>backend/internal/repository/*_test.go</location>
+      <location>backend/internal/handlers/*_test.go</location>
+      <location>frontend/src/**/__tests__/*.test.ts(x)</location>
+      <location>frontend/src/lib/schemas/__tests__/*.test.ts</location>
+      <location>frontend/src/components/interview-form/__tests__/interview-form-modal.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Verify fetchStats returns interview count from interviews table, not statusCounts["interview"]</idea>
+      <idea ac="2">Test CreateInterview auto-transitions: Draft→Interview, Saved→Interview, Applied→Interview</idea>
+      <idea ac="2">Test no-downgrade: create interview when app status is Offer → status stays Offer</idea>
+      <idea ac="2">Test no-downgrade: create interview when app status is Rejected → status stays Rejected</idea>
+      <idea ac="3">Test interview list/card displays correct status badge (scheduled=blue, completed=green, cancelled=gray)</idea>
+      <idea ac="4">Test "Awaiting Outcome" badge appears when status=scheduled, date is past, no outcome</idea>
+      <idea ac="5">Test completed interview shows "Completed" with outcome value</idea>
+      <idea ac="all">Verify existing frontend tests pass with new status field in mocks (pnpm test)</idea>
+    </ideas>
+  </tests>
+</story-context>
