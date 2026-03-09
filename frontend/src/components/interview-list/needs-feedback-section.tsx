@@ -18,10 +18,11 @@ interface NeedsFeedbackSectionProps {
 
 type FeedbackStatus = 'awaiting' | 'overdue';
 
-function getFeedbackStatus(scheduledDate: string, outcome?: string): FeedbackStatus | null {
-    if (outcome) return null;
+function getFeedbackStatus(interview: InterviewListItem): FeedbackStatus | null {
+    if (interview.outcome) return null;
+    if (interview.status === 'cancelled' || interview.status === 'completed') return null;
 
-    const interviewDate = startOfDay(parseISO(scheduledDate));
+    const interviewDate = startOfDay(parseISO(interview.scheduled_date));
     const today = startOfDay(new Date());
 
     if (interviewDate >= today) return null;
@@ -33,7 +34,7 @@ function getFeedbackStatus(scheduledDate: string, outcome?: string): FeedbackSta
 
 function filterNeedsFeedback(interviews: InterviewListItem[]): InterviewListItem[] {
     return interviews.filter((interview) => {
-        const status = getFeedbackStatus(interview.scheduled_date, interview.outcome);
+        const status = getFeedbackStatus(interview);
         return status !== null;
     });
 }
@@ -109,10 +110,7 @@ export function NeedsFeedbackSection({ interviews }: NeedsFeedbackSectionProps) 
             {isExpanded && (
                 <div>
                     {needsFeedbackInterviews.map((interview, index) => {
-                        const status = getFeedbackStatus(
-                            interview.scheduled_date,
-                            interview.outcome
-                        )!;
+                        const status = getFeedbackStatus(interview)!;
                         const isLast = index === needsFeedbackInterviews.length - 1;
 
                         return (

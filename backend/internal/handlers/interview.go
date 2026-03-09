@@ -8,6 +8,7 @@ import (
 	"ditto-backend/pkg/errors"
 	"ditto-backend/pkg/response"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -34,6 +35,7 @@ type UpdateInterviewRequest struct {
 	WentWell        *string `json:"went_well"`
 	CouldImprove    *string `json:"could_improve"`
 	ConfidenceLevel *int    `json:"confidence_level" binding:"omitempty,min=1,max=5"`
+	Status          *string `json:"status" binding:"omitempty,oneof=scheduled completed cancelled"`
 }
 
 type InterviewHandler struct {
@@ -92,6 +94,18 @@ func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 	if err != nil {
 		HandleError(c, err)
 		return
+	}
+
+	// Auto-upgrade application status to "Interview" if currently Draft/Saved/Applied
+	appWithDetails, err := h.applicationRepo.GetApplicationByIDWithDetails(req.ApplicationID, userID)
+	if err == nil && appWithDetails.Status != nil {
+		statusName := strings.ToLower(appWithDetails.Status.Name)
+		if statusName == "saved" || statusName == "applied" {
+			interviewStatusID, err := h.applicationRepo.GetApplicationStatusIDByName("Interview")
+			if err == nil {
+				_ = h.applicationRepo.UpdateApplicationStatus(req.ApplicationID, userID, interviewStatusID)
+			}
+		}
 	}
 
 	h.dashboardRepo.InvalidateCache(userID)
@@ -249,6 +263,10 @@ func (h *InterviewHandler) UpdateInterview(c *gin.Context) {
 
 	if req.ConfidenceLevel != nil {
 		updates["confidence_level"] = *req.ConfidenceLevel
+	}
+
+	if req.Status != nil {
+		updates["status"] = *req.Status
 	}
 
 	updatedInterview, err := h.interviewRepo.UpdateInterview(interviewID, userID, updates)

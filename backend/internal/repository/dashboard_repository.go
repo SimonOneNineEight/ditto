@@ -110,12 +110,18 @@ func (r *DashboardRepository) fetchStats(userID uuid.UUID) (*DashboardStats, err
 		return nil, errors.ConvertError(err)
 	}
 
-	active := statusCounts["saved"] + statusCounts["applied"] + statusCounts["interview"]
+	active := statusCounts["applied"] + statusCounts["interview"]
+
+	var interviewCount int
+	interviewCountQuery := `SELECT COUNT(*) FROM interviews WHERE user_id = $1 AND deleted_at IS NULL`
+	if err := r.db.Get(&interviewCount, interviewCountQuery, userID); err != nil {
+		return nil, errors.ConvertError(err)
+	}
 
 	return &DashboardStats{
 		TotalApplications:  total,
 		ActiveApplications: active,
-		InterviewCount:     statusCounts["interview"],
+		InterviewCount:     interviewCount,
 		OfferCount:         statusCounts["offer"],
 		StatusCounts:       statusCounts,
 		UpdatedAt:          time.Now(),

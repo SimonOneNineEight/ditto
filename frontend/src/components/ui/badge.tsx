@@ -39,7 +39,18 @@ const badgeVariants = cva(
           "border-transparent rounded-full px-3 py-1 bg-accent-muted text-white",
         overdue:
           "border-transparent rounded-full px-3 py-1 bg-[#5c2a2a] text-white",
+        // Interview status variants (pill style)
+        scheduled:
+          "border-transparent rounded-full px-3 py-1 bg-[#1e3a5f] text-white",
+        completed:
+          "border-transparent rounded-full px-3 py-1 bg-[#166534] text-white",
+        cancelled:
+          "border-transparent rounded-full px-3 py-1 bg-[#3a3a3a] text-white",
+        awaiting_outcome:
+          "border-transparent rounded-full px-3 py-1 bg-[#92400e] text-white",
         // Application status variants (pill style with full rounded)
+        draft:
+          "border-transparent rounded-full px-3 py-1 bg-[#475569] text-white",
         applied:
           "border-transparent rounded-full px-3 py-1 bg-[#1e4a7a] text-white",
         screening:

@@ -82,7 +82,8 @@ export function InterviewTable({ columns, data }: DataTableProps) {
                                         'cursor-pointer hover:bg-muted',
                                         getRowBorderClass(
                                             row.original.scheduled_date,
-                                            row.original.outcome
+                                            row.original.outcome,
+                                            row.original.status
                                         )
                                     )}
                                 >
