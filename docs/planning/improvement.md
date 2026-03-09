@@ -8,3 +8,5 @@
 - Add interview status (not only display date)
 - Add email varification for reset password
 - reduce application page file card space between title and infos
+- when extract, we should extract job description as html
+- add swagger to backend
