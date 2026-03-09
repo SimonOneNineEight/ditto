@@ -110,7 +110,7 @@ func (r *DashboardRepository) fetchStats(userID uuid.UUID) (*DashboardStats, err
 		return nil, errors.ConvertError(err)
 	}
 
-	active := statusCounts["applied"] + statusCounts["interview"]
+	active := statusCounts["saved"] + statusCounts["applied"] + statusCounts["interview"]
 
 	var interviewCount int
 	interviewCountQuery := `SELECT COUNT(*) FROM interviews WHERE user_id = $1 AND deleted_at IS NULL`

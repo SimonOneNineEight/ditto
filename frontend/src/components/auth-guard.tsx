@@ -13,10 +13,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         if (status === 'loading') return;
 
         if (session?.error === 'RefreshTokenError') {
-            signOut({ redirect: false }).then(() => {
-                const loginUrl = `/login?error=SessionExpired&callbackUrl=${encodeURIComponent(pathname)}`;
-                navigateTo(loginUrl);
-            });
+            signOut({ redirect: false })
+                .catch(() => {})
+                .finally(() => {
+                    const loginUrl = `/login?error=SessionExpired&callbackUrl=${encodeURIComponent(pathname)}`;
+                    navigateTo(loginUrl);
+                });
         }
     }, [session, status, pathname]);
 

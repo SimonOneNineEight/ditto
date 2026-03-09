@@ -48,13 +48,13 @@ import { AssessmentList } from '@/components/assessment-list';
 import { AssessmentFormModal } from '@/components/assessment-form';
 import { DocumentsSection } from '@/components/file-upload';
 
-const statusVariantMap: Record<string, string> = {
+const statusVariantMap = {
     'Saved': 'draft',
     'Applied': 'applied',
     'Interview': 'interviewing',
     'Offer': 'offered',
     'Rejected': 'rejected',
-};
+} as const;
 
 const statusDotColor: Record<string, string> = {
     'Saved': 'bg-[#475569]',

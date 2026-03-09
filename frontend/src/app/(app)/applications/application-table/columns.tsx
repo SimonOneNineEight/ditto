@@ -134,14 +134,14 @@ export const createColumns = (
             const statusName = row.original.status?.name;
             if (!statusName) return '—';
             // Map status names to badge variants
-            const variantMap: Record<string, string> = {
+            const variantMap = {
                 'Saved': 'draft',
                 'Applied': 'applied',
                 'Interview': 'interviewing',
                 'Offer': 'offered',
                 'Rejected': 'rejected',
-            };
-            const variant = variantMap[statusName] || 'default';
+            } as const;
+            const variant = variantMap[statusName as keyof typeof variantMap] || 'default';
             return <Badge variant={variant}>{statusName}</Badge>;
         },
     },

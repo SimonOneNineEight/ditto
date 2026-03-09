@@ -100,7 +100,7 @@ func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 	appWithDetails, err := h.applicationRepo.GetApplicationByIDWithDetails(req.ApplicationID, userID)
 	if err == nil && appWithDetails.Status != nil {
 		statusName := strings.ToLower(appWithDetails.Status.Name)
-		if statusName == "saved" || statusName == "applied" {
+		if statusName == "draft" || statusName == "saved" || statusName == "applied" {
 			interviewStatusID, err := h.applicationRepo.GetApplicationStatusIDByName("Interview")
 			if err == nil {
 				_ = h.applicationRepo.UpdateApplicationStatus(req.ApplicationID, userID, interviewStatusID)
