@@ -32,7 +32,7 @@ const LoginForm = () => {
 
     const urlError = searchParams.get('error');
     const rawCallbackUrl = searchParams.get('callbackUrl');
-    const callbackUrl = rawCallbackUrl?.startsWith('/') ? rawCallbackUrl : '/';
+    const callbackUrl = rawCallbackUrl?.startsWith('/') && !rawCallbackUrl.startsWith('//') ? rawCallbackUrl : '/';
 
     useEffect(() => {
         if (urlError === 'SessionExpired') {
@@ -45,6 +45,7 @@ const LoginForm = () => {
             email: data.email,
             password: data.password,
             redirect: false,
+            callbackUrl,
         });
 
         if (result?.error) {
