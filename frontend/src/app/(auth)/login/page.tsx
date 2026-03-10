@@ -45,6 +45,7 @@ const LoginForm = () => {
             email: data.email,
             password: data.password,
             redirect: false,
+            callbackUrl,
         });
 
         if (result?.error) {
