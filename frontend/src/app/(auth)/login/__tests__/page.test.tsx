@@ -5,10 +5,11 @@ import LoginPage from "../page";
 
 const mockPush = jest.fn();
 const mockSignIn = jest.fn();
+let mockSearchParams = new URLSearchParams();
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => mockSearchParams,
 }));
 
 jest.mock("next-auth/react", () => ({
@@ -33,6 +34,7 @@ jest.mock("../../components/oauth-buttons", () => ({
 describe("LoginPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSearchParams = new URLSearchParams();
   });
 
   it("renders email and password fields", () => {
@@ -133,5 +135,77 @@ describe("LoginPage", () => {
         screen.getByText("Invalid email or password"),
       ).toBeInTheDocument();
     });
+  });
+
+  it("passes valid internal callbackUrl from URL params to signIn", async () => {
+    mockSearchParams = new URLSearchParams("callbackUrl=/applications");
+    mockSignIn.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/email/i), "test@example.com");
+    await user.type(screen.getByLabelText(/password/i), "password123");
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(mockSignIn).toHaveBeenCalledWith("credentials", {
+        email: "test@example.com",
+        password: "password123",
+        redirect: false,
+        callbackUrl: "/applications",
+      });
+      expect(mockPush).toHaveBeenCalledWith("/applications");
+    });
+  });
+
+  it("sanitizes external callbackUrl to / to prevent open redirect", async () => {
+    mockSearchParams = new URLSearchParams("callbackUrl=//evil.com");
+    mockSignIn.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/email/i), "test@example.com");
+    await user.type(screen.getByLabelText(/password/i), "password123");
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(mockSignIn).toHaveBeenCalledWith("credentials", {
+        email: "test@example.com",
+        password: "password123",
+        redirect: false,
+        callbackUrl: "/",
+      });
+      expect(mockPush).toHaveBeenCalledWith("/");
+    });
+  });
+
+  it("sanitizes absolute external callbackUrl to /", async () => {
+    mockSearchParams = new URLSearchParams("callbackUrl=https://evil.com");
+    mockSignIn.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/email/i), "test@example.com");
+    await user.type(screen.getByLabelText(/password/i), "password123");
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(mockSignIn).toHaveBeenCalledWith("credentials", {
+        email: "test@example.com",
+        password: "password123",
+        redirect: false,
+        callbackUrl: "/",
+      });
+      expect(mockPush).toHaveBeenCalledWith("/");
+    });
+  });
+
+  it("shows session expired message when error=SessionExpired in URL", () => {
+    mockSearchParams = new URLSearchParams("error=SessionExpired&callbackUrl=/applications");
+    render(<LoginPage />);
+
+    expect(
+      screen.getByText("Your session has expired. Please sign in again."),
+    ).toBeInTheDocument();
   });
 });
