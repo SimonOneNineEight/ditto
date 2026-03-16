@@ -1,0 +1,26 @@
+services:
+  test-db:
+    image: postgres:15
+    container_name: ditto-test-postgres
+    environment:
+      POSTGRES_USER: ditto_test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: ditto_test
+    ports:
+      - "5432:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: ditto-test-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: s3
+      DEFAULT_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    volumes:
+      - ./scripts/init-localstack.sh:/etc/localstack/init/ready.d/init-localstack.sh

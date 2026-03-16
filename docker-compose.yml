@@ -9,14 +9,10 @@ services:
       POSTGRES_USER: ditto_user
       POSTGRES_PASSWORD: ditto_password
       POSTGRES_DB: ditto_dev
-      # Create test database on init
-      POSTGRES_MULTIPLE_DATABASES: ditto_dev,ditto_test
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./backend_go/migrations:/docker-entrypoint-initdb.d
-      - ./scripts/init-test-db.sh:/docker-entrypoint-initdb.d/00-init-test-db.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ditto_user -d ditto_dev"]
       interval: 5s
@@ -58,28 +54,8 @@ services:
       - ditto-network
     command: ["./docker-entrypoint.sh"]
 
-  # LocalStack for S3-compatible file storage in development
-  localstack:
-    image: localstack/localstack:latest
-    container_name: ditto-localstack
-    ports:
-      - "4566:4566"
-    environment:
-      SERVICES: s3
-      DEFAULT_REGION: us-east-1
-      AWS_DEFAULT_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
-    volumes:
-      - localstack_data:/var/lib/localstack
-      - ./scripts/init-localstack.sh:/etc/localstack/init/ready.d/init-localstack.sh
-    networks:
-      - ditto-network
-
 volumes:
   db_data:
-    driver: local
-  localstack_data:
     driver: local
 
 networks:
