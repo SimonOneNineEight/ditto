@@ -1,4 +1,4 @@
-{$DOMAIN:localhost} {
+{$DOMAIN:localhost}, www.{$DOMAIN:localhost} {
     encode gzip
 
     header {
