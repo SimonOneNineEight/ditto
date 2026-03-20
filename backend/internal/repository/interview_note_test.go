@@ -187,7 +187,7 @@ func TestInterviewNoteRepository(t *testing.T) {
 		content := "Delete me"
 		note := &models.InterviewNote{
 			InterviewID: createdInterview.ID,
-			NoteType:    models.NoteTypeGeneral,
+			NoteType:    models.NoteTypeReflection,
 			Content:     &content,
 		}
 		created, err := noteRepo.CreateInterviewNote(note)
