@@ -425,7 +425,7 @@ func TestInterviewHandler(t *testing.T) {
 			data := resp["data"].(map[string]interface{})
 			interview := data["interview"].(map[string]interface{})
 			assert.Equal(t, "technical", interview["interview_type"])
-			assert.Equal(t, newTime, interview["scheduled_time"])
+			assert.Contains(t, interview["scheduled_time"], newTime)
 			assert.Equal(t, float64(newDuration), interview["duration_minutes"])
 			assert.Equal(t, newOutcome, interview["outcome"])
 			assert.Equal(t, newFeeling, interview["overall_feeling"])

@@ -184,9 +184,18 @@ func TestInterviewNoteRepository(t *testing.T) {
 	})
 
 	t.Run("SoftDeleteInterviewNote", func(t *testing.T) {
+		deleteIv := &models.Interview{
+			UserID:        testUser.ID,
+			ApplicationID: createdApp.ID,
+			ScheduledDate: futureDate,
+			InterviewType: models.InterviewTypeBehavioral,
+		}
+		isolatedDeleteIv, err := interviewRepo.CreateInterview(deleteIv)
+		require.NoError(t, err)
+
 		content := "Delete me"
 		note := &models.InterviewNote{
-			InterviewID: createdInterview.ID,
+			InterviewID: isolatedDeleteIv.ID,
 			NoteType:    models.NoteTypeGeneral,
 			Content:     &content,
 		}

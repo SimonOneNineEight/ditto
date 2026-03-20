@@ -33,7 +33,7 @@ fi
 
 echo ""
 echo -e "${YELLOW}Running repository tests...${NC}"
-if go test ./internal/repository -v; then
+if go test -p 1 ./internal/repository -v; then
     echo -e "${GREEN}✓ Repository tests passed${NC}"
 else
     echo -e "${RED}✗ Repository tests failed${NC}"
@@ -42,7 +42,7 @@ fi
 
 echo ""
 echo -e "${YELLOW}Running all tests...${NC}"
-if go test ./... -v; then
+if go test -p 1 ./... -v; then
     echo -e "${GREEN}✓ All tests passed${NC}"
 else
     echo -e "${RED}✗ Some tests failed${NC}"

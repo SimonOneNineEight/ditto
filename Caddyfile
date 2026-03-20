@@ -1,4 +1,8 @@
-{$DOMAIN:localhost}, www.{$DOMAIN:localhost} {
+www.{$DOMAIN:localhost} {
+    redir https://{$DOMAIN}{uri} permanent
+}
+
+{$DOMAIN:localhost} {
     encode gzip
 
     header {
